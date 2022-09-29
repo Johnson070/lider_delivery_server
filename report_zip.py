@@ -1,8 +1,8 @@
-import zipfile,jsonpickle,re, uuid
+import zipfile, jsonpickle, uuid
 import functions as func
 import settings as sett
 
-import telebot
+from bot_tg import bot
 
 
 class geo_json:
@@ -24,19 +24,19 @@ class geo_json:
         self.type = 'FeatureCollection'
         self.metadata = {
             'name': 'Отчет',
-            'creator':'Yandex Map Constructor'
+            'creator': 'Yandex Map Constructor'
         }
         self.features = points
 
 
-def get_raw_by_id(bot, id):
+def get_raw_by_id(id):
     _ = bot.get_file(id)
     _ = bot.download_file(_.file_path)
 
     return _
 
 
-def get_report(bot, id):
+def get_report(id):
     file_name = sett.file_report_path.format(id, uuid.uuid4())
     report = zipfile.ZipFile(file_name, 'w')
 
@@ -52,12 +52,12 @@ def get_report(bot, id):
         else:
             photos_ids = [data[_][1]]
 
-        report.writestr(f'Отчет #{_+1}/video_note.mp4', get_raw_by_id(bot, data[_][2]))
+        report.writestr(f'Отчет #{_ + 1}/video_note.mp4', get_raw_by_id(data[_][2]))
 
         for num in range(0, len(photos_ids)):
-            report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', get_raw_by_id(bot, photos_ids[num]))
+            report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', get_raw_by_id(photos_ids[num]))
 
-    points = [geo_json.point(points[i-1], i) for i in range(1, count_reports+1)]
+    points = [geo_json.point(points[i - 1], i) for i in range(1, count_reports + 1)]
     geojson = geo_json(points)
     report.writestr(f'yandex_map_json_points.geojson', jsonpickle.encode(geojson, unpicklable=False))
 
@@ -65,12 +65,12 @@ def get_report(bot, id):
 
     return file_name
 
-if __name__ == '__main__':
-    bot = telebot.TeleBot(sett.API_KEY)
-
-    @bot.message_handler(regexp='test_zip_(([a-f0-9]+-){4}([a-f0-9]+))$')
-    def test_send_zip(msg):
-        get_report(bot, re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', msg.text).group(0))
-        pass
-
-    bot.polling(none_stop=True, interval=0, timeout=2000)
+# if __name__ == '__main__':
+#     bot = telebot.TeleBot(sett.API_KEY)
+#
+#     @bot.message_handler(regexp='test_zip_(([a-f0-9]+-){4}([a-f0-9]+))$')
+#     def test_send_zip(msg):
+#         get_report(bot, re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', msg.text).group(0))
+#         pass
+#
+#     bot.polling(none_stop=True, interval=0, timeout=2000)

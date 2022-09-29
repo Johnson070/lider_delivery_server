@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Delivery Bot</title>
+   <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <link rel="stylesheet" type= "text/css" href="../styles/css/main.css">
+</head>
+
+<body>
+
+   Авторизация...
+   <div id="main">
+
+   </div>
+   <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
+
+<script>
+   function sleep(delay) {
+       var start = new Date().getTime();
+       while (new Date().getTime() < start + delay);
+   }
+
+   var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+   xmlhttp.open('POST', 'validate', true); // Открываем асинхронное соединение
+   xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+   xmlhttp.send(window.Telegram.WebApp.initData); // Отправляем POST-запрос
+   xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+   if (xmlhttp.readyState == 4) { // Ответ пришёл
+      sleep(3);
+      if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+         if(this.responseText == '0') window.location.href = '/unauthorized';
+         else window.location.href = `/`;
+      }
+   }
+   };
+
+
+   let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
+
+   tg.expand(); //расширяем на все окно
+</script>
+</html>

@@ -5,28 +5,17 @@
 
 # создано для "Лидер сервис"
 import datetime
-import logging
 import re, os
-
 import telebot
 from telebot import types
-from flask import Flask
 
 import settings as sett
-import functions as func
-import report_zip
-import markups
-
-WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
-
-WEBHOOK_URL_BASE = "https://bdfix.ru:443/telebot_webhook"
-WEBHOOK_URL_PATH = "/%s/" % (sett.API_KEY)
 
 bot = telebot.TeleBot(sett.API_KEY)  # реализация
 
-app = Flask(__name__)
-application = app
-
+import functions as func
+import report_zip
+import markups
 
 # фильтр для проверки на права администратора
 class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
@@ -804,7 +793,7 @@ def start_bot():
         id = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
         msg = bot.send_message(call.message.chat.id,
                                'Ожидайте')
-        file_name = report_zip.get_report(bot, id)
+        file_name = report_zip.get_report(id)
 
         with open(file_name, 'rb') as zip:
             bot.send_document(call.message.chat.id, zip.read(),visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
@@ -869,19 +858,17 @@ def start_bot():
         bot.delete_message(msg.chat.id, msg.message_id)
 
 
-enable_webhook = False
-
-if __name__ == '__main__':
-    while True:  # бесконечный обработчик
-        try:
-            if enable_webhook:
-                bot.remove_webhook()
-                bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-
-                app.run(host=WEBHOOK_LISTEN)
-            else:
-                start_bot()
-                bot.polling(none_stop=True, interval=0, timeout=2000)
-        except Exception as e:
-            print(e)
-            print('restart',  datetime.datetime.now())
+# enable_webhook = False
+#
+# if __name__ == '__main__':
+#     while True:  # бесконечный обработчик
+#         try:
+#             if enable_webhook:
+#                 bot.remove_webhook()
+#                 bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+#             else:
+#                 start_bot()
+#                 bot.polling(none_stop=True, interval=0, timeout=2000)
+#         except Exception as e:
+#             print(e)
+#             print('restart',  datetime.datetime.now())

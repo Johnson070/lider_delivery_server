@@ -6,11 +6,18 @@ def up_directory(path):
     return '\\'.join(path)
 
 
+cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c'
 API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не сообщать, получать в @BotFather
-sqlite_file = os.path.join(up_directory(os.getcwd()), 'data.sqlite')
+sqlite_file = os.path.join(os.getcwd(), 'data.sqlite')
 file_report_path = os.path.join(os.getcwd(), 'report_{}_{}.zip')
 
-allow_radius = 1.0 # допустимый радиус отправки от нод геолокации в км
+prefix = ''
+WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
+
+WEBHOOK_URL_BASE = "https://bdfix.ru/"
+WEBHOOK_URL_PATH = prefix + "/%s/" % (API_KEY)
+
+allow_radius = 1.0  # допустимый радиус отправки от нод геолокации в км
 
 info_user_text = 'Пользователь: <b>@{}</b>\n\n' \
                  'Баланс: <u><b>{}</b></u> руб.\n' \

@@ -29,7 +29,7 @@ def get_admin_menu(full_menu=False):
         types.InlineKeyboardButton('Статистика', callback_data='stats'),
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
-    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://bdfix.ru/auth')))
+    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://127.0.0.1/auth')))
 
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))

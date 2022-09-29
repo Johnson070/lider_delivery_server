@@ -245,19 +245,34 @@ def get_count_reports_mission(id):
     return count
 
 
-def get_missions(all_by_desc=False):
+def get_missions(all_by_desc=False, web=False):
     conn, cursor = open_db()
     missions = None
-    if all_by_desc:
-        missions = cursor.execute('''SELECT id,comment FROM missions ORDER BY date_expire DESC''').fetchall()
-    else:
-        missions = cursor.execute('''SELECT id,comment FROM missions WHERE status = 1 AND proof = 0''').fetchall()
-    close_db(conn, cursor)
 
-    if len(missions) > 0 and missions[0][0] is not None:
-        missions = [[i[0], i[1]] for i in missions]
+    if web:
+        if all_by_desc:
+            missions = cursor.execute(
+                '''SELECT id,comment,status,proof FROM missions ORDER BY date_expire DESC''').fetchall()
+        else:
+            missions = cursor.execute(
+                '''SELECT id,comment,status,proof FROM missions WHERE status = 1 AND proof = 0''').fetchall()
+        close_db(conn, cursor)
+
+        if len(missions) > 0 and missions[0][0] is not None:
+            missions = [[i[0], i[1], i[2], i[3]] for i in missions]
+        else:
+            return []
     else:
-        return []
+        if all_by_desc:
+            missions = cursor.execute('''SELECT id,comment FROM missions ORDER BY date_expire DESC''').fetchall()
+        else:
+            missions = cursor.execute('''SELECT id,comment FROM missions WHERE status = 1 AND proof = 0''').fetchall()
+        close_db(conn, cursor)
+
+        if len(missions) > 0 and missions[0][0] is not None:
+            missions = [[i[0], i[1]] for i in missions]
+        else:
+            return []
 
     return missions
 

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <script src="../static/js/mission_info.js"></script>
+
+    <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
+</head>
+
+<body>
+   <button type="button" class="collapsible"><b>Меню</b></button>
+   <div class="content_menu">
+      <a class="menu_button" type="button" href='/'><b> -> Задания</b></a><br>
+      <a class="menu_button" href='routes'>Маршруты</a><br>
+      <a class="menu_button" href='users'>Пользователи</a>
+   </div>
+   <div id="main">
+      Выполнил: <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b><br>
+      Задание: <b>{{ name_mission }}</b><br><br>
+      Вознаграждение: <b>{{ reward }}</b> р<br>
+      Количество отчетов <b>{{ count }}</b> из <b>{{ all_count }}</b><br>
+      Время окончания: <b>{{ time }}</b><br>
+      Статус: <b>{{ status }}</b><br>
+   </div>
+   <div id="div_buttons">
+        {% if not proof and not rejected %}
+            <div class="buttons-grid-wait">
+             <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
+             <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+             <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
+             <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
+            </div>
+        {% else %}
+        {% if proof and not rejected %}
+            <div class="buttons-grid-done">
+            <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
+            </div>
+        {% else %}
+        {% if rejected %}
+            <div class="buttons-grid-rejected">
+            <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
+            <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
+            </div>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+
+{#      <button type="button" class="collapsible"><b>Отчет</b></button>#}
+{#      <div class="container">#}
+{#         <div class="gallery">#}
+{#            <div><iframe src='https://bdfix.ru/get_file?file_id=DQACAgIAAxkBAAIJhWMZMUvBAmcJNhqsMXtMv5MldhRyAALfIQACBZ_JSL2hsnlgWJinKQQ' frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>#}
+{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
+{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
+{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
+{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
+{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
+{#         </div>#}
+{#      </div>#}
+    </div>
+    <p>
+        <a href='/'>
+        <button class='button'>Назад</button>
+        </a>
+    </p>
+
+    <div id="reports">
+    </div>
+    <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
+</body>
+<script>
+
+</script>
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, session, Response, request, render_template, send_file
+from flask import Flask, session, Response, request, render_template, abort
 import hmac
 import hashlib, re, datetime
 from urllib.parse import unquote
@@ -7,12 +7,12 @@ import report_zip
 import settings
 import functions as func
 import jsonpickle
-import base64, requests
+from telebot import types
+from bot_tg import bot
 
 app = Flask(__name__)
 app.secret_key = settings.cookie_secret_key
-
-application = app
+prefix = settings.prefix
 
 
 def not_auth():
@@ -37,7 +37,7 @@ def validate_from_request(data):
     else:
         hash = '0'
     return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=1000000) and validate(
-        hash, data, settings.API_KEY_HMAC)
+        hash, data, settings.API_KEY)
 
 
 def validate(hash_str, init_data, token, c_str="WebAppData"):
@@ -66,35 +66,46 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
     return data_check.hexdigest() == hash_str
 
 
-@app.route('/validate', methods=['GET'])
+@app.route(settings.WEBHOOK_URL_PATH, methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    else:
+        abort(403)
+
+
+@app.route(prefix + '/validate', methods=['GET'])
 def validate_query():
     return '0' if not_auth() else '1'
 
 
-@app.route('/validate', methods=['POST'])
+@app.route(prefix + '/validate', methods=['POST'])
 def validate_query_save():
     session['initdata'] = request.data
     return '0' if not_auth() else '1'
 
 
-@app.route('/unauthorized')
+@app.route(prefix + '/unauthorized')
 def unauthorized():
-    return '<b>401</b><br>Unauthorized<br>Пожалуйста закройте окно и откройте заново!', 401
+    return Response('<b>401</b><br>Unauthorized<br>Пожалуйста закройте окно и откройте заново!', 401)
 
 
-@app.route('/auth')
+@app.route(prefix + '/auth')
 def auth():
     return render_template('auth.html')
 
 
-@app.route('/')
+@app.route(prefix + '/')
 def index():
     if not_auth():
         return unauthorized()
     return render_template('index.html')
 
 
-@app.route('/mission/<uuid>', methods=['GET'])
+@app.route(prefix + '/mission/<uuid>', methods=['GET'])
 def info_mission(uuid):
     if not_auth():
         return unauthorized()
@@ -121,13 +132,13 @@ def info_mission(uuid):
         return unauthorized()
 
 
-@app.route('/get_missions', methods=['GET'])
+@app.route(prefix + '/get_missions', methods=['GET'])
 def get_missions():
     if not_auth():
         return unauthorized()
 
     all = request.args.get('all')
-    missions = func.get_missions(all)
+    missions = func.get_missions(all, True)
 
     missions = [[i[0], ('✅ ' if (i[2] and i[3]) else
                         ('⚠️ ' if (i[2] and not i[3]) else
@@ -136,42 +147,41 @@ def get_missions():
     return jsonpickle.encode(missions, unpicklable=False)
 
 
-@app.route('/mission/<uuid>/<method>', methods=['GET'])
+@app.route(prefix + '/mission/<uuid>/<method>', methods=['GET'])
 def manage_mission(uuid, method):
     if not_auth():
         return unauthorized()
 
     if method == 'to_proof':
         func.proof_mission(uuid)
-        return '1', 200
+        return Response(None, 200)
     elif method == 'reject':
         func.reject_mission_by_id(uuid)
-        return '1', 200
+        return Response(None, 200)
     elif method == 'retry_rep':
         func.retry_mission_by_id(uuid)
-        return '1', 200
+        return Response(None, 200)
 
 
+# # скачивание файла с сервера телеграмм
+# def download_file(file_id):
+#     get_file_link = f'https://api.telegram.org/bot{settings.API_KEY}/getFile?file_id={file_id}'
+#
+#     r = requests.get(get_file_link)
+#
+#     if r.status_code == 200:
+#         file_path = r.json()['result']['file_path']
+#         download_file_raw = f'https://api.telegram.org/file/bot{settings.API_KEY}/{file_path}'
+#
+#         r_data = requests.get(download_file_raw)
+#
+#         if r_data.status_code == 200:
+#             return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
+#
+#     return None
 
-# скачивание файла с сервера телеграмм
-def download_file(file_id):
-    get_file_link = f'https://api.telegram.org/bot{settings.API_KEY_HMAC}/getFile?file_id={file_id}'
 
-    r = requests.get(get_file_link)
-
-    if r.status_code == 200:
-        file_path = r.json()['result']['file_path']
-        download_file_raw = f'https://api.telegram.org/file/bot{settings.API_KEY_HMAC}/{file_path}'
-
-        r_data = requests.get(download_file_raw)
-
-        if r_data.status_code == 200:
-            return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
-
-    return None
-
-
-@app.route('/get_file', methods=['GET'])
+@app.route(prefix + '/get_file', methods=['GET'])
 def get_file_by_file_id():
     # if not_auth():
     #     return unauthorized()
@@ -181,29 +191,34 @@ def get_file_by_file_id():
 
     file_id = request.args.get('file_id')
 
-    file = download_file(file_id)
+    file = report_zip.get_raw_by_id(file_id)
     if file is not None:
         if file_id.find('DQA') != -1:
             return Response(file, mimetype='video/mp4')
         else:
             return Response(file, mimetype='image/jpeg')
 
-    return 'File not found!', 404
+    return Response('File not found!', 200)
 
 
-@app.route('/download/report/<UUID>', methods=['GET'])
+@app.route(prefix + '/download/report/<UUID>', methods=['GET'])
 def download_report(UUID):
     if not_auth():
-        return unauthorized()
+        return 0
 
     file_name = report_zip.get_report(UUID)
     with open(file_name, 'rb') as zip:
-        return Response(zip.read(), mimetype='application/zip')
+        resp = Response(zip.read(), mimetype='application/zip')
+
     import os
     os.remove(file_name)
 
+    return resp
 
-@app.route('/mission/<uuid>/report', methods=['GET'])
+
+
+
+@app.route(prefix + '/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
     if not_auth():
         return unauthorized()
@@ -215,14 +230,20 @@ def get_base64_reports(uuid):
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit():
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
-        json_report[-1]['photos'] = reports[_][1]
+        json_report[-1]['photos'] = [reports[_][1]] if isinstance(reports[_][1], str) else reports[_][1]
         json_report[-1]['video'] = reports[_][2]
 
     return jsonpickle.encode(json_report, unpicklable=False)
 
 
-if __name__ == "__main__":
+def start_server(debug = False):
+    if debug:
+        app.run()
+    else:
+        app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+
+#if __name__ == "__main__":
     # app.run()
-    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
-else:
-    app.run()
+#    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+#else:
+#    app.run()
