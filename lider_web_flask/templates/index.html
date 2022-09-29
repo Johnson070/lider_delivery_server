@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Delivery Bot</title>
+   <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+
+   <style>
+      body{
+         color: var(--tg-theme-text-color);
+         background: var(--tg-theme-bg-color);
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         font-size: 18px;
+      }
+
+      .hint{
+         color: var(--tg-theme-hint-color);
+      }
+
+      .link{
+         color: var(--tg-theme-link-color);
+      }
+
+      .button{
+         background: var(--tg-theme-button-color);
+         color: var(--tg-theme-button-text-color);
+         border: none;
+         font-size: 18px;
+      }
+
+      .button:not(:last-child){
+         margin-bottom: 20px
+      }
+
+      #main{
+         text-align: center;
+      }
+
+      #usercard{
+         text-align: center;
+      }
+
+      .collapsible {
+        background-color: var(--tg-theme-button-color);
+        color: var(--tg-theme-button-text-color);
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+      }
+      
+      /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+      .active, .collapsible:hover {
+        background-color: #ccc;
+      }
+      
+      /* Style the collapsible content. Note: hidden by default */
+      .content_menu {
+/*         padding: 18px 0px; */
+        display: none;
+        width: 100%;
+        margin: 0px 18px;
+        overflow: hidden;
+        background-color: var(--tg-theme-secondary-bg-color);
+      }
+
+      .menu_button {
+         margin: 20px 10px;
+         text-decoration: none;
+         color: var(--tg-theme-button-text-color);
+      }
+
+      #mission_button {
+         display: inline-block;
+         border: 5px solid var(--tg-theme-button-color);
+         border-radius: 10px;
+         background: var(--tg-theme-button-color);
+         margin: 5px 0px;
+         text-decoration: none;
+         color: var(--tg-theme-button-text-color);
+      }
+   </style>
+</head>
+
+<body>
+   <button type="button" class="collapsible"><b>Меню</b></button>
+   <div class="content_menu">
+      <a class="menu_button" href='/'><b> -> Задания</b></a><br>
+      <a class="menu_button" href='routes'>Маршруты</a><br>
+      <a class="menu_button" href='users'>Пользователи</a>
+   </div>
+   <div>
+      <input type="checkbox" id="all" name="all">
+      <label for="all">Отображать все задания</label>
+    </div>
+   <div id="main">
+      
+   </div>
+   <div id="usercard">
+      
+   </div>
+   <p class="hint">
+      ✅ - Выполнено<br>
+      ⚠️ - Ожидает подтверждения<br>
+      ❗️❗️ - Забраковано<br>
+      ❌ Не выполнено<br>
+   </p>
+   <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
+
+<script>
+   var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+   xmlhttp.open('GET', 'validate', true); // Открываем асинхронное соединение
+   xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+   xmlhttp.send(); // Отправляем POST-запрос
+   xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+   if (xmlhttp.readyState == 4) { // Ответ пришёл
+     if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+       if(this.responseText == '0') window.location.href = '/unauthorized'
+     }
+   }
+   };
+
+   
+   let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
+
+   tg.expand(); //расширяем на все окно
+
+   function get_missions(all) {
+      var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+      xmlhttp.open('GET', 'get_missions' + (all == true ? '?all=1' : ''), true); // Открываем асинхронное соединение
+      xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+      xmlhttp.send(); // Отправляем POST-запрос
+      xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+      if (xmlhttp.readyState == 4) { // Ответ пришёл
+        if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+          if(this.responseText == '0') window.location.href = '/unauthorized';
+          else {
+             json = JSON.parse(this.responseText);
+             missions = document.getElementById("main");
+   
+             for (var i = 0; i < json.length; i++) {
+                item = document.createElement('a');
+                item.href = `/mission/${json[i][0]}`;
+                item.innerText = json[i][1];
+                item.id = 'mission_button';
+                missions.appendChild(item);
+                missions.appendChild(document.createElement('br'));
+             }
+          }
+        }
+      }
+      };
+   }
+
+   get_missions();
+   
+   let allCheckbox = document.getElementById("all"); //получаем кнопку активировать/деактивировать
+   allCheckbox.addEventListener('change', function(){ //вешаем событие на нажатие html-кнопки
+      document.getElementById("main").innerHTML = '';
+      get_missions(allCheckbox.checked);
+   });
+
+   let usercard = document.getElementById("usercard"); //получаем блок usercard
+   let profName = document.createElement('p'); //создаем параграф
+   profName.innerText = `${tg.initDataUnsafe.user.first_name}
+   ${tg.initDataUnsafe.user.username}`;
+   //выдем имя, "фамилию", через тире username и код языка
+   usercard.appendChild(profName); //добавляем
+
+
+
+   var coll = document.getElementsByClassName("collapsible");
+   for (var i = 0; i < coll.length; i++) {
+     coll[i].addEventListener("click", function() {
+       this.classList.toggle("active");
+       var content = this.nextElementSibling;
+       if (content.style.display === "block") {
+         content.style.display = "none";
+       } else {
+         content.style.display = "block";
+       }
+     });
+   }
+</script>
+</html>
