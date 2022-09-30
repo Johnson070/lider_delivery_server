@@ -1,0 +1,5 @@
+setuptools~=60.2.0
+qrcode~=7.3.1
+jsonpickle~=2.2.0
+Flask~=2.2.2
+pytelegramBotapi~=4.7.0

@@ -6,8 +6,6 @@ import datetime
 
 import threading
 
-thread = None
-
 serve_on_server = False
 
 def application():
@@ -31,5 +29,5 @@ def application():
             print(e)
             print('restart',  datetime.datetime.now())
 
-if True:
+if not serve_on_server:
     application()
