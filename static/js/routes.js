@@ -38,16 +38,6 @@ function delete_route() {
     };
 }
 
-function hide_popup() {
-    popup = document.getElementById('route-add-popup');
-    popup.style.display = 'None';
-}
-
-function show_popup() {
-    popup = document.getElementById('route-add-popup');
-    popup.style.display = 'block';
-}
-
 async function save_route() {
     let file = document.getElementById('file-route').files[0];
     let file1 = document.getElementById('photo').files[0];

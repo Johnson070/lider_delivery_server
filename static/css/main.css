@@ -248,7 +248,7 @@ hr {
   height: auto;
   /*margin-top: 10%;*/
   text-align: center;
-  border-radius: 2em;
+  border-radius: 1.5em;
   position: absolute;
   top: 5%;
   left:0;
@@ -258,7 +258,7 @@ hr {
   margin-right: auto;
 }
 
-#route-add-popup {
+#popup {
   display: none;
 }
 

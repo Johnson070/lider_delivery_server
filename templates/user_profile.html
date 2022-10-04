@@ -9,6 +9,7 @@
     <script src="../static/js/collapsive.js"></script>
     <script src="../static/js/users.js"></script>
     <script src="../static/js/user.js"></script>
+    <script src="../static/js/popup-actions.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 </head>
 <body>
@@ -33,14 +34,31 @@
         </p>
     </div>
 
+    <div class="blur" id="popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup()">x</div>
+            <p>Изменить баланс</p>
+            <hr>
+            <p>Баланс в рублях</p>
+            <input id="balance" type="number" required>
+            <p><button class='button'>Сохранить</button></p>
+        </div>
+    </div>
+
     <div id="div_buttons">
         <div class="buttons-grid-user">
              <button class='button button-add-user-mission' id='add_mission' onclick='manage_user(this)'>Добавить задание</button>
              <button class='button button-delete-user-mission' id='delete_mission' onclick='manage_user(this)'>Удалить задание</button>
-             <button class='button button-change-user-mission' id='change_balance' onclick='manage_user(this)'>Изменить баланс</button>
+             <button class='button button-change-user-mission' id='change_balance' onclick='show_popup()'>Изменить баланс</button>
              <button class='button button-kick-user-mission' id='kick' onclick='manage_user(this)'>Исключить</button>
         </div>
     </div>
+    <p>
+        <a href='/users'>
+        <button class='button'>Назад</button>
+        </a>
+    </p>
+
 </body>
 <script>
     add_coll_listener()

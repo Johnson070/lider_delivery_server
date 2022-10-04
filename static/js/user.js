@@ -28,6 +28,7 @@ function manage_user() {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                if (item.id == 'kick') window.location.href = '/users'
                 document.location.reload(true)
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
