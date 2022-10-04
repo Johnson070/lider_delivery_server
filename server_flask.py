@@ -292,8 +292,15 @@ def add_route():
     photo = bytes(request.json['photo_bytes'])
     msg_photo = bot.send_photo(session['user_id'], photo)
     photo_file_id = msg_photo.photo[-1].file_id
-    print(photo_file_id)
     bot.delete_message(msg_photo.chat.id, msg_photo.message_id)
+    geojson = func.parse_geo_json(request.json['geojson'])
+    if isinstance(geojson, bool) and not geojson:
+        return Response('-1', 200)
+    link_map = request.json['link_map']
+    name_route = request.json['name_route']
+
+    func.add_route([name_route, link_map, geojson, photo_file_id])
+
     return Response('1',200)
 
 
@@ -352,11 +359,21 @@ def manage_user(uid, method):
         Response(None, 401)
 
 
+# TODO: удалить
+@app.route('/cert.crt', methods=['GET'])
+def install_cert():
+    resp = None
+    with open('localhost.crt', 'rb') as zip:
+        file = zip.read()
+        resp = Response(file, mimetype='application/x-x509-ca-cert')
+
+    return resp
+
 def start_server(debug = False):
     if debug:
         app.run()
     else:
-        app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+        app.run(debug=True, port=443, host='192.168.0.48', ssl_context=('localhost.crt', 'localhost.key'))
 
 # if __name__ == "__main__":
 #    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))

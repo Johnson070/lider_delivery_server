@@ -171,6 +171,16 @@ def start_bot():
         bot.delete_message(msg.chat.id, msg.message_id)  # удалить прошлое и пользовательское сообщение
 
         points = func.parse_geo_json(geojson)
+        if isinstance(points, bool) and not points:
+            bot.edit_message_text(
+                f'Не правильный файл\n'
+                f'Отправьте файл (*.geojson) сгенерированный на сайте Яндекс карт.\n'
+                'Если вы добавили несколько объектов, то добавится только первый.',
+                msg.chat.id,
+                main_msg_id,
+                reply_markup=markups.back_admin_menu())
+            bot.register_next_step_handler(msg, add_link_map, main_msg_id)
+            return
 
         bot.edit_message_text(
             f'Полигон по {len(points)} точкам сохранен.\n'

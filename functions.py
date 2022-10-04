@@ -24,10 +24,13 @@ def close_db(conn, cursor):
 
 # парсинг geojson
 def parse_geo_json(json):
-    points = jsonpickle.decode(json)['features'][0]['geometry']['coordinates']
-    points = [(i[0], i[1]) for i in points]
+    try:
+        points = jsonpickle.decode(json)['features'][0]['geometry']['coordinates']
+        points = [(i[0], i[1]) for i in points]
 
-    return points
+        return points
+    except:
+        return False
 
 
 # создание qr кода на добавление пользователя работает 1 день и только для одного пользователя

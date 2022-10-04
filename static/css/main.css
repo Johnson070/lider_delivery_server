@@ -258,6 +258,10 @@ hr {
   margin-right: auto;
 }
 
+#route-add-popup {
+  display: none;
+}
+
 .blur {
   z-index: 9999;
   position: absolute;
