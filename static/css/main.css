@@ -1,6 +1,6 @@
 body {
   font-family: var(--default-font);
-  font-size: 13px;
+  font-size: 16px;
   line-height: 16px;
   font-weight: 400;
   background-color: var(--block-bg-color);
@@ -34,7 +34,7 @@ body {
   flex-direction: column;
   align-items: center;
 }
-
+.collapsible_menu,
 .collapsible {
   background-color: var(--tg-theme-button-color);
   color: var(--tg-theme-button-text-color);
@@ -63,6 +63,10 @@ body {
   background-color: var(--tg-theme-secondary-bg-color);
 }
 
+/*#main {*/
+/*  margin-top: 20px;*/
+/*}*/
+
 .link_user {
   color: var(--tg-theme-link-color);
 }
@@ -81,7 +85,7 @@ a.menu_button:visited {
   border: 5px solid var(--tg-theme-button-color);
   border-radius: 10px;
   background: var(--tg-theme-button-color);
-  margin: 0px 2.5px;
+  margin: 5px 2.5px;
   text-decoration: none;
   color: var(--tg-theme-button-text-color);
   size: 18px;
@@ -97,9 +101,9 @@ a.menu_button:visited {
    margin-bottom: 5px
 }
 
-#main{
+.div-buttons {
   text-align: center;
-  margin-bottom: 10px;
+  margin: 10px;
 }
 
 #usercard{
@@ -125,7 +129,7 @@ a.menu_button:visited {
 
 /* Style the collapsible content. Note: hidden by default */
 .content_menu {
-/*         padding: 18px 0px; */
+  padding: 18px 0px;
   display: none;
   width: 100%;
   margin: 0px 18px;
@@ -134,9 +138,10 @@ a.menu_button:visited {
 }
 
 .menu_button {
-   margin: 20px 10px;
-   text-decoration: none;
-   color: var(--tg-theme-button-text-color);
+  text-decoration: none;
+  margin: 20px;
+
+  color: var(--tg-theme-button-text-color);
 }
 
 #div_buttons {
@@ -191,6 +196,32 @@ a.menu_button:visited {
                        "download retry";
 }
 
+.button-add-user-mission {
+  grid-area: add;
+}
+
+.button-delete-user-mission {
+  grid-area: delete;
+}
+
+.button-change-user-mission {
+  grid-area: change;
+}
+
+.button-kick-user-mission {
+  grid-area: kick;
+}
+
+.buttons-grid-user {
+  width: 100%;
+  display: inline-grid;
+  grid-template-rows: auto;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "add delete"
+                       "change change"
+                       "kick kick";
+}
+
 #reports {
   display: table;
   width: 100%;
@@ -210,8 +241,21 @@ a.menu_button:visited {
   /*grid-template-areas: ". . .";*/
 }
 
+.map {
+  height: 500px;
+}
 
+.route-name {
+  border: var(--tg-theme-button-color) 2px;
+  border-style: dotted;
+  border-radius: 10px;
+}
 
+hr {
+  color: var(--tg-theme-secondary-bg-color);
+  width: 100%;
+  margin-bottom: 20px;
+}
 
 .loading-icon {
   position: absolute;

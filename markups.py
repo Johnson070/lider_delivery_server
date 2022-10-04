@@ -47,7 +47,7 @@ def get_routes_menu(page, id_user = None):
     routes = func.get_routes()
     max_pages = math.ceil(len(routes) / 10)
 
-    prefix = 'routes_' if id_user is None else f'add_user_mission_{id_user}_'
+    prefix = 'route_' if id_user is None else f'add_user_mission_{id_user}_'
     back_callback = 'back_admin' if id_user is None else f'user_info_{id_user}'
 
     if id_user is None:
@@ -56,7 +56,7 @@ def get_routes_menu(page, id_user = None):
     if routes:
         markup.add(
             *[types.InlineKeyboardButton(i[1],
-        callback_data=f'{"routes_" if id_user is None else "select_route_"}{i[0]}{"" if id_user is None else f"_{id_user}"}')
+        callback_data=f'{"route_" if id_user is None else "select_route_"}{i[0]}{"" if id_user is None else f"_{id_user}"}')
               for i in routes[0 + (page * 10):10 + (page * 10)]],
             row_width=1
         )
@@ -85,15 +85,17 @@ def get_routes_menu(page, id_user = None):
 
 # TODO: сделать проверку что маршрут нигде не используется
 def info_route_menu(id, route_url=None):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(
-        types.InlineKeyboardButton('Удалить', callback_data=f'delete_route_{id}'),
-        types.InlineKeyboardButton('Назад', callback_data='back_admin')
-    )
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    if func.check_can_delete_route(id):
+        markup.add(types.InlineKeyboardButton('Удалить', callback_data=f'delete_route_{id}'), row_width=2)
     if route_url is not None:
         markup.add(
-            types.InlineKeyboardButton('Посмотреть', web_app=types.WebAppInfo(route_url))
+            types.InlineKeyboardButton('Посмотреть', web_app=types.WebAppInfo(route_url)),
+            row_width=2
         )
+    markup.add(
+        types.InlineKeyboardButton('Назад', callback_data='back_admin')
+    )
     return markup
 
 

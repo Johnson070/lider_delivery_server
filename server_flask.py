@@ -1,7 +1,8 @@
 from flask import Flask, session, Response, request, render_template, abort
 import hmac
 import hashlib, re, datetime
-from urllib.parse import unquote
+from urllib.parse import unquote, parse_qs, urlparse
+import os
 
 import report_zip
 import settings
@@ -12,7 +13,7 @@ from bot_tg import bot
 
 app = Flask(__name__)
 app.secret_key = settings.cookie_secret_key
-prefix = settings.prefix
+application = app
 
 
 def not_auth():
@@ -66,7 +67,7 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
     return data_check.hexdigest() == hash_str
 
 
-@app.route(settings.WEBHOOK_URL_PATH, methods=['POST'])
+@app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
         json_string = request.get_data().decode('utf-8')
@@ -77,35 +78,41 @@ def webhook():
         abort(403)
 
 
-@app.route(prefix + '/validate', methods=['GET'])
+@app.route('/validate', methods=['GET'])
 def validate_query():
     return '0' if not_auth() else '1'
 
 
-@app.route(prefix + '/validate', methods=['POST'])
+@app.route('/validate', methods=['POST'])
 def validate_query_save():
+    session['user_id'] = jsonpickle.decode(
+        parse_qs(request.data.decode('utf-8'))['user'][0]
+    )['id']
     session['initdata'] = request.data
     return '0' if not_auth() else '1'
 
 
-@app.route(prefix + '/unauthorized')
+@app.route('/unauthorized')
 def unauthorized():
     return Response('<b>401</b><br>Unauthorized<br>Пожалуйста закройте окно и откройте заново!', 401)
 
 
-@app.route(prefix + '/auth')
+@app.route('/auth')
 def auth():
+    # return "", 200
+
     return render_template('auth.html')
 
 
-@app.route(prefix + '/')
+@app.route('/')
 def index():
     if not_auth():
         return unauthorized()
+
     return render_template('index.html')
 
 
-@app.route(prefix + '/mission/<uuid>', methods=['GET'])
+@app.route('/mission/<uuid>', methods=['GET'])
 def info_mission(uuid):
     if not_auth():
         return unauthorized()
@@ -132,7 +139,7 @@ def info_mission(uuid):
         return unauthorized()
 
 
-@app.route(prefix + '/get_missions', methods=['GET'])
+@app.route('/get_missions', methods=['GET'])
 def get_missions():
     if not_auth():
         return unauthorized()
@@ -147,7 +154,7 @@ def get_missions():
     return jsonpickle.encode(missions, unpicklable=False)
 
 
-@app.route(prefix + '/mission/<uuid>/<method>', methods=['GET'])
+@app.route('/mission/<uuid>/<method>', methods=['GET'])
 def manage_mission(uuid, method):
     if not_auth():
         return unauthorized()
@@ -181,10 +188,10 @@ def manage_mission(uuid, method):
 #     return None
 
 
-@app.route(prefix + '/get_file', methods=['GET'])
+@app.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
-    # if not_auth():
-    #     return unauthorized()
+    if not_auth():
+        return unauthorized()
 
     if not 'file_id' in request.args.keys():
         return 'File not found!', 404
@@ -201,24 +208,24 @@ def get_file_by_file_id():
     return Response('File not found!', 200)
 
 
-@app.route(prefix + '/download/report/<UUID>', methods=['GET'])
+@app.route('/download/report/<UUID>', methods=['GET'])
 def download_report(UUID):
     if not_auth():
         return 0
 
     file_name = report_zip.get_report(UUID)
     with open(file_name, 'rb') as zip:
-        resp = Response(zip.read(), mimetype='application/zip')
+        file = zip.read()
+        resp = Response(file, mimetype='application/zip')
+        bot.send_document(session['user_id'], file,
+                          visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
 
-    import os
     os.remove(file_name)
 
     return resp
 
 
-
-
-@app.route(prefix + '/mission/<uuid>/report', methods=['GET'])
+@app.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
     if not_auth():
         return unauthorized()
@@ -236,14 +243,110 @@ def get_base64_reports(uuid):
     return jsonpickle.encode(json_report, unpicklable=False)
 
 
+@app.route('/routes', methods=['GET'])
+def routes():
+    if not_auth():
+        return unauthorized()
+
+    return render_template('routes.html')
+
+
+@app.route('/routes/<UUID>', methods=['GET'])
+def route_view(UUID):
+    if not_auth():
+        return unauthorized()
+
+    route = func.get_route(UUID)
+
+    return render_template('route.html',
+                           name=route[1],
+                           img=route[4],
+                           uuid='https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A' +
+                                parse_qs(urlparse(route[2]).query)['um'][0].replace('constructor:','') +
+                                '&amp;width=100%25&amp;height=500&amp;lang=ru_RU&amp;scroll=true',
+                           can_delete=func.check_can_delete_route(UUID))
+
+
+@app.route('/routes/<UUID>/delete', methods=['GET'])
+def route_delete(UUID):
+    if not_auth():
+        return unauthorized()
+
+    func.delete_route(UUID)
+
+    return Response(1, 200)
+
+
+@app.route('/routes/list', methods=['GET'])
+def routes_list():
+    if not_auth():
+        return unauthorized()
+
+    return Response(jsonpickle.encode(func.get_routes(), unpicklable=False))
+
+
+@app.route('/users', methods=['GET'])
+def users_list():
+    if not_auth():
+        return unauthorized()
+
+    return render_template('users.html')
+
+
+@app.route('/users/list', methods=['GET'])
+def get_users_list():
+    if not_auth():
+        return unauthorized()
+
+    return jsonpickle.encode(func.get_clerks(), unpicklable=False)
+
+
+@app.route('/user/<uid>', methods=['GET'])
+def user_profile(uid):
+    if not_auth():
+        return unauthorized()
+
+    user = func.get_clerk_by_id(uid)
+    return render_template('user_profile.html',
+                           user=user[1],
+                           balance=user[2],
+                           not_pass_balance=user[3])
+
+
+@app.route('/user/<uid>/missions', methods=['GET'])
+def get_user_missions(uid):
+    if not_auth():
+        return unauthorized()
+
+    missions = func.get_missions_by_user_id(uid)
+    return jsonpickle.encode([i[1] for i in missions])
+
+
+@app.route('/user/<uid>/<method>', methods=['GET'])
+def manage_user(uid, method):
+    if not_auth():
+        return unauthorized()
+
+    if method == 'add_mission':
+        func.proof_mission(uid)
+        return Response(None, 200)
+    elif method == 'delete_mission':
+        func.reject_mission_by_id(uid)
+        return Response(None, 200)
+    elif method == 'change_balance':
+        func.retry_mission_by_id(uid)
+        return Response(None, 200)
+    else:
+        Response(None, 401)
+
+
 def start_server(debug = False):
     if debug:
         app.run()
     else:
         app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
 
-#if __name__ == "__main__":
-    # app.run()
+# if __name__ == "__main__":
 #    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
-#else:
+# else:
 #    app.run()

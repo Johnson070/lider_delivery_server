@@ -11,17 +11,16 @@ API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не 
 sqlite_file = os.path.join(os.getcwd(), 'data.sqlite')
 file_report_path = os.path.join(os.getcwd(), 'report_{}_{}.zip')
 
-prefix = ''
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 
-WEBHOOK_URL_BASE = "https://bdfix.ru/"
-WEBHOOK_URL_PATH = prefix + "/%s/" % (API_KEY)
+WEBHOOK_URL_BASE = "https://bdfix.ru"
+WEBHOOK_URL_PATH = "/%s/" % (API_KEY)
 
 allow_radius = 1.0  # допустимый радиус отправки от нод геолокации в км
 
 info_user_text = 'Пользователь: <b>@{}</b>\n\n' \
                  'Баланс: <u><b>{}</b></u> руб.\n' \
-                 'Не потвержденный баланс: <b>{}</b> руб.\n\n' \
+                 'Не подтвержденный баланс: <b>{}</b> руб.\n\n' \
                  '<u>Миссии:</u>\n' \
                  '{}' \
 

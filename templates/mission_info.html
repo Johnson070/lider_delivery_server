@@ -7,25 +7,26 @@
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
     <script src="../static/js/mission_info.js"></script>
-
+    <script src="../static/js/collapsive.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 </head>
 
 <body>
-   <button type="button" class="collapsible"><b>Меню</b></button>
-   <div class="content_menu">
-      <a class="menu_button" type="button" href='/'><b> -> Задания</b></a><br>
-      <a class="menu_button" href='routes'>Маршруты</a><br>
-      <a class="menu_button" href='users'>Пользователи</a>
-   </div>
-   <div id="main">
-      Выполнил: <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b><br>
-      Задание: <b>{{ name_mission }}</b><br><br>
-      Вознаграждение: <b>{{ reward }}</b> р<br>
-      Количество отчетов <b>{{ count }}</b> из <b>{{ all_count }}</b><br>
-      Время окончания: <b>{{ time }}</b><br>
-      Статус: <b>{{ status }}</b><br>
-   </div>
+    <button type="button" class="collapsible_menu"><b>Меню</b></button>
+    <div class="content_menu">
+      <a class="menu_button" type="button" href='/'><b>Задания</b></a>
+      <a class="menu_button" href='/routes'>Маршруты</a>
+      <a class="menu_button" href='/users'>Пользователи</a>
+    </div>
+    <div id="main">
+        Выполнил: <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b><br>
+        Задание: <b>{{ name_mission }}</b><br><br>
+        Вознаграждение: <b>{{ reward }}</b> р<br>
+        Количество отчетов <b>{{ count }}</b> из <b>{{ all_count }}</b><br>
+        Время окончания: <b>{{ time }}</b><br>
+        Статус: <b>{{ status }}</b><br>
+        <hr>
+    </div>
    <div id="div_buttons">
         {% if not proof and not rejected %}
             <div class="buttons-grid-wait">
@@ -50,18 +51,6 @@
         {% endif %}
         {% endif %}
         {% endif %}
-
-{#      <button type="button" class="collapsible"><b>Отчет</b></button>#}
-{#      <div class="container">#}
-{#         <div class="gallery">#}
-{#            <div><iframe src='https://bdfix.ru/get_file?file_id=DQACAgIAAxkBAAIJhWMZMUvBAmcJNhqsMXtMv5MldhRyAALfIQACBZ_JSL2hsnlgWJinKQQ' frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>#}
-{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
-{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
-{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
-{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
-{#            <div><img src='https://bdfix.ru/get_file?file_id=AgACAgIAAxkBAAIHNmMYpvfg65yDkTR5uXuC2wQsBwlaAAL5wTEbBZ_JSMMKfH6T5FrlAQADAgADeQADKQQ'/></div>#}
-{#         </div>#}
-{#      </div>#}
     </div>
     <p>
         <a href='/'>
@@ -74,6 +63,19 @@
     <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>
+    var coll = document.getElementsByClassName("collapsible_menu");
+    for (var i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
 
+            if (content.style.display === "block" || content.style.display === "grid") {
+                content.style.display = "none";
+            } else {
+                if (content.className.search('report') != -1) content.style.display = 'grid';
+                else content.style.display = "block";
+            }
+        });
+    }
 </script>
 </html>

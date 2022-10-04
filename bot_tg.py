@@ -24,8 +24,7 @@ class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
     @staticmethod
     def check(message: telebot.types.Message):
         return (bot.get_chat_member(message.chat.id, message.from_user.id).status in ['administrator', 'creator'] or
-                message.from_user.id in sett.admins
-                )
+                message.from_user.id in sett.admins)
 
 
 class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
@@ -35,8 +34,7 @@ class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
     def check(call: telebot.types.CallbackQuery):
         return (bot.get_chat_member(call.message.chat.id, call.message.from_user.id).status in ['administrator',
                                                                                                 'creator'] or
-                call.message.chat.id in sett.admins
-                )
+                call.message.chat.id in sett.admins)
 
 
 bot.add_custom_filter(IsAdmin())
@@ -362,7 +360,7 @@ def start_bot():
             reply_markup=markups.get_clerk_control_menu(clerk[0]))
 
     # =========================
-    # Погасить перевести баланс из непотвержденного в потвержденныйв(админ)
+    # Погасить перевести баланс из неподтвержденный в подтвержденный(админ)
     # =========================
     @bot.callback_query_handler(lambda call: re.search(r'^pass_balance_(\d+)$', call.data) is not None,
                                 is_callback_admin=True)

@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <meta charset="UTF-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Delivery Bot</title>
-   <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <script src="../static/js/collapsive.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 </head>
 
 <body>
    <button type="button" class="collapsible"><b>Меню</b></button>
    <div class="content_menu">
-      <a class="menu_button" type="button" href='/'><b> -> Задания</b></a><br>
-      <a class="menu_button" href='routes'>Маршруты</a><br>
-      <a class="menu_button" href='users'>Пользователи</a>
+      <a class="menu_button" type="button" href='/'><b>Задания</b></a>
+      <a class="menu_button" href='/routes'>Маршруты</a>
+      <a class="menu_button" href='/users'>Пользователи</a>
    </div>
    <div>
       <input type="checkbox" class="checkbox style-a" id="all" class="checkbox">
       <label for="all">Отображать все задания</label>
     </div>
-   <div id="main">
+   <div id="main" class="div-buttons">
       
    </div>
    <div id="usercard">
@@ -94,19 +95,6 @@
    //выдем имя, "фамилию", через тире username и код языка
    usercard.appendChild(profName); //добавляем
 
-
-
-   var coll = document.getElementsByClassName("collapsible");
-   for (var i = 0; i < coll.length; i++) {
-     coll[i].addEventListener("click", function() {
-       this.classList.toggle("active");
-       var content = this.nextElementSibling;
-       if (content.style.display === "block") {
-         content.style.display = "none";
-       } else {
-         content.style.display = "block";
-       }
-     });
-   }
+   add_coll_listener()
 </script>
 </html>

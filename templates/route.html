@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Bot</title>
+    <script src="../static/js/routes.js"></script>
+    <script src="../static/js/collapsive.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
+</head>
+<body>
+    <button type="button" class="collapsible"><b>Меню</b></button>
+    <div class="content_menu">
+        <a class="menu_button" type="button" href='/'>Задания</a>
+        <a class="menu_button" href='/routes'><b>Маршруты</b></a>
+        <a class="menu_button" href='/users'>Пользователи</a>
+    </div>
+
+    <div class="div-buttons">
+        <p class="route-name">{{ name }}</p>
+        <img src="/get_file?file_id={{ img }}" width=100%>
+
+        <div class="map">
+            <script type="text/javascript" charset="utf-8" async src={{ uuid }}></script>
+        </div>
+    </div>
+
+    <div class="div-buttons">
+        {% if can_delete %}
+            <a class='button' onclick="delete_route()">Удалить<br>
+        {% endif %}
+        <a href='/routes' class='button'>Назад</a>
+    </div>
+</body>
+<script>
+    add_coll_listener()
+</script>
+</html>

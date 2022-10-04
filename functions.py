@@ -139,6 +139,16 @@ def get_route(id):
     return route
 
 
+def check_can_delete_route(id):
+    conn, cursor = open_db()
+    rows = cursor.execute('''SELECT COUNT(id_route) FROM missions WHERE id_route = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    if len(rows) > 0 and rows[0][0] > 0:
+        return False
+    else:
+        return True
+
 def delete_route(id):
     conn, cursor = open_db()
     cursor.execute('''DELETE FROM routes WHERE id = ?''', (id,))

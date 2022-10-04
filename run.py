@@ -8,7 +8,7 @@ import threading
 
 serve_on_server = False
 
-def application():
+def application(a=None,b=None):
     bot_sv.bot.remove_webhook()
     if serve_on_server:
         time.sleep(0.1)
