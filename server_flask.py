@@ -285,6 +285,18 @@ def routes_list():
     return Response(jsonpickle.encode(func.get_routes(), unpicklable=False))
 
 
+@app.route('/routes/add', methods=['POST'])
+def add_route():
+    if not_auth():
+        return unauthorized()
+    photo = bytes(request.json['photo_bytes'])
+    msg_photo = bot.send_photo(session['user_id'], photo)
+    photo_file_id = msg_photo.photo[-1].file_id
+    print(photo_file_id)
+    bot.delete_message(msg_photo.chat.id, msg_photo.message_id)
+    return Response('1',200)
+
+
 @app.route('/users', methods=['GET'])
 def users_list():
     if not_auth():

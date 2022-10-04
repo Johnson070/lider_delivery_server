@@ -110,23 +110,6 @@ a.menu_button:visited {
    text-align: center;
 }
 
-.collapsible {
-  background-color: var(--tg-theme-button-color);
-  color: var(--tg-theme-button-text-color);
-  cursor: pointer;
-  padding: 18px;
-  width: 100%;
-  border: none;
-  text-align: left;
-  outline: none;
-  font-size: 15px;
-}
-
-/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .collapsible:hover {
-  background-color: #ccc;
-}
-
 /* Style the collapsible content. Note: hidden by default */
 .content_menu {
   padding: 18px 0px;
@@ -256,6 +239,61 @@ hr {
   width: 100%;
   margin-bottom: 20px;
 }
+
+.popup-block {
+  z-index: 99999999;
+  border: var(--tg-theme-secondary-bg-color) solid;
+  background-color: var(--tg-theme-secondary-bg-color);
+  width: 90%;
+  height: auto;
+  /*margin-top: 10%;*/
+  text-align: center;
+  border-radius: 2em;
+  position: absolute;
+  top: 5%;
+  left:0;
+  right:0;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.blur {
+  z-index: 9999;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  height: 100%;
+  width: 100%;
+  place-content: center;
+}
+
+.close-popup {
+  z-index: 9999999999999;
+  font-size: 20px;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left:0;
+  right:0;
+
+  margin-left: 90%;
+  margin: 90%;
+  margin-top: 10px;
+
+  border: var(--tg-theme-button-color, #FFFFFF) solid;
+  border-radius: 1em;
+  background-color: var(--tg-theme-button-color);
+}
+/*div.route-add:hover {*/
+/*  position: fixed;*/
+/*  right: 5px;*/
+/*  top: 80%;*/
+/*  width:347px;*/
+/*  height:160px;*/
+/*  display: block;*/
+/*  z-index:99999999;*/
+/*}*/
 
 .loading-icon {
   position: absolute;

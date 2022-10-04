@@ -22,7 +22,31 @@
 
     </div>
 
+    <div class="blur" id="route-add-popup" onclick="">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup()">x</div>
+            <p>Добавить маршрут</p>
+            <hr>
+            <p>Выберите GEOJSON файл сгенерированный на сайте <a class="link_user" href="https://yandex.ru/map-constructor">конструктора яндекс карт</a></p>
+            <input type="file" type='file' accept=".geojson" id="file-route" required>
+
+            <p>Вставьте ссылку на карту</p>
+            <input placeholder="yandex.ru/maps/" type="text" id="link-map" required>
+            <p>Название маршрута</p>
+            <input placeholder="название" type="text" id="name-route" required>
+            <p>Фото маршрута(скасать с конструктора(распечатать -> скачать))</p>
+            <input type="file" id="photo" multiple accept="image/*" required>
+
+            <p>
+            <button class='button' onclick="save_route()">Сохранить</button>
+            </p>
+        </div>
+    </div>
+
     <p>
+        <a>
+        <button class='button' onclick="show_popup()">Добавить маршрут</button>
+        </a>
         <a href='/'>
         <button class='button'>Назад</button>
         </a>

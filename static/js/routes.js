@@ -39,3 +39,50 @@ function delete_route() {
         }
     };
 }
+
+function hide_popup() {
+    popup = document.getElementById('route-add-popup');
+    popup.style.display = 'None';
+}
+
+function show_popup() {
+    popup = document.getElementById('route-add-popup');
+    popup.style.display = 'block';
+}
+
+async function save_route() {
+    let file = document.getElementById('file-route').files[0];
+    let file1 = document.getElementById('photo').files[0];
+    let link_map = document.getElementById("link-map").value;
+    let name_route = document.getElementById("name-route").value;
+
+    if (file === undefined || file1 === undefined || link_map === '' || name_route === '') {
+        window.Telegram.WebApp.showAlert('Заполните все поля и выберите файлы!');
+        return;
+    }
+
+    photo = await file1.arrayBuffer()
+    geojson = await file.text()
+
+    photo = Array.from(new Uint8Array(photo))
+
+    json = {
+        photo_bytes: photo,
+        geojson: geojson,
+        link_map: link_map,
+        name_route: name_route
+    }
+
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('POST', window.location.href + '/add', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                if(this.responseText == '0') window.location.href = '/unauthorized'
+                // else window.location.reload(true);
+            }
+        }
+    };
+}
