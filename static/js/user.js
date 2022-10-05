@@ -8,11 +8,26 @@ function get_missions() {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 json = JSON.parse(this.responseText);
                 missions = document.getElementById("missions");
+                remove_buttons = document.getElementById('remove-missions');
 
                 for (var i = 0; i < json.length; i++) {
                     item = document.createElement('li');
-                    item.innerText = json[i];
+                    item.innerText = json[i][1];
                     missions.appendChild(item);
+
+                    btn = document.createElement('button');
+                    btn.className = 'button';
+                    btn.innerText = json[i][1];
+                    btn.id = json[i][0];
+
+                    const id = json[i][0];
+                    btn.onclick = function () {
+                        window.Telegram.WebApp.showConfirm('Вы уверены что хотите удалить миссию у пользователя?',
+                            function (state) {
+                                if (state) delete_mission(id);
+                            });
+                    }
+                    remove_buttons.appendChild(btn);
                 }
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
@@ -20,16 +35,15 @@ function get_missions() {
     };
 }
 
-function manage_user() {
+function kick_user() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', window.location.href+'/'+item.id, true); // Открываем асинхронное соединение
+    xmlhttp.open('POST', window.location.href+'/kick', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                if (item.id == 'kick') window.location.href = '/users'
-                document.location.reload(true)
+                window.location.href = '/users'
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
         }
@@ -99,6 +113,21 @@ function add_mission(){
     xmlhttp.open('POST', window.location.href + '/add_mission', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                window.location.reload();
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        }
+    };
+}
+
+function delete_mission(id) {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('POST', window.location.href + '/delete_mission', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(id); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)

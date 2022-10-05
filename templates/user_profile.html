@@ -64,12 +64,24 @@
         </div>
     </div>
 
+    <div class="popup-blur" id="remove-mission-popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup('remove-mission-popup')">x</div>
+            <p>Удалить задание</p>
+            <hr>
+            <p>Выберите задание</p>
+            <div class="div-buttons menu_button" id="remove-missions">
+
+            </div>
+        </div>
+    </div>
+
     <div id="div_buttons">
         <div class="buttons-grid-user">
              <button class='button button-add-user-mission' id='add_mission' onclick='show_popup("add-mission-popup")'>Добавить задание</button>
-             <button class='button button-delete-user-mission' id='delete_mission' onclick='manage_user(this)'>Удалить задание</button>
+             <button class='button button-delete-user-mission' id='delete_mission' onclick='show_popup("remove-mission-popup")'>Удалить задание</button>
              <button class='button button-change-user-mission' id='change_balance' onclick='show_popup("change-balance-popup")'>Изменить баланс</button>
-             <button class='button button-kick-user-mission' id='kick' onclick='manage_user(this)'>Исключить</button>
+             <button class='button button-kick-user-mission' id='kick' onclick='kick_user()'>Исключить</button>
         </div>
     </div>
     <p>

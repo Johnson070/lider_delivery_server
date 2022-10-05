@@ -338,10 +338,10 @@ def get_user_missions(uid):
         return unauthorized()
 
     missions = func.get_missions_by_user_id(uid)
-    return jsonpickle.encode([i[1] for i in missions])
+    return jsonpickle.encode(missions, unpicklable=False)
 
 
-@app.route('/user/<uid>/<method>', methods=['GET', 'POST'])
+@app.route('/user/<uid>/<method>', methods=['POST'])
 def manage_user(uid, method):
     if not_auth():
         return unauthorized()
@@ -351,9 +351,14 @@ def manage_user(uid, method):
         func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'], json['reports'])
         return Response(None, 200)
     elif method == 'delete_mission':
+        id = request.data.decode('utf-8')
+        func.remove_mission_by_id(id)
         return Response(None, 200)
     elif method == 'balance':
         func.change_balance_clerk(uid, float(request.data.decode('utf-8')))
+        return Response(None, 200)
+    elif method == 'kick':
+        func.kick_user(uid)
         return Response(None, 200)
     else:
         Response(None, 401)

@@ -101,6 +101,13 @@ a:visited {
 
 .div-buttons {
   text-align: center;
+
+  /*max-width: 80%;*/
+  color: var(--tg-theme-text-color);
+
+  left: 50%;
+  top: 50%;
+  /*transform: translate(-50%, -50%)*/
 }
 
 #usercard{
@@ -122,13 +129,6 @@ a:visited {
   margin: 20px;
 
   color: var(--tg-theme-button-text-color);
-}
-
-.div_buttons {
-  text-align: center;
-
-  max-width: 80%;
-  color: var(--tg-theme-text-color);
 }
 
 .grid-item-btn-proof{
@@ -278,15 +278,6 @@ hr {
   border-radius: 1em;
   background-color: var(--tg-theme-button-color);
 }
-/*div.route-add:hover {*/
-/*  position: fixed;*/
-/*  right: 5px;*/
-/*  top: 80%;*/
-/*  width:347px;*/
-/*  height:160px;*/
-/*  display: block;*/
-/*  z-index:99999999;*/
-/*}*/
 
 .loading-icon {
   position: absolute;

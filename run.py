@@ -9,8 +9,9 @@ import threading
 serve_on_server = False
 
 def application(a=None,b=None):
-    bot_sv.bot.remove_webhook()
+
     if serve_on_server:
+        bot_sv.bot.remove_webhook()
         time.sleep(0.1)
 
         bot_sv.bot.set_webhook(url=st.WEBHOOK_URL_BASE + st.WEBHOOK_URL_PATH)
