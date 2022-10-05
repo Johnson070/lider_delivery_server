@@ -29,7 +29,7 @@ def get_admin_menu(full_menu=False):
         types.InlineKeyboardButton('Статистика', callback_data='stats'),
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
-    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://192.168.0.48/auth')))
+    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://127.0.0.1/auth')))
 
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
@@ -83,7 +83,6 @@ def get_routes_menu(page, id_user = None):
     return markup
 
 
-# TODO: сделать проверку что маршрут нигде не используется
 def info_route_menu(id, route_url=None):
     markup = types.InlineKeyboardMarkup(row_width=2)
     if func.check_can_delete_route(id):
@@ -148,8 +147,7 @@ def get_clerks_menu(page):
 
 def get_clerk_control_menu(user_id):
     markup = types.InlineKeyboardMarkup()
-    # TODO: сделать добавление одного дня к работе
-    #  также сделать редактор миссии
+    # TODO: также сделать редактор миссии
     markup.add(
         types.InlineKeyboardButton('Добавить миссию', callback_data=f'add_user_mission_{user_id}'),
         types.InlineKeyboardButton('Удалить миссию', callback_data=f'remove_user_mission_{user_id}'),

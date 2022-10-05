@@ -341,39 +341,29 @@ def get_user_missions(uid):
     return jsonpickle.encode([i[1] for i in missions])
 
 
-@app.route('/user/<uid>/<method>', methods=['GET'])
+@app.route('/user/<uid>/<method>', methods=['GET', 'POST'])
 def manage_user(uid, method):
     if not_auth():
         return unauthorized()
 
     if method == 'add_mission':
-        func.proof_mission(uid)
+        json = request.json
+        func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'], json['reports'])
         return Response(None, 200)
     elif method == 'delete_mission':
-        func.reject_mission_by_id(uid)
         return Response(None, 200)
-    elif method == 'change_balance':
-        func.retry_mission_by_id(uid)
+    elif method == 'balance':
+        func.change_balance_clerk(uid, float(request.data.decode('utf-8')))
         return Response(None, 200)
     else:
         Response(None, 401)
 
 
-# TODO: удалить
-@app.route('/cert.crt', methods=['GET'])
-def install_cert():
-    resp = None
-    with open('localhost.crt', 'rb') as zip:
-        file = zip.read()
-        resp = Response(file, mimetype='application/x-x509-ca-cert')
-
-    return resp
-
 def start_server(debug = False):
     if debug:
         app.run()
     else:
-        app.run(debug=True, port=443, host='192.168.0.48', ssl_context=('localhost.crt', 'localhost.key'))
+        app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
 
 # if __name__ == "__main__":
 #    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))

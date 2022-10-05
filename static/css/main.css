@@ -8,7 +8,7 @@ body {
   /*color-scheme: var(--tg-color-scheme);*/
   margin: 0;
   padding: 0;
-  width: 1px;
+  width: 100%;
   min-width: 100%;
 
   --default-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -63,25 +63,23 @@ body {
   background-color: var(--tg-theme-secondary-bg-color);
 }
 
-/*#main {*/
-/*  margin-top: 20px;*/
-/*}*/
-
 .link_user {
   color: var(--tg-theme-link-color);
+  text-decoration: underline;
 }
 
 .hint{
    color: var(--tg-theme-hint-color);
 }
 
-a.menu_button:not(visited),
-a.menu_button:visited {
-  color: var(--tg-theme-button-text-color)
+a:not(visited),
+a:visited {
+  color: var(--tg-theme-button-text-color);
+  text-decoration: none;
 }
 
 .button{
-  display: inline-block;
+  display: block;
   border: 5px solid var(--tg-theme-button-color);
   border-radius: 10px;
   background: var(--tg-theme-button-color);
@@ -103,7 +101,6 @@ a.menu_button:visited {
 
 .div-buttons {
   text-align: center;
-  margin: 10px;
 }
 
 #usercard{
@@ -127,11 +124,10 @@ a.menu_button:visited {
   color: var(--tg-theme-button-text-color);
 }
 
-#div_buttons {
+.div_buttons {
   text-align: center;
-  align-items: normal;
-  display: inline-block;
-  width: content-box;
+
+  max-width: 80%;
   color: var(--tg-theme-text-color);
 }
 
@@ -246,30 +242,23 @@ hr {
   background-color: var(--tg-theme-secondary-bg-color);
   width: 90%;
   height: auto;
-  /*margin-top: 10%;*/
   text-align: center;
   border-radius: 1.5em;
   position: absolute;
-  top: 5%;
-  left:0;
-  right:0;
 
-  margin-left: auto;
-  margin-right: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%)
 }
 
-#popup {
-  display: none;
-}
-
-.blur {
+.popup-blur {
   z-index: 9999;
   position: absolute;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(8px);
-  height: 100%;
   width: 100%;
-  place-content: center;
+  height: 100%;
+  display: none;
 }
 
 .close-popup {

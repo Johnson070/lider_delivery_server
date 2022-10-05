@@ -34,22 +34,41 @@
         </p>
     </div>
 
-    <div class="blur" id="popup">
+    <div class="popup-blur" id="change-balance-popup">
         <div class="popup-block">
-            <div class="close-popup" onclick="hide_popup()">x</div>
+            <div class="close-popup" onclick="hide_popup('change-balance-popup')">x</div>
             <p>Изменить баланс</p>
             <hr>
             <p>Баланс в рублях</p>
-            <input id="balance" type="number" required>
-            <p><button class='button'>Сохранить</button></p>
+            <input id="balance" type="number" required placeholder="{{ balance }}" value="{{ balance }}">
+            <p><button class='button' onclick="change_balance(document.getElementById('balance'))">Сохранить</button></p>
+        </div>
+    </div>
+
+    <div class="popup-blur" id="add-mission-popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup('add-mission-popup')">x</div>
+            <p>Добавить задание</p>
+            <hr>
+            <p>Выберите маршрут</p>
+            <select id="select-route"></select>
+            <p>Название задания</p>
+            <input id="name-mission" type="text" placeholder="Тестовое задание" required>
+            <p>Сколько дней на выполнение задания(начиная со следующего дня)</p>
+            <input id="days-expired" type="number" value="10" required>
+            <p>Вознаграждение</p>
+            <input id="reward" type="number" value="1000" required>
+            <p>Кол-во отчетов</p>
+            <input id="count-reports" type="number" value="20" required>
+            <p><button class='button' onclick="add_mission()">Добавить</button></p>
         </div>
     </div>
 
     <div id="div_buttons">
         <div class="buttons-grid-user">
-             <button class='button button-add-user-mission' id='add_mission' onclick='manage_user(this)'>Добавить задание</button>
+             <button class='button button-add-user-mission' id='add_mission' onclick='show_popup("add-mission-popup")'>Добавить задание</button>
              <button class='button button-delete-user-mission' id='delete_mission' onclick='manage_user(this)'>Удалить задание</button>
-             <button class='button button-change-user-mission' id='change_balance' onclick='show_popup()'>Изменить баланс</button>
+             <button class='button button-change-user-mission' id='change_balance' onclick='show_popup("change-balance-popup")'>Изменить баланс</button>
              <button class='button button-kick-user-mission' id='kick' onclick='manage_user(this)'>Исключить</button>
         </div>
     </div>
@@ -63,5 +82,6 @@
 <script>
     add_coll_listener()
     get_missions()
+    get_routes()
 </script>
 </html>

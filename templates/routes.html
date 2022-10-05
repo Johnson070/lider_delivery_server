@@ -23,9 +23,9 @@
 
     </div>
 
-    <div class="blur" id="route-add-popup" onclick="">
+    <div class="popup-blur" id="route-add-popup">
         <div class="popup-block">
-            <div class="close-popup" onclick="hide_popup()">x</div>
+            <div class="close-popup" onclick="hide_popup('route-add-popup')">x</div>
             <p>Добавить маршрут</p>
             <hr>
             <p>Выберите GEOJSON файл сгенерированный на сайте <a class="link_user" href="https://yandex.ru/map-constructor">конструктора яндекс карт</a></p>
@@ -46,7 +46,7 @@
 
     <p>
         <a>
-        <button class='button' onclick="show_popup()">Добавить маршрут</button>
+        <button class='button' onclick="show_popup('route-add-popup')">Добавить маршрут</button>
         </a>
         <a href='/'>
         <button class='button'>Назад</button>
