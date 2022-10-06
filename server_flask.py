@@ -8,8 +8,8 @@ import report_zip
 import settings
 import functions as func
 import jsonpickle
-from telebot import types
-from bot_tg import bot
+# from telebot import types
+# import bot_tg
 
 app = Flask(__name__)
 app.secret_key = settings.cookie_secret_key
@@ -67,15 +67,15 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
     return data_check.hexdigest() == hash_str
 
 
-@app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
-def webhook():
-    if request.headers.get('content-type') == 'application/json':
-        json_string = request.get_data().decode('utf-8')
-        update = types.Update.de_json(json_string)
-        bot.process_new_updates([update])
-        return ''
-    else:
-        abort(403)
+# @app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
+# def webhook():
+#     if request.headers.get('content-type') == 'application/json':
+#         json_string = request.get_data().decode('utf-8')
+#         update = types.Update.de_json(json_string)
+#         bot_tg.bot.process_new_updates([update])
+#         return ''
+#     else:
+#         abort(403)
 
 
 @app.route('/validate', methods=['GET'])
@@ -85,8 +85,13 @@ def validate_query():
 
 @app.route('/validate', methods=['POST'])
 def validate_query_save():
+    data_user = parse_qs(request.data.decode('utf-8'))
+
+    if not 'user' in data_user.keys():
+        return '0'
+
     session['user_id'] = jsonpickle.decode(
-        parse_qs(request.data.decode('utf-8'))['user'][0]
+        data_user['user'][0]
     )['id']
     session['initdata'] = request.data
     return '0' if not_auth() else '1'
@@ -364,11 +369,16 @@ def manage_user(uid, method):
         Response(None, 401)
 
 
+@app.route('/location', methods=['GET'])
+def get_location():
+    return render_template('location.html')
+
+
 def start_server(debug = False):
     if debug:
         app.run()
     else:
-        app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+        app.run(debug=True, port=443, host='192.168.3.198', ssl_context=('localhost.crt', 'localhost.key'))
 
 # if __name__ == "__main__":
 #    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))

@@ -12,7 +12,11 @@ function get_missions() {
 
                 for (var i = 0; i < json.length; i++) {
                     item = document.createElement('li');
-                    item.innerText = json[i][1];
+                    link_mission = document.createElement('a');
+                    link_mission.className = 'link_user';
+                    link_mission.innerText = json[i][1];
+                    link_mission.href = `/mission/${json[i][0]}`;
+                    item.appendChild(link_mission);
                     missions.appendChild(item);
 
                     btn = document.createElement('button');

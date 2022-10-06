@@ -41,7 +41,7 @@ bot.add_custom_filter(IsAdmin())
 bot.add_custom_filter(IsAdminCallback())
 
 
-def start_bot():
+def init_bot():
     global bot
 
     @bot.message_handler(commands=['start'])

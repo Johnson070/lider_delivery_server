@@ -63,6 +63,8 @@ body {
   background-color: var(--tg-theme-secondary-bg-color);
 }
 
+.link_user:visited,
+.link_user:not(:visited),
 .link_user {
   color: var(--tg-theme-link-color);
   text-decoration: underline;
@@ -72,7 +74,7 @@ body {
    color: var(--tg-theme-hint-color);
 }
 
-a:not(visited),
+a:not(:visited),
 a:visited {
   color: var(--tg-theme-button-text-color);
   text-decoration: none;
