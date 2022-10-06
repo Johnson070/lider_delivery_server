@@ -8,10 +8,14 @@ import report_zip
 import settings
 import functions as func
 import jsonpickle
-# from telebot import types
-# import bot_tg
+from telebot import types
+import bot_tg
 
-app = Flask(__name__)
+project_root = os.path.dirname(os.path.realpath('__file__'))
+template_path = os.path.join(project_root, 'templates')
+static_path = os.path.join(project_root, 'static')
+app = Flask(__name__, template_folder=template_path, static_folder=static_path)
+
 app.secret_key = settings.cookie_secret_key
 application = app
 
@@ -67,20 +71,20 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
     return data_check.hexdigest() == hash_str
 
 
-# @app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
-# def webhook():
-#     if request.headers.get('content-type') == 'application/json':
-#         json_string = request.get_data().decode('utf-8')
-#         update = types.Update.de_json(json_string)
-#         bot_tg.bot.process_new_updates([update])
-#         return ''
-#     else:
-#         abort(403)
+@app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = types.Update.de_json(json_string)
+        bot_tg.bot.process_new_updates([update])
+        return ''
+    else:
+        abort(403)
 
 
 @app.route('/validate', methods=['GET'])
 def validate_query():
-    return '0' if not_auth() else '1'
+    return Response('0' if not_auth() else '1',200)
 
 
 @app.route('/validate', methods=['POST'])
@@ -88,13 +92,13 @@ def validate_query_save():
     data_user = parse_qs(request.data.decode('utf-8'))
 
     if not 'user' in data_user.keys():
-        return '0'
+        return Response('0',200)
 
     session['user_id'] = jsonpickle.decode(
         data_user['user'][0]
     )['id']
     session['initdata'] = request.data
-    return '0' if not_auth() else '1'
+    return Response('0' if not_auth() else '1',200)
 
 
 @app.route('/unauthorized')
@@ -222,8 +226,8 @@ def download_report(UUID):
     with open(file_name, 'rb') as zip:
         file = zip.read()
         resp = Response(file, mimetype='application/zip')
-        bot.send_document(session['user_id'], file,
-                          visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
+        bot_tg.bot.send_document(session['user_id'], file,
+                                 visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
 
     os.remove(file_name)
 
@@ -295,9 +299,9 @@ def add_route():
     if not_auth():
         return unauthorized()
     photo = bytes(request.json['photo_bytes'])
-    msg_photo = bot.send_photo(session['user_id'], photo)
+    msg_photo = bot_tg.bot.send_photo(session['user_id'], photo)
     photo_file_id = msg_photo.photo[-1].file_id
-    bot.delete_message(msg_photo.chat.id, msg_photo.message_id)
+    bot_tg.bot.delete_message(msg_photo.chat.id, msg_photo.message_id)
     geojson = func.parse_geo_json(request.json['geojson'])
     if isinstance(geojson, bool) and not geojson:
         return Response('-1', 200)
@@ -378,9 +382,14 @@ def start_server(debug = False):
     if debug:
         app.run()
     else:
-        app.run(debug=True, port=443, host='192.168.3.198', ssl_context=('localhost.crt', 'localhost.key'))
+        app.run(debug=True, port=443, host='127.0.0.1', ssl_context=('localhost.crt', 'localhost.key'))
 
 # if __name__ == "__main__":
-#    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+#    bot_tg.init_bot()
+#
+#    bot_tg.bot.remove_webhook()
+#        time.sleep(0.1)
+#
+#        bot_tg.bot.set_webhook(url=st.WEBHOOK_URL_BASE + st.WEBHOOK_URL_PATH)
 # else:
-#    app.run()
+#    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))

@@ -17,8 +17,7 @@ def application(a=None,b=None):
 
     while True:
         try:
-            bot_sv.init_bot()
-            fls_sv.init_server()
+            bot_sv.start_bot()
 
             if serve_on_server:
                 pass
