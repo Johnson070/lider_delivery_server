@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, session, Response, request, render_template, abort
 import hmac
 import hashlib, re, datetime
@@ -17,8 +19,6 @@ static_path = os.path.join(project_root, 'static')
 app = Flask(__name__, template_folder=template_path, static_folder=static_path)
 
 app.secret_key = settings.cookie_secret_key
-application = app
-
 
 def not_auth():
     if not 'initdata' in session.keys() or not validate_from_request(session['initdata']):
@@ -75,6 +75,7 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
 def webhook():
     if request.headers.get('content-type') == 'application/json':
         json_string = request.get_data().decode('utf-8')
+        print(json_string)
         update = types.Update.de_json(json_string)
         bot_tg.bot.process_new_updates([update])
         return ''
@@ -177,24 +178,6 @@ def manage_mission(uuid, method):
     elif method == 'retry_rep':
         func.retry_mission_by_id(uuid)
         return Response(None, 200)
-
-
-# # скачивание файла с сервера телеграмм
-# def download_file(file_id):
-#     get_file_link = f'https://api.telegram.org/bot{settings.API_KEY}/getFile?file_id={file_id}'
-#
-#     r = requests.get(get_file_link)
-#
-#     if r.status_code == 200:
-#         file_path = r.json()['result']['file_path']
-#         download_file_raw = f'https://api.telegram.org/file/bot{settings.API_KEY}/{file_path}'
-#
-#         r_data = requests.get(download_file_raw)
-#
-#         if r_data.status_code == 200:
-#             return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
-#
-#     return None
 
 
 @app.route('/get_file', methods=['GET'])
@@ -377,19 +360,12 @@ def manage_user(uid, method):
 def get_location():
     return render_template('location.html')
 
+if not __name__ == '__main__':
+    bot_tg.start_bot()
 
-def start_server(debug = False):
-    if debug:
-        app.run()
-    else:
-        app.run(debug=True, port=443, host='127.0.0.1', ssl_context=('localhost.crt', 'localhost.key'))
+    bot_tg.bot.remove_webhook()
+    time.sleep(0.1)
 
-# if __name__ == "__main__":
-#    bot_tg.init_bot()
-#
-#    bot_tg.bot.remove_webhook()
-#        time.sleep(0.1)
-#
-#        bot_tg.bot.set_webhook(url=st.WEBHOOK_URL_BASE + st.WEBHOOK_URL_PATH)
-# else:
-#    app.run(debug=True, port=443, host='localhost', ssl_context=('localhost.crt', 'localhost.key'))
+    bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+
+application = app

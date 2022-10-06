@@ -5,13 +5,15 @@
 
 # создано для "Лидер сервис"
 import datetime
+import logging
 import re, os
 import telebot
 from telebot import types
 
 import settings as sett
 
-bot = telebot.TeleBot(sett.API_KEY)  # реализация
+bot = telebot.TeleBot(sett.API_KEY, threaded=False)  # реализация
+telebot.logger.setLevel(logging.DEBUG)
 
 import functions as func
 import report_zip
@@ -23,8 +25,7 @@ class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(message: telebot.types.Message):
-        return (bot.get_chat_member(message.chat.id, message.from_user.id).status in ['administrator', 'creator'] or
-                message.from_user.id in sett.admins)
+        return (message.from_user.id in sett.admins)
 
 
 class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
@@ -32,9 +33,7 @@ class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(call: telebot.types.CallbackQuery):
-        return (bot.get_chat_member(call.message.chat.id, call.message.from_user.id).status in ['administrator',
-                                                                                                'creator'] or
-                call.message.chat.id in sett.admins)
+        return (call.message.chat.id in sett.admins)
 
 
 bot.add_custom_filter(IsAdmin())
@@ -67,11 +66,11 @@ def start_bot():
                              reply_markup=markups.get_clerk_menu())
         else:
             msg_last = bot.send_message(msg.chat.id, 'Получите ссылку на приглашения у администратора.')
-            for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
-                try:
-                    bot.delete_message(msg.chat.id, i, timeout=1)
-                except:
-                    pass
+            # for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
+            #     try:
+            #         bot.delete_message(msg.chat.id, i, timeout=1)
+            #     except:
+            #         pass
 
     @bot.message_handler(commands=['admin', 'admin_full'], is_chat_admin=True)
     def admin_menu(msg):
@@ -635,6 +634,7 @@ def start_bot():
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
 
+    # TODO: поменять алгоритм получения фото
     def parse_photos_report(msg: types.Message, start_msg_id, coords, id):
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
@@ -860,23 +860,13 @@ def start_bot():
                               parse_mode='HTML',
                               reply_markup=markups.back_cleck_menu())
 
-    @bot.message_handler(content_types=['photo'], func=lambda msg: msg.media_group_id is not None)
-    def save_media_group_id_photo(msg: types.Message):
-        func.add_photo_to_media(msg.media_group_id, msg.photo[-1].file_id)
-        bot.delete_message(msg.chat.id, msg.message_id)
+    # @bot.message_handler(content_types=['photo'], func=lambda msg: msg.media_group_id is not None)
+    # def save_media_group_id_photo(msg: types.Message):
+    #     func.add_photo_to_media(msg.media_group_id, msg.photo[-1].file_id)
+    #     bot.delete_message(msg.chat.id, msg.message_id)
 
 
-# enable_webhook = False
-#
-# if __name__ == '__main__':
-#     while True:  # бесконечный обработчик
-#         try:
-#             if enable_webhook:
-#                 bot.remove_webhook()
-#                 bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-#             else:
-#                 start_bot()
-#                 bot.polling(none_stop=True, interval=0, timeout=2000)
-#         except Exception as e:
-#             print(e)
-#             print('restart',  datetime.datetime.now())
+if not __name__ == '__main__':
+    start_bot()
+    bot.enable_save_next_step_handlers(delay=2)
+    bot.load_next_step_handlers()

@@ -1,6 +1,6 @@
 import time
-import bot_tg as bot_sv
-import server_flask as fls_sv
+import bot_tg
+import server_flask
 import settings as st
 import datetime
 
@@ -9,22 +9,20 @@ import threading
 serve_on_server = False
 
 def application(a=None,b=None):
-    bot_sv.bot.remove_webhook()
+    bot_tg.bot.remove_webhook()
     if serve_on_server:
         time.sleep(0.1)
 
-        bot_sv.bot.set_webhook(url=st.WEBHOOK_URL_BASE + st.WEBHOOK_URL_PATH)
+        bot_tg.bot.set_webhook(url=st.WEBHOOK_URL_BASE + st.WEBHOOK_URL_PATH)
 
     while True:
         try:
-            bot_sv.start_bot()
-
             if serve_on_server:
                 pass
             else:
-                 threading.Thread(target=bot_sv.bot.polling).start()
+                 threading.Thread(target=bot_tg.bot.polling).start()
 
-            fls_sv.start_server(serve_on_server)
+            server_flask.app.run(debug=True, host='localhost', port=443, ssl_context=('localhost.crt', 'localhost.key'))
         except Exception as e:
             print(e)
             print('restart',  datetime.datetime.now())
