@@ -5,7 +5,7 @@
 
 # создано для "Лидер сервис"
 import datetime
-import logging
+# import logging
 import re, os
 import uuid
 
@@ -16,7 +16,7 @@ from telebot import types
 import settings as sett
 
 bot = telebot.TeleBot(sett.API_KEY, threaded=False)  # реализация
-telebot.logger.setLevel(logging.DEBUG)
+# telebot.logger.setLevel(logging.DEBUG)
 
 import functions as func
 import report_zip
