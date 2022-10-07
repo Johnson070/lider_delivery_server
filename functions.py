@@ -379,7 +379,7 @@ def proof_mission(id):
 def retry_mission_by_id(id):
     conn, cur = open_db()
     cur.execute('''UPDATE missions SET date_expire = 
-                        IIF(date_expire >= DATETIME("now"), DATETIME(date_expire,"+1 day"), DATETIME("now","start of day","+3 days","-1 second")) 
+                        (CASE WHEN date_expire >= DATETIME("now") THEN DATETIME(date_expire, "+1 day") ELSE DATETIME("now", "start of day", "+3 days", "-1 second") END)
                         WHERE id = ?''', (id, ))
     cur.execute('''UPDATE missions SET status = 0, proof = 0 WHERE id = ?''', (id, ))
     conn.commit()
@@ -389,7 +389,8 @@ def retry_mission_by_id(id):
 def reject_mission_by_id(id):
     conn, cur = open_db()
     mission = cur.execute('''SELECT status, proof, reward, user FROM missions WHERE id = ?''', (id, )).fetchall()[0]
-    cur.execute('''UPDATE users SET earned = earned - IIF(? = 1 AND ? = 1, ?, 0) WHERE id = ?''', *(mission,))
+    cur.execute('''UPDATE users SET earned = earned - (CASE WHEN (? = 1 AND ? = 1) THEN ? ELSE 0 END)
+                    WHERE id = ?''', *(mission,))
     cur.execute('''UPDATE missions SET status = 0,proof = 1 WHERE id = ?''', (id,))
     conn.commit()
     close_db(conn, cur)

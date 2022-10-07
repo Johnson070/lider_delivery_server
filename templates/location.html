@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-      <script>
-         function showLocation(position) {
-            var latitude = position.coords.latitude;
-            var longitude = position.coords.longitude;
-            alert("Latitude : " + latitude + " Longitude: " + longitude);
-         }
-         function errorHandler(err) {
-            if(err.code == 1) {
-               alert("Error: Access is denied!");
-            }
-            else if( err.code == 2) {
-               alert("Error: Position is unavailable!");
-            }
-         }
-         function getLocation(){
-            if(navigator.geolocation){
-               // timeout at 60000 milliseconds (60 seconds)
-               var options = {
-                  enableHighAccuracy: true,
-                  timeout: 5000,
-                  maximumAge: 0
-                };
-               navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
-            } else{
-               alert("Sorry, browser does not support geolocation!");
-            }
-         }
-      </script>
-   </head>
-   <body>
-      <form>
-         <input type="button" onclick="getLocation();" value="Get Location"/>
-      </form>
-   </body>
+    <title>Геопозиция</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="../static/css/main.css">
+</head>
+<body onload="getLocation()">
+    <p>Ожидание получения геопозиции</p>
+    <button class="button" onclick="getLocation()">Ntcn</button>
+</body>
+<script>
+ function showLocation(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+
+    window.Telegram.WebApp.sendData(JSON.stringify({latitude: latitude, longitude: longitude}));
+    window.Telegram.WebApp.close();
+ }
+ function errorHandler(err) {
+    if(err.code == 1) {
+       window.Telegram.WebApp.showAlert("Error: Access is denied!");
+    }
+    else if( err.code == 2) {
+       window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+    }
+ }
+ function getLocation(){
+    if(navigator.geolocation){
+       // timeout at 60000 milliseconds (60 seconds)
+       var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
+       navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
+    } else{
+       window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+    }
+ }
+</script>
 </html>

@@ -9,6 +9,7 @@ import logging
 import re, os
 import uuid
 
+import jsonpickle
 import telebot
 from telebot import types
 
@@ -612,14 +613,18 @@ def start_bot():
         bot.register_next_step_handler(msg, check_location, msg.message_id, id)
 
     def check_location(msg: types.Message, start_msg_id, id):
+        print(msg.web_app_data.data)
+        bot.register_next_step_handler(msg, check_location, start_msg_id, id)
+        return
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
-        elif msg.content_type != 'location':
+        elif msg.content_type != 'web_app_data':
             bot.delete_message(msg.chat.id, msg.message_id)
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
 
         try:
+            location = jsonpickle.decode(msg)
             if not func.check_coordinates(id, msg.location.longitude, msg.location.latitude):
                 bot.delete_message(msg.chat.id, msg.message_id)
                 bot.register_next_step_handler(msg, check_location, start_msg_id, id)

@@ -21,7 +21,7 @@ app = Flask(__name__, template_folder=template_path, static_folder=static_path)
 app.secret_key = settings.cookie_secret_key
 
 def not_auth():
-    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']):
+    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or not session['user_id'] in settings.admins:
         return True
     return False
 
@@ -105,8 +105,8 @@ def validate_query_save():
 
 
 @app.route('/unauthorized')
-def unauthorized():
-    return Response('<b>401</b><br>Unauthorized<br>Пожалуйста закройте окно и откройте заново!', 401)
+def unauthorized():#
+    return render_template('unauthorized.html')
 
 
 @app.route('/auth')
@@ -176,9 +176,21 @@ def manage_mission(uuid, method):
         return Response(None, 200)
     elif method == 'reject':
         func.reject_mission_by_id(uuid)
+        mission = func.get_full_info_mission(uuid)
+
+        bot_tg.bot.send_message(mission[1],
+                         f'Задание: {mission[2]}!\n'
+                         'Ваше задание было отбраковано.\n'
+                         'Свяжитесь с менеджером для уточнения информации.')
         return Response(None, 200)
     elif method == 'retry_rep':
         func.retry_mission_by_id(uuid)
+        mission = func.get_full_info_mission(uuid)
+
+        bot_tg.bot.send_message(mission[1],
+                         f'Задание: {mission[2]}!\n'
+                         'Ваше задание было продлено на 1 день.\n'
+                         'Завершите его в срок.')
         return Response(None, 200)
 
 

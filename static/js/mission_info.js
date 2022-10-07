@@ -36,6 +36,7 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
                     photo = document.createElement('img');
                     photo.className = 'report-grid-photo';
                     photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
+                    photo.loading = 'lazy';
                     images.appendChild(photo);
                 }
                 report.appendChild(images)

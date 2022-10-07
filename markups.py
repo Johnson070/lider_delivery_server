@@ -29,7 +29,7 @@ def get_admin_menu(full_menu=False):
         types.InlineKeyboardButton('Статистика', callback_data='stats'),
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
-    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://127.0.0.1/auth')))
+    markup.add(types.InlineKeyboardButton('Тест webapp', web_app=types.WebAppInfo('https://bdfix.ru/auth')))
 #127.0.0.1
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
@@ -218,14 +218,16 @@ def mission_menu(mission_id, expired, route_url=None):
     markup = types.InlineKeyboardMarkup()
     if not expired:
         markup.add(
-            types.InlineKeyboardButton('Добавить отчет', callback_data=f'report_mission_{mission_id}'),
-            types.InlineKeyboardButton('Завершить', callback_data=f'complete_{mission_id}')
+            types.InlineKeyboardButton('Добавить отчет', callback_data=f'report_mission_{mission_id}')
         )
 
     if route_url is not None:
         markup.add(
             types.InlineKeyboardButton('Посмотреть на карте', web_app=types.WebAppInfo(route_url))
         )
+
+    if not expired:
+        markup.add(types.InlineKeyboardButton('Завершить', callback_data=f'complete_{mission_id}'))
     markup.add(
         types.InlineKeyboardButton('Назад', callback_data='start_del')
     )
@@ -236,7 +238,7 @@ def get_location_menu():
     markup = types.ReplyKeyboardMarkup()
 
     markup.add(
-        types.KeyboardButton('Отправить геолокацию', request_location=True),
+        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo('https://bdfix.ru/location')),
         row_width=1
     )
 
