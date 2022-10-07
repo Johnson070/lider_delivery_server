@@ -7,6 +7,8 @@
 import datetime
 import logging
 import re, os
+import uuid
+
 import telebot
 from telebot import types
 
@@ -101,12 +103,12 @@ def start_bot():
             msg_last = bot.edit_message_text('Получите ссылку на приглашения у администратора.',
                                              call.message.chat.id,
                                              call.message.message_id)
-            print('Delete chat for user: ', call.message.chat.username)
-            for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
-                try:
-                    bot.delete_message(call.message.chat.id, i, timeout=500)
-                except:
-                    pass
+            # print('Delete chat for user: ', call.message.chat.username)
+            # # for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
+            # #     try:
+            # #         bot.delete_message(call.message.chat.id, i, timeout=500)
+            # #     except:
+            # #         pass
 
     # =========================
     # обработчики маршрутов
@@ -381,15 +383,14 @@ def start_bot():
 
         clerk = func.get_clerk_by_id(id)
         missions = [i[1] for i in func.get_missions_by_user_id(id)]
-        try:
-            bot.edit_message_text(sett.info_user_text.format(
-                clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
-                call.message.chat.id,
-                call.message.message_id,
-                parse_mode='HTML',
-                reply_markup=markups.get_clerk_control_menu(clerk[0]))
-        finally:
-            pass
+        bot.edit_message_text(sett.info_user_text.format(
+            clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='HTML',
+            reply_markup=markups.get_clerk_control_menu(clerk[0]))
+        # finally:
+        #     pass
 
     # =========================
     # обработчики админ меню маршруты
@@ -525,10 +526,13 @@ def start_bot():
     def change_balance(call: types.CallbackQuery):
         id = re.search(r'(\d+)$', call.data).group(0)
 
-        bot.edit_message_text('Введите новый баланс',
-                              call.message.chat.id,
-                              call.message.message_id,
-                              reply_markup=markups.back_to_clerk_menu(id))
+        try:
+            bot.edit_message_text('Введите новый баланс',
+                                  call.message.chat.id,
+                                  call.message.message_id,
+                                  reply_markup=markups.back_to_clerk_menu(id))
+        except:
+            pass
         bot.register_next_step_handler(call.message, handler_change_balance, id, call.message.message_id)
 
     def handler_change_balance(msg: types.Message, id, msg_id):
@@ -625,43 +629,36 @@ def start_bot():
             bot.delete_message(msg.chat.id, msg.message_id)
             bot.delete_message(msg.chat.id, start_msg_id)
             msg_new = bot.send_message(msg.chat.id,
-                                       'Отправьте фотоотчёт до 10-ти фотографий в альбоме БЕЗ СЖАТИЯ!',
-                                       reply_markup=types.ReplyKeyboardRemove())
-            # bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id)
-            bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id)
+                                       'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
+                                       reply_markup=markups.stop_get_photos())
+            bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
         except:
             bot.delete_message(msg.chat.id, msg.message_id)
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
 
     # TODO: поменять алгоритм получения фото
-    def parse_photos_report(msg: types.Message, start_msg_id, coords, id):
+    def parse_photos_report(msg: types.Message, start_msg_id, coords, id, group_id):
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
-        elif msg.content_type == 'photo':
-            files = None
-            if msg.media_group_id is not None:
-                bot.delete_message(msg.chat.id, start_msg_id)
-                end_message_id = bot.send_message(msg.chat.id,
-                                                  "Ожидайте",
-                                                  reply_markup=types.ReplyKeyboardRemove()).message_id
-
-                func.add_photo_to_media(msg.media_group_id, msg.photo[-1].file_id)
-                files = msg.media_group_id
-
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, end_message_id)
-            else:
-                files = msg.photo[-1].file_id
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, start_msg_id)
-
+        elif not group_id is None and msg.text == 'Закончить отправку фото':
+            bot.delete_message(msg.chat.id, msg.message_id)
+            bot.delete_message(msg.chat.id, start_msg_id)
             new_msg = bot.send_message(msg.chat.id,
-                                       'Отправьте кружочек с окружением и флаерами.')
-            bot.register_next_step_handler(new_msg, parse_video, new_msg.message_id, coords, id, files)
+                                       'Отправьте кружочек с окружением и флаерами.',
+                                       reply_markup=types.ReplyKeyboardRemove())
+            bot.register_next_step_handler(new_msg, parse_video, new_msg.message_id, coords, id, group_id)
+        elif msg.content_type == 'photo':
+            if group_id is None:
+                group_id = str(uuid.uuid4())
+            bot.delete_message(msg.chat.id, msg.message_id)
+
+            func.add_photo_to_media(group_id, msg.photo[-1].file_id)
+
+            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
         else:
             bot.delete_message(msg.chat.id, msg.message_id)
-            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id)
+            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
 
     def parse_video(msg: types.Message, start_msg_id, coords, id, photos):
         if msg.content_type == 'text' and msg.text == '/start':
@@ -708,11 +705,11 @@ def start_bot():
 
         msg_last = bot.send_message(id, 'Вы были исключены администратором.\n'
                                         'Спасибо за использование!')
-        for i in range(msg_last.message_id-1, msg_last.message_id-200, -1):  # удаление прошлых сообщений в чате()
-            try:
-                bot.delete_message(id, i, timeout=0)
-            except:
-                pass
+        # for i in range(msg_last.message_id-1, msg_last.message_id-200, -1):  # удаление прошлых сообщений в чате()
+        #     try:
+        #         bot.delete_message(id, i, timeout=0)
+        #     except:
+        #         pass
 
     # =========================
     # Просмотр всех заданий
@@ -859,6 +856,8 @@ def start_bot():
                               call.message.message_id,
                               parse_mode='HTML',
                               reply_markup=markups.back_cleck_menu())
+        # except:
+        #     pass
 
     # @bot.message_handler(content_types=['photo'], func=lambda msg: msg.media_group_id is not None)
     # def save_media_group_id_photo(msg: types.Message):

@@ -1,3 +1,5 @@
+import re
+import time
 import zipfile, jsonpickle, uuid
 import functions as func
 import settings as sett
@@ -47,7 +49,7 @@ def get_report(id):
     for _ in range(0, count_reports):
         points.append(jsonpickle.decode(data[_][0]))
         photos_ids = None
-        if data[_][1].isdigit():
+        if data[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', data[_][1]) is None:
             photos_ids = func.get_photos_by_media_id(data[_][1])
         else:
             photos_ids = [data[_][1]]
@@ -56,6 +58,7 @@ def get_report(id):
 
         for num in range(0, len(photos_ids)):
             report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', get_raw_by_id(photos_ids[num]))
+            time.sleep(0.5)
 
     points = [geo_json.point(points[i - 1], i) for i in range(1, count_reports + 1)]
     geojson = geo_json(points)

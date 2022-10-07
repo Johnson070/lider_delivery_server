@@ -73,6 +73,7 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
 
 @app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
 def webhook():
+
     if request.headers.get('content-type') == 'application/json':
         json_string = request.get_data().decode('utf-8')
         print(json_string)
@@ -81,6 +82,7 @@ def webhook():
         return ''
     else:
         abort(403)
+
 
 
 @app.route('/validate', methods=['GET'])
@@ -192,6 +194,7 @@ def get_file_by_file_id():
 
     file = report_zip.get_raw_by_id(file_id)
     if file is not None:
+        time.sleep(0.5)
         if file_id.find('DQA') != -1:
             return Response(file, mimetype='video/mp4')
         else:
@@ -227,7 +230,7 @@ def get_base64_reports(uuid):
     for _ in range(0, len(reports)):
         json_report.append({})
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
-        if reports[_][1].isdigit():
+        if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
         json_report[-1]['photos'] = [reports[_][1]] if isinstance(reports[_][1], str) else reports[_][1]
         json_report[-1]['video'] = reports[_][2]

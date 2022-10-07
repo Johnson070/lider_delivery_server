@@ -315,3 +315,11 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
     )
 
     return markup
+
+def stop_get_photos():
+    markup = types.ReplyKeyboardMarkup()
+    markup.add(
+        types.KeyboardButton('Закончить отправку фото')
+    )
+
+    return markup
