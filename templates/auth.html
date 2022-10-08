@@ -20,7 +20,7 @@
    }
 
    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-   xmlhttp.open('POST', 'validate', true); // Открываем асинхронное соединение
+   xmlhttp.open('POST', '/validate', true); // Открываем асинхронное соединение
    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
    xmlhttp.send(window.Telegram.WebApp.initData); // Отправляем POST-запрос
    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера

@@ -97,6 +97,11 @@ a:visited {
   border-color: #ccc;
 }
 
+.delete-button {
+  background-color: #e74c3c;
+  border-color: #e74c3c;
+}
+
 .button:not(:last-child){
    margin-bottom: 5px
 }

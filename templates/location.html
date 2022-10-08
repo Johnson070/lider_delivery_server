@@ -7,32 +7,31 @@
 </head>
 <body onload="getLocation()">
     <p>Ожидание получения геопозиции</p>
-    <button class="button" onclick="getLocation()">Ntcn</button>
 </body>
 <script>
- function showLocation(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
+    function showLocation(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
 
-    window.Telegram.WebApp.sendData(JSON.stringify({latitude: latitude, longitude: longitude}));
-    window.Telegram.WebApp.close();
- }
- function errorHandler(err) {
-    if(err.code == 1) {
-       window.Telegram.WebApp.showAlert("Error: Access is denied!");
+        window.Telegram.WebApp.sendData(JSON.stringify({latitude: latitude, longitude: longitude}));
+        window.Telegram.WebApp.close();
     }
-    else if( err.code == 2) {
-       window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+    function errorHandler(err) {
+        if(err.code == 1) {
+           window.Telegram.WebApp.showAlert("Error: Access is denied!");
+        }
+        else if( err.code == 2) {
+           window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+        }
     }
- }
- function getLocation(){
-    if(navigator.geolocation){
-       // timeout at 60000 milliseconds (60 seconds)
-       var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
-       navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
-    } else{
-       window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+    function getLocation(){
+        if(navigator.geolocation){
+           // timeout at 60000 milliseconds (60 seconds)
+           var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
+           navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
+        } else{
+           window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+        }
     }
- }
 </script>
 </html>

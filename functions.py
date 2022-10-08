@@ -1,5 +1,6 @@
 import datetime
 import math
+import re
 
 import qrcode
 import random
@@ -25,7 +26,13 @@ def close_db(conn, cursor):
 # парсинг geojson
 def parse_geo_json(json):
     try:
-        points = jsonpickle.decode(json)['features'][0]['geometry']['coordinates']
+        points = jsonpickle.decode(json)['features'][0]['geometry']
+
+        if points['type'] == 'Polygon':
+            points = points['coordinates'][0]
+        elif points[type] == "LineString":
+            points = points['coordinates']
+
         points = [(i[0], i[1]) for i in points]
 
         return points
@@ -116,6 +123,23 @@ def add_route(data):
     close_db(conn, cursor)
 
 
+def delete_mission(id):
+    conn, cursor = open_db()
+
+    reports = cursor.execute('''SELECT photo_id FROM reports WHERE mission_id = ?''', (id,)).fetchall()
+    reports = [_[0] for _ in reports]
+
+    for _ in reports:
+        if _.isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', _) is None:
+            cursor.execute('''DELETE FROM media WHERE photo_id = ?;''', (_, ))
+
+    cursor.execute('''DELETE FROM reports WHERE mission_id = ?;''', (id, ))
+    cursor.execute('''DELETE FROM missions WHERE id = ?;''', (id, ))
+    conn.commit()
+
+    close_db(conn, cursor)
+
+
 def get_routes():
     conn, cursor = open_db()
     routes = cursor.execute('''SELECT id,name FROM routes''').fetchall()
@@ -151,6 +175,7 @@ def check_can_delete_route(id):
         return False
     else:
         return True
+
 
 def delete_route(id):
     conn, cursor = open_db()
@@ -418,7 +443,7 @@ def check_coordinates(id_mission, lat, lon):
     coords = jsonpickle.decode(coords[0][0])
 
     for pos in coords:
-        # print(get_length_locations(lat, lon, pos[0], pos[1]), lat, lon, pos[0], pos[1] )
+        # print(get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius)
         if get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius:
             return True
 
@@ -443,3 +468,6 @@ def get_length_locations(lat1, lon1, lat2, lon2):
 rd = random.Random()
 rd.seed(datetime.datetime.now().microsecond)
 uuid.UUID(int=rd.getrandbits(128))
+
+if __name__ == '__main__':
+    delete_mission('d009da59-b52d-450b-b118-7dc073e10142')

@@ -65,9 +65,25 @@ function manage_mission(item) {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                document.location.reload(true)
+                if (item.id == 'delete') window.location.href = '/'
+                else document.location.reload(true)
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
         }
     };
+}
+
+function confirm_delete_mission() {
+    class item {
+        constructor(id) {
+            this.id = id
+        }
+    }
+
+    const id = new item('delete')
+
+    window.Telegram.WebApp.showConfirm('Вы уверены что хотите безвозратно удалить миссию? ',
+    function (state) {
+            if (state) manage_mission(id);
+        });
 }

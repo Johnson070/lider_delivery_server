@@ -564,10 +564,13 @@ def start_bot():
     # =========================
     @bot.callback_query_handler(lambda call: call.data == 'quests_user')
     def get_missions_user(call: types.CallbackQuery):
-        bot.edit_message_text('Текущие задания.',
-                              call.message.chat.id,
-                              call.message.message_id,
-                              reply_markup=markups.missions_by_user_id_menu(call.message.chat.id))
+        try:
+            bot.edit_message_text('Текущие задания.',
+                                  call.message.chat.id,
+                                  call.message.message_id,
+                                  reply_markup=markups.missions_by_user_id_menu(call.message.chat.id))
+        except:
+            bot.send_message(call.message.chat.id, 'Ошибка!')
 
     @bot.callback_query_handler(lambda call: re.search(r'quest_user_(([a-f0-9]+-){4}([a-f0-9]+))$', call.data))
     def show_mission_user(call: types.CallbackQuery):
@@ -613,34 +616,31 @@ def start_bot():
         bot.register_next_step_handler(msg, check_location, msg.message_id, id)
 
     def check_location(msg: types.Message, start_msg_id, id):
-        print(msg.web_app_data.data)
-        bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-        return
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
         elif msg.content_type != 'web_app_data':
             bot.delete_message(msg.chat.id, msg.message_id)
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
+        elif msg.content_type == 'web_app_data':
+            try:
+                location = jsonpickle.decode(msg.web_app_data.data)
+                if not func.check_coordinates(id, location['longitude'], location['latitude']):
+                    bot.delete_message(msg.chat.id, msg.message_id)
+                    bot.register_next_step_handler(msg, check_location, start_msg_id, id)
+                    return
 
-        try:
-            location = jsonpickle.decode(msg)
-            if not func.check_coordinates(id, msg.location.longitude, msg.location.latitude):
+                coords = (location['longitude'], location['latitude'])
+                bot.delete_message(msg.chat.id, msg.message_id)
+                bot.delete_message(msg.chat.id, start_msg_id)
+                msg_new = bot.send_message(msg.chat.id,
+                                           'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
+                                           reply_markup=markups.stop_get_photos())
+                bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
+            except:
                 bot.delete_message(msg.chat.id, msg.message_id)
                 bot.register_next_step_handler(msg, check_location, start_msg_id, id)
                 return
-
-            coords = (msg.location.longitude, msg.location.latitude)
-            bot.delete_message(msg.chat.id, msg.message_id)
-            bot.delete_message(msg.chat.id, start_msg_id)
-            msg_new = bot.send_message(msg.chat.id,
-                                       'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
-                                       reply_markup=markups.stop_get_photos())
-            bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
-        except:
-            bot.delete_message(msg.chat.id, msg.message_id)
-            bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-            return
 
     # TODO: поменять алгоритм получения фото
     def parse_photos_report(msg: types.Message, start_msg_id, coords, id, group_id):

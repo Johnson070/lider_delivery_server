@@ -20,6 +20,7 @@ app = Flask(__name__, template_folder=template_path, static_folder=static_path)
 
 app.secret_key = settings.cookie_secret_key
 
+
 def not_auth():
     if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or not session['user_id'] in settings.admins:
         return True
@@ -71,12 +72,10 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
     return data_check.hexdigest() == hash_str
 
 
-@app.route(settings.WEBHOOK_URL_PATH, methods=['POST','GET'])
+@app.route(settings.WEBHOOK_URL_PATH, methods=['POST', 'GET'])
 def webhook():
-
     if request.headers.get('content-type') == 'application/json':
         json_string = request.get_data().decode('utf-8')
-        print(json_string)
         update = types.Update.de_json(json_string)
         bot_tg.bot.process_new_updates([update])
         return ''
@@ -84,10 +83,9 @@ def webhook():
         abort(403)
 
 
-
 @app.route('/validate', methods=['GET'])
 def validate_query():
-    return Response('0' if not_auth() else '1',200)
+    return Response('0' if not_auth() else '1', 200)
 
 
 @app.route('/validate', methods=['POST'])
@@ -95,17 +93,17 @@ def validate_query_save():
     data_user = parse_qs(request.data.decode('utf-8'))
 
     if not 'user' in data_user.keys():
-        return Response('0',200)
+        return Response('0', 200)
 
     session['user_id'] = jsonpickle.decode(
         data_user['user'][0]
     )['id']
     session['initdata'] = request.data
-    return Response('0' if not_auth() else '1',200)
+    return Response('0' if not_auth() else '1', 200)
 
 
 @app.route('/unauthorized')
-def unauthorized():#
+def unauthorized():  #
     return render_template('unauthorized.html')
 
 
@@ -179,18 +177,21 @@ def manage_mission(uuid, method):
         mission = func.get_full_info_mission(uuid)
 
         bot_tg.bot.send_message(mission[1],
-                         f'Задание: {mission[2]}!\n'
-                         'Ваше задание было отбраковано.\n'
-                         'Свяжитесь с менеджером для уточнения информации.')
+                                f'Задание: {mission[2]}!\n'
+                                'Ваше задание было отбраковано.\n'
+                                'Свяжитесь с менеджером для уточнения информации.')
         return Response(None, 200)
     elif method == 'retry_rep':
         func.retry_mission_by_id(uuid)
         mission = func.get_full_info_mission(uuid)
 
         bot_tg.bot.send_message(mission[1],
-                         f'Задание: {mission[2]}!\n'
-                         'Ваше задание было продлено на 1 день.\n'
-                         'Завершите его в срок.')
+                                f'Задание: {mission[2]}!\n'
+                                'Ваше задание было продлено на 1 день.\n'
+                                'Завершите его в срок.')
+        return Response(None, 200)
+    elif method == 'delete':
+        func.delete_mission(uuid)
         return Response(None, 200)
 
 
@@ -265,11 +266,14 @@ def route_view(UUID):
 
     route = func.get_route(UUID)
 
+    if not len(route):
+        return Response(None, 405)
+
     return render_template('route.html',
                            name=route[1],
                            img=route[4],
                            uuid='https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A' +
-                                parse_qs(urlparse(route[2]).query)['um'][0].replace('constructor:','') +
+                                parse_qs(urlparse(route[2]).query)['um'][0].replace('constructor:', '') +
                                 '&amp;width=100%25&amp;height=500&amp;lang=ru_RU&amp;scroll=true',
                            can_delete=func.check_can_delete_route(UUID))
 
@@ -281,7 +285,7 @@ def route_delete(UUID):
 
     func.delete_route(UUID)
 
-    return Response(1, 200)
+    return Response(None, 200)
 
 
 @app.route('/routes/list', methods=['GET'])
@@ -308,7 +312,7 @@ def add_route():
 
     func.add_route([name_route, link_map, geojson, photo_file_id])
 
-    return Response('1',200)
+    return Response('1', 200)
 
 
 @app.route('/users', methods=['GET'])
@@ -374,6 +378,7 @@ def manage_user(uid, method):
 @app.route('/location', methods=['GET'])
 def get_location():
     return render_template('location.html')
+
 
 if not __name__ == '__main__':
     bot_tg.start_bot()
