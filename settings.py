@@ -1,10 +1,5 @@
 import os
 
-def up_directory(path):
-    path = path.split('\\')
-    path.pop()
-    return '\\'.join(path)
-
 
 cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c'
 API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не сообщать, получать в @BotFather

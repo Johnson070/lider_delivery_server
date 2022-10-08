@@ -74,9 +74,12 @@ body {
    color: var(--tg-theme-hint-color);
 }
 
+input[type="checkbox"] + label {
+  color: var(--tg-theme-text-color);
+}
+
 a:not(:visited),
 a:visited {
-  color: var(--tg-theme-button-text-color);
   text-decoration: none;
 }
 
@@ -102,6 +105,11 @@ a:visited {
   border-color: #e74c3c;
 }
 
+.ext-button {
+  background-color: #f1c40f;
+  border-color: #f1c40f;
+}
+
 .button:not(:last-child){
    margin-bottom: 5px
 }
@@ -118,8 +126,41 @@ a:visited {
 }
 
 #usercard{
-   text-align: center;
+  text-align: center;
+  width: 95%;
+  color: var(--tg-theme-text-color);
 }
+
+.text-info-user {
+  color: var(--tg-theme-text-color);
+  background-color: var(--tg-theme-secondary-bg-color);
+  width: 90%;
+  border-radius: 1em;
+  margin: 10px 0;
+}
+
+.text-info-container{
+  display: flex;
+  position: relative;
+  padding: 5px 10px;
+}
+
+div.name-property {
+  display: inline-block;
+  float: left;
+  width: 100%;
+  margin-right: -100%;
+}
+
+div.value-property {
+  display: inline-block;
+  float: right;
+  width: 100%;
+  margin-right: -100%;
+  text-align: right;
+}
+
+
 
 /* Style the collapsible content. Note: hidden by default */
 .content_menu {
@@ -129,13 +170,14 @@ a:visited {
   margin: 0px 18px;
   overflow: hidden;
   background-color: var(--tg-theme-secondary-bg-color);
+  color: var(--tg-theme-text-color);
 }
 
 .menu_button {
   text-decoration: none;
   margin: 20px;
 
-  color: var(--tg-theme-button-text-color);
+  color: var(--tg-theme-text-color);
 }
 
 .grid-item-btn-proof{
@@ -239,7 +281,7 @@ a:visited {
 
 hr {
   color: var(--tg-theme-secondary-bg-color);
-  width: 100%;
+  width: 95%;
   margin-bottom: 20px;
 }
 
@@ -252,6 +294,7 @@ hr {
   text-align: center;
   border-radius: 1.5em;
   position: absolute;
+  color: var(--tg-theme-text-color);
 
   left: 50%;
   top: 50%;

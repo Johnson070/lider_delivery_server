@@ -9,6 +9,8 @@ import sqlite3
 import jsonpickle
 from io import BytesIO
 
+import requests
+
 import settings as sett
 
 
@@ -443,7 +445,7 @@ def check_coordinates(id_mission, lat, lon):
     coords = jsonpickle.decode(coords[0][0])
 
     for pos in coords:
-        # print(get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius)
+        # print(get_length_locations(lat, lon, pos[0], pos[1]), lat, lon, pos[0], pos[1])
         if get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius:
             return True
 
@@ -462,6 +464,32 @@ def get_length_locations(lat1, lon1, lat2, lon2):
         math.cos(lat1) * math.cos(lat2) *
         math.pow(math.sin(((lon2-lon1)/2.0)), 2.0)
     ))
+
+
+def execute_db(command):
+    conn, cur = open_db()
+    cur.execute(command)
+    conn.commit()
+    close_db(conn, cur)
+
+# скачивание файла с сервера телеграмм
+def download_file(file_id):
+
+    get_file_link = f'https://api.telegram.org/bot{sett.API_KEY}/getFile?file_id={file_id}'
+
+    r = requests.get(get_file_link)
+
+    for _ in range(0,5):
+        if r.status_code == 200:
+            file_path = r.json()['result']['file_path']
+            download_file_raw = f'https://api.telegram.org/file/bot{sett.API_KEY}/{file_path}'
+
+            r_data = requests.get(download_file_raw)
+
+            if r_data.status_code == 200:
+                return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
+
+    return None
 
 
 # Генерация псевдослучайных чисел задание зерна

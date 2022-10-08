@@ -8,6 +8,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
     <script src="../static/js/mission_info.js"></script>
     <script src="../static/js/collapsive.js"></script>
+    <script src="../static/js/popup-actions.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 </head>
 
@@ -18,15 +19,45 @@
       <a class="menu_button" href='/routes'>Маршруты</a>
       <a class="menu_button" href='/users'>Пользователи</a>
     </div>
-    <div id="main">
-        Выполнил: <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b><br>
-        Задание: <b>{{ name_mission }}</b><br><br>
-        Вознаграждение: <b>{{ reward }}</b> р<br>
-        Количество отчетов <b>{{ count }}</b> из <b>{{ all_count }}</b><br>
-        Время окончания: <b>{{ time }}</b><br>
-        Статус: <b>{{ status }}</b><br>
-        <hr>
+    <div class="text-info-user">
+        <div class="text-info-container">
+            <div class="name-property">Закреплено за</div>
+            <div class="value-property">
+                <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Задание</div>
+            <div class="value-property">
+                <b>{{ name_mission }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Вознаграждение</div>
+            <div class="value-property">
+                <b>{{ reward }}</b> руб.
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Количество отчетов</div>
+            <div class="value-property">
+                <b>{{ count }}</b> из <b>{{ all_count }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Время окончания</div>
+            <div class="value-property">
+                <b>{{ time }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Статус</div>
+            <div class="value-property">
+                <b>{{ status }}</b>
+            </div>
+        </div>
     </div>
+    <hr>
    <div id="div_buttons">
         {% if not proof and not rejected %}
             <div class="buttons-grid-wait">
@@ -51,7 +82,7 @@
         {% endif %}
         {% endif %}
         {% endif %}
-        <button class='button delete-button' onclick='confirm_delete_mission()'>Удалить</button>
+
     </div>
     <p>
         <a href='/'>
@@ -61,6 +92,21 @@
 
     <div id="reports">
     </div>
+
+    <div class="popup-blur" id="edit-mission-popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup('edit-mission-popup')">x</div>
+            <p>Изменить задание</p>
+            <hr>
+            <p>Выберите задание</p>
+            <div class="div-buttons menu_button" id="remove-missions">
+
+            </div>
+        </div>
+    </div>
+    # TODO: сделать плавающее окно посередине и блюр на весь бади
+    <button class='button ext-button' onclick='show_popup("edit-mission-popup")'>Изменить</button>
+    <button class='button delete-button' onclick='kick_user_confirm()'>Удалить</button>
     <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>

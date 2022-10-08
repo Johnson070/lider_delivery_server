@@ -54,6 +54,7 @@
    let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
 
    tg.expand(); //расширяем на все окно
+    window.Telegram.WebApp.enableClosingConfirmation()
 
     function get_missions(all) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP

@@ -39,6 +39,12 @@ function get_missions() {
     };
 }
 
+function kick_user_confirm() {
+    window.Telegram.WebApp.showConfirm('Вы уверены что хотите исключить пользователя?', function (state) {
+        if (state) kick_user();
+    })
+}
+
 function kick_user() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', window.location.href+'/kick', true); // Открываем асинхронное соединение

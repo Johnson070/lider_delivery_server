@@ -2,6 +2,7 @@ import math
 
 from telebot import types
 import functions as func
+import settings as sett
 
 
 def get_clerk_menu():
@@ -29,7 +30,7 @@ def get_admin_menu(full_menu=False):
         types.InlineKeyboardButton('Статистика', callback_data='stats'),
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
-    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo('https://bdfix.ru/auth')))
+    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/auth')))
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
     if full_menu:
@@ -146,7 +147,6 @@ def get_clerks_menu(page):
 
 def get_clerk_control_menu(user_id):
     markup = types.InlineKeyboardMarkup()
-    # TODO: также сделать редактор миссии
     markup.add(
         types.InlineKeyboardButton('Добавить миссию', callback_data=f'add_user_mission_{user_id}'),
         types.InlineKeyboardButton('Удалить миссию', callback_data=f'remove_user_mission_{user_id}'),
@@ -237,7 +237,8 @@ def get_location_menu():
     markup = types.ReplyKeyboardMarkup()
 
     markup.add(
-        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo('https://bdfix.ru/location')),
+        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/location')),
+        types.KeyboardButton('Назад'),
         row_width=1
     )
 

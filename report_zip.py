@@ -54,10 +54,10 @@ def get_report(id):
         else:
             photos_ids = [data[_][1]]
 
-        report.writestr(f'Отчет #{_ + 1}/video_note.mp4', get_raw_by_id(data[_][2]))
+        report.writestr(f'Отчет #{_ + 1}/video_note.mp4', func.download_file(data[_][2]))
 
         for num in range(0, len(photos_ids)):
-            report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', get_raw_by_id(photos_ids[num]))
+            report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', func.download_file(photos_ids[num]))
             time.sleep(0.5)
 
     points = [geo_json.point(points[i - 1], i) for i in range(1, count_reports + 1)]

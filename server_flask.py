@@ -6,6 +6,7 @@ import hashlib, re, datetime
 from urllib.parse import unquote, parse_qs, urlparse
 import os
 
+import functions
 import report_zip
 import settings
 import functions as func
@@ -27,6 +28,11 @@ def not_auth():
     return False
 
 
+def not_auth_user():
+    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']):
+        return True
+    return False
+
 def validate_from_request(data):
     data = data.decode('utf-8')
 
@@ -42,22 +48,11 @@ def validate_from_request(data):
         hash = hash.group(0).replace('&hash=', '')
     else:
         hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=1000000) and validate(
+    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=600) and validate(
         hash, data, settings.API_KEY)
 
 
 def validate(hash_str, init_data, token, c_str="WebAppData"):
-    """
-    Validates the data received from the Telegram web app, using the
-    method documented here:
-    https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
-
-    hash_str - the has string passed by the webapp
-    init_data - the query string passed by the webapp
-    token - Telegram bot's token
-    c_str - constant string (default = "WebAppData")
-    """
-
     init_data = sorted([chunk.split("=")
                         for chunk in unquote(init_data).split("&")
                         if chunk[:len("hash=")] != "hash="],
@@ -78,20 +73,19 @@ def webhook():
         json_string = request.get_data().decode('utf-8')
         update = types.Update.de_json(json_string)
         bot_tg.bot.process_new_updates([update])
-        return ''
+        return Response(None, 200)
     else:
         abort(403)
 
-
+@app.route('/validate/user', methods=['GET'])
 @app.route('/validate', methods=['GET'])
 def validate_query():
-    return Response('0' if not_auth() else '1', 200)
+    return Response('0' if (not_auth_user() if request.path == '/validate/user' else not_auth()) else '1', 200)
 
-
+@app.route('/validate/user', methods=['POST'])
 @app.route('/validate', methods=['POST'])
 def validate_query_save():
     data_user = parse_qs(request.data.decode('utf-8'))
-
     if not 'user' in data_user.keys():
         return Response('0', 200)
 
@@ -99,7 +93,7 @@ def validate_query_save():
         data_user['user'][0]
     )['id']
     session['initdata'] = request.data
-    return Response('0' if not_auth() else '1', 200)
+    return Response('0' if (not_auth_user() if request.path == '/validate/user' else not_auth()) else '1', 200)
 
 
 @app.route('/unauthorized')
@@ -205,15 +199,14 @@ def get_file_by_file_id():
 
     file_id = request.args.get('file_id')
 
-    file = report_zip.get_raw_by_id(file_id)
+    file = func.download_file(file_id)
     if file is not None:
-        time.sleep(0.5)
         if file_id.find('DQA') != -1:
             return Response(file, mimetype='video/mp4')
         else:
             return Response(file, mimetype='image/jpeg')
 
-    return Response('File not found!', 200)
+    return Response('File not found!', 404)
 
 
 @app.route('/download/report/<UUID>', methods=['GET'])
@@ -359,7 +352,14 @@ def manage_user(uid, method):
 
     if method == 'add_mission':
         json = request.json
-        func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'], json['reports'])
+        mission_id = func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'], json['reports'])
+        bot_tg.bot.send_message(uid,
+                         'Вам выдано новое задание!\n'
+                         'Старт завтра.',
+                         reply_markup=types.InlineKeyboardMarkup().add(
+                             types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{mission_id}')
+                         ))
+
         return Response(None, 200)
     elif method == 'delete_mission':
         id = request.data.decode('utf-8')
@@ -370,6 +370,8 @@ def manage_user(uid, method):
         return Response(None, 200)
     elif method == 'kick':
         func.kick_user(uid)
+        bot_tg.bot.send_message(uid, 'Вы были исключены администратором.\n'
+                             'Спасибо за использование!')
         return Response(None, 200)
     else:
         Response(None, 401)
@@ -383,9 +385,14 @@ def get_location():
 if not __name__ == '__main__':
     bot_tg.start_bot()
 
-    bot_tg.bot.remove_webhook()
-    time.sleep(0.1)
+    webhook_info = bot_tg.bot.get_webhook_info()
 
-    bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+    if not webhook_info.url == (settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH):
+        bot_tg.bot.remove_webhook()
+        time.sleep(0.1)
+
+        bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+
+
 
 application = app

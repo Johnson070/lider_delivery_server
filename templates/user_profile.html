@@ -20,18 +20,32 @@
       <a class="menu_button" href='/users'><b>Пользователи</b></a>
     </div>
 
-    <div id="main">
-        Пользователь: <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
-        <br><br>
-        Баланс: <b><u>{{ balance }}</u></b> руб.<br>
-        Не подтвержденный баланс: {{ not_pass_balance }} руб.<br>
+    <div class="text-info-user">
+        <div class="text-info-container">
+            <div class="name-property">Пользователь</div>
+            <div class="value-property">
+                <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Баланс</div>
+            <div class="value-property">
+                <b><u>{{ balance }}</u></b> руб.
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Не подтвержденный баланс</div>
+            <div class="value-property">
+                {{ not_pass_balance }} руб.
+            </div>
+        </div>
         <hr>
-        <p>
-            Текущие задания:
+        <div class="text-info-container">
+            <div class="name-property">Текущие задания</div>
             <ul id="missions">
 
             </ul>
-        </p>
+        </div>
     </div>
 
     <div class="popup-blur" id="change-balance-popup">
@@ -81,7 +95,7 @@
              <button class='button button-add-user-mission' id='add_mission' onclick='show_popup("add-mission-popup")'>Добавить задание</button>
              <button class='button button-delete-user-mission' id='delete_mission' onclick='show_popup("remove-mission-popup")'>Удалить задание</button>
              <button class='button button-change-user-mission' id='change_balance' onclick='show_popup("change-balance-popup")'>Изменить баланс</button>
-             <button class='button button-kick-user-mission' id='kick' onclick='kick_user()'>Исключить</button>
+             <button class='button button-kick-user-mission delete-button' id='kick' onclick='kick_user_confirm()'>Исключить</button>
         </div>
     </div>
     <p>
