@@ -588,8 +588,17 @@ def start_bot():
     @bot.callback_query_handler(lambda call: re.search(r'quest_user_(([a-f0-9]+-){4}([a-f0-9]+))$', call.data))
     def show_mission_user(call: types.CallbackQuery):
         id_mission = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
-        bot.delete_message(call.message.chat.id, call.message.message_id)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except:
+            pass
+
         mission = func.get_full_info_mission(id_mission)
+
+        if mission is None:
+            bot.send_message(call.message.chat.id, 'Такого задания не существует!')
+            return
+
         route = func.get_route(mission[3])
         pic_file = route[4]
         link_route = route[2]

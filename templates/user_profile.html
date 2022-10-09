@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
     <script src="../static/js/collapsive.js"></script>
@@ -54,7 +54,7 @@
             <p>Изменить баланс</p>
             <hr>
             <p>Баланс в рублях</p>
-            <input id="balance" type="number" required placeholder="{{ balance }}" value="{{ balance }}">
+            <input id="balance" type="number" inputmode="decimal" required placeholder="{{ balance }}" value="{{ balance }}">
             <p><button class='button' onclick="change_balance(document.getElementById('balance'))">Сохранить</button></p>
         </div>
     </div>
@@ -69,11 +69,11 @@
             <p>Название задания</p>
             <input id="name-mission" type="text" placeholder="Тестовое задание" required>
             <p>Сколько дней на выполнение задания(начиная со следующего дня)</p>
-            <input id="days-expired" type="number" value="10" required>
+            <input id="days-expired" type="number" inputmode="decimal" value="10" required>
             <p>Вознаграждение</p>
-            <input id="reward" type="number" value="1000" required>
+            <input id="reward" type="number" inputmode="decimal" value="1000" required>
             <p>Кол-во отчетов</p>
-            <input id="count-reports" type="number" value="20" required>
+            <input id="count-reports" type="number" inputmode="decimal" value="20" required>
             <p><button class='button' onclick="add_mission()">Добавить</button></p>
         </div>
     </div>
@@ -84,12 +84,11 @@
             <p>Удалить задание</p>
             <hr>
             <p>Выберите задание</p>
-            <div class="div-buttons menu_button" id="remove-missions">
-
-            </div>
+            <div class="div-buttons menu_button" id="remove-missions"></div>
         </div>
     </div>
 
+{#    TODO: добавить кнопку списать баланс #}
     <div id="div_buttons">
         <div class="buttons-grid-user">
              <button class='button button-add-user-mission' id='add_mission' onclick='show_popup("add-mission-popup")'>Добавить задание</button>

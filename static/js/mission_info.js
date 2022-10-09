@@ -87,3 +87,30 @@ function confirm_delete_mission() {
             if (state) manage_mission(id);
         });
 }
+
+function get_users() {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', '/users/list', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                users_list = JSON.parse(this.responseText)
+                users_select = document.getElementById('select-user')
+
+                for (var i = 0; i < users_list.length; i++) {
+                    user = document.createElement('option')
+                    user.innerText = users_list[i][1];
+                    user.value = users_list[i][0];
+                    users_select.appendChild(user);
+                }
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        }
+    };
+}
+
+function change_mission() {
+
+}

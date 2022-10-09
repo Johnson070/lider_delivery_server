@@ -48,7 +48,7 @@ def validate_from_request(data):
         hash = hash.group(0).replace('&hash=', '')
     else:
         hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=600) and validate(
+    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=6000000) and validate(
         hash, data, settings.API_KEY)
 
 
@@ -76,6 +76,12 @@ def webhook():
         return Response(None, 200)
     else:
         abort(403)
+
+
+@app.route('/favicon.ico', methods=['GET'])
+def favicon():
+    return Response(open('static/favicon.ico','rb'), mimetype='image/jpeg')
+
 
 @app.route('/validate/user', methods=['GET'])
 @app.route('/validate', methods=['GET'])

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
     <script src="../static/js/mission_info.js"></script>
@@ -21,7 +21,7 @@
     </div>
     <div class="text-info-user">
         <div class="text-info-container">
-            <div class="name-property">Закреплено за</div>
+            <div class="name-property">Исполнитель</div>
             <div class="value-property">
                 <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
             </div>
@@ -98,15 +98,36 @@
             <div class="close-popup" onclick="hide_popup('edit-mission-popup')">x</div>
             <p>Изменить задание</p>
             <hr>
-            <p>Выберите задание</p>
-            <div class="div-buttons menu_button" id="remove-missions">
-
+            <div class="text-info-container">
+                <div class="name-property">Исполнитель</div>
+                <div class="value-property"><select id="select-user"></select></div>
             </div>
+            <div class="text-info-container">
+                <div class="name-property">Название задания</div>
+                <div class="value-property">
+                    <input id="name-mission" type="text" value="{{ name_mission }}" placeholder="{{ name_mission }}" required></div>
+            </div>
+            <div class="text-info-container">
+                <div class="name-property">Вознаграждение</div>
+                <div class="value-property">
+                    <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required></div>
+            </div>
+            <div class="text-info-container">
+                <div class="name-property">Кол-во отчетов</div>
+                <div class="value-property">
+                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" required></div>
+            </div>
+            <div class="text-info-container">
+                <div class="name-property">Время окончания</div>
+                <div class="value-property">
+                    <input id="time" type="datetime-local" value="{{ time }}" required></div>
+            </div>
+            <p><button class='button' onclick="change_mission()">Сохранить</button></p>
         </div>
     </div>
-    # TODO: сделать плавающее окно посередине и блюр на весь бади
+
     <button class='button ext-button' onclick='show_popup("edit-mission-popup")'>Изменить</button>
-    <button class='button delete-button' onclick='kick_user_confirm()'>Удалить</button>
+    <button class='button delete-button' onclick='confirm_delete_mission()'>Удалить</button>
     <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>
@@ -124,5 +145,6 @@
             }
         });
     }
+    get_users()
 </script>
 </html>
