@@ -360,6 +360,14 @@ def complete_mission(id):
     close_db(conn, cur)
 
 
+def change_mission(id, user, name, reward, reports, date):
+    conn, cur = open_db()
+    cur.execute('''UPDATE missions SET user = ?, comment = ?, reward = ?, count_reports=?, date_expire=? WHERE id = ?''',
+                (user, name, reward, reports, date, id,))
+    conn.commit()
+    close_db(conn, cur)
+
+
 def add_photo_to_media(msg_id, file_id):
     conn, cur = open_db()
     cur.execute('''INSERT INTO media VALUES (?, ?)''', (msg_id, file_id,))

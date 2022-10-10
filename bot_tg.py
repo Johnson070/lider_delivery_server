@@ -260,7 +260,10 @@ def start_bot():
     def show_info_route(call: types.CallbackQuery):
         id = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
         route = func.get_route(id)
-        bot.delete_message(call.message.chat.id, call.message.message_id)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except:
+            pass
         bot.send_photo(call.message.chat.id,
                        route[-1],
                        caption=f'Маршрут: <b>{route[1]}</b>\n'
@@ -646,7 +649,10 @@ def start_bot():
                 pass
             handler_start(msg)
         elif msg.content_type != 'web_app_data':
-            bot.delete_message(msg.chat.id, msg.message_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+            except:
+                pass
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
         try:
@@ -664,7 +670,10 @@ def start_bot():
                                        reply_markup=markups.stop_get_photos())
             bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
         except:
-            bot.delete_message(msg.chat.id, msg.message_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+            except:
+                pass
             bot.register_next_step_handler(msg, check_location, start_msg_id, id)
             return
 
@@ -673,8 +682,11 @@ def start_bot():
         if msg.content_type == 'text' and msg.text == '/start':
             handler_start(msg)
         elif not group_id is None and msg.text == 'Закончить отправку фото':
-            bot.delete_message(msg.chat.id, msg.message_id)
-            bot.delete_message(msg.chat.id, start_msg_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+                bot.delete_message(msg.chat.id, start_msg_id)
+            except:
+                pass
             new_msg = bot.send_message(msg.chat.id,
                                        'Отправьте кружочек с окружением и флаерами.',
                                        reply_markup=types.ReplyKeyboardRemove())
@@ -689,7 +701,10 @@ def start_bot():
 
             bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
         else:
-            bot.delete_message(msg.chat.id, msg.message_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+            except:
+                pass
             bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
 
     def parse_video(msg: types.Message, start_msg_id, coords, id, photos):
@@ -699,14 +714,20 @@ def start_bot():
             video_file_id = str(msg.video_note.file_id)
 
             func.save_report_user(id, msg.chat.username, coords, photos, video_file_id)
-            bot.delete_message(msg.chat.id, msg.message_id)
-            bot.delete_message(msg.chat.id, start_msg_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+                bot.delete_message(msg.chat.id, start_msg_id)
+            except:
+                pass
             bot.send_message(msg.chat.id,
                              'Отчет сохранён.',
                              reply_markup=types.InlineKeyboardMarkup().add(
                                  types.InlineKeyboardButton('Вернуться', callback_data=f'quest_user_{id}')))
         else:
-            bot.delete_message(msg.chat.id, msg.message_id)
+            try:
+                bot.delete_message(msg.chat.id, msg.message_id)
+            except:
+                pass
             bot.register_next_step_handler(msg, parse_video, start_msg_id, coords, id, photos)
             return
 
@@ -882,12 +903,18 @@ def start_bot():
         clerk = func.get_clerk_by_id(id)
         missions = [i[1] for i in func.get_missions_by_user_id(id)]
 
-        bot.edit_message_text(sett.info_user_text.format(
-            clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
-                              call.message.chat.id,
-                              call.message.message_id,
-                              parse_mode='HTML',
-                              reply_markup=markups.back_cleck_menu())
+        try:
+            bot.edit_message_text(sett.info_user_text.format(
+                clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
+                                  call.message.chat.id,
+                                  call.message.message_id,
+                                  parse_mode='HTML',
+                                  reply_markup=markups.back_cleck_menu())
+        except:
+            bot.send_message(call.message.chat.id, sett.info_user_text.format(
+                clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
+                parse_mode='HTML',
+                reply_markup=markups.back_cleck_menu())
         # except:
         #     pass
 
@@ -899,5 +926,5 @@ def start_bot():
 
 if not __name__ == '__main__':
     start_bot()
-    bot.enable_save_next_step_handlers(delay=2)
+    bot.enable_save_next_step_handlers(delay=1)
     bot.load_next_step_handlers()

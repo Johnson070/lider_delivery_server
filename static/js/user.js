@@ -60,11 +60,18 @@ function kick_user() {
     };
 }
 
-function change_balance(elem) {
+function confirm_pass_balance() {
+    window.Telegram.WebApp.showConfirm('Вы уверены что хотите списать баланс пользователя?',
+        function (state) {
+            if (state) change_balance();
+        })
+}
+
+function change_balance(elem = null) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', window.location.href+'/balance', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-    xmlhttp.send(elem.value); // Отправляем POST-запрос
+    xmlhttp.send(elem != null ? elem.value : 0); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)

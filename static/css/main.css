@@ -91,9 +91,9 @@ a:visited {
   text-decoration: none;
   color: var(--tg-theme-button-text-color);
   size: 18px;
-  width: 100%;
+  width: 98%;
 
-  margin: 5px 2.5px 0;
+  margin: 5px 0px 0;
 }
 
 .button:hover {
@@ -198,6 +198,10 @@ div.value-property {
   grid-area: reject;
 }
 
+.grid-item-btn-reject{
+  grid-area: reject;
+}
+
 .buttons-grid-wait {
   width: 100%;
   display: grid;
@@ -242,6 +246,10 @@ div.value-property {
   grid-area: kick;
 }
 
+.button-write-user-mission {
+  grid-area: write;
+}
+
 .buttons-grid-user {
   width: 100%;
   display: inline-grid;
@@ -249,6 +257,7 @@ div.value-property {
   grid-template-columns: 1fr 1fr;
   grid-template-areas: "add delete"
                        "change change"
+                       "write write"
                        "kick kick";
 }
 

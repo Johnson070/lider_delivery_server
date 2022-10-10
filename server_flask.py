@@ -70,6 +70,7 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
 @app.route(settings.WEBHOOK_URL_PATH, methods=['POST', 'GET'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
+        bot_tg.bot.load_next_step_handlers()
         json_string = request.get_data().decode('utf-8')
         update = types.Update.de_json(json_string)
         bot_tg.bot.process_new_updates([update])
@@ -164,6 +165,22 @@ def get_missions():
     return jsonpickle.encode(missions, unpicklable=False)
 
 
+@app.route('/mission/<uuid>/change', methods=['POST'])
+def change_mission(uuid):
+    if not_auth():
+        return unauthorized()
+
+    json = request.json
+
+    bot_tg.bot.send_message(json['user'], 'Вам было назначено задание',
+                            reply_markup=types.InlineKeyboardMarkup().add(
+                                types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{uuid}')
+                            ))
+    func.change_mission(uuid, json['user'], json['name'], json['reward'], json['reports'], json['date'])
+
+    return Response(None, 200)
+
+
 @app.route('/mission/<uuid>/<method>', methods=['GET'])
 def manage_mission(uuid, method):
     if not_auth():
@@ -193,7 +210,8 @@ def manage_mission(uuid, method):
     elif method == 'delete':
         func.delete_mission(uuid)
         return Response(None, 200)
-
+    else:
+        return Response(status=404)
 
 @app.route('/get_file', methods=['GET'])
 def get_file_by_file_id():

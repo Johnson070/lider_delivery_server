@@ -29,12 +29,16 @@
             <p>Добавить маршрут</p>
             <hr>
             <p>Выберите GEOJSON файл сгенерированный на сайте <a class="link_user" href="https://yandex.ru/map-constructor">конструктора яндекс карт</a></p>
-            <input type="file" type='file' accept=".geojson" id="file-route" required>
+            <p><input type="file" type='file' accept=".geojson" id="file-route" required></p>
 
-            <p>Вставьте ссылку на карту</p>
-            <input placeholder="yandex.ru/maps/" type="text" id="link-map" required>
-            <p>Название маршрута</p>
-            <input placeholder="название" type="text" id="name-route" required>
+            <div class="text-info-container">
+                <div class="name-property">Cсылка на карту</div>
+                <div class="value-property"><input placeholder="yandex.ru/maps/" type="text" id="link-map" required></div>
+            </div>
+            <div class="text-info-container">
+                <div class="name-property">Название маршрута</div>
+                <div class="value-property"><input placeholder="название" type="text" id="name-route" required></div>
+            </div>
             <p>Фото маршрута(скачать с конструктора(распечатать -> скачать))</p>
             <input type="file" id="photo" multiple accept="image/*" required>
 

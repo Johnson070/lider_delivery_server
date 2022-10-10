@@ -88,7 +88,7 @@ function confirm_delete_mission() {
         });
 }
 
-function get_users() {
+function get_users(username) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('GET', '/users/list', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
@@ -103,6 +103,7 @@ function get_users() {
                     user = document.createElement('option')
                     user.innerText = users_list[i][1];
                     user.value = users_list[i][0];
+                    user.selected = users_list[i][1] == username ? true : false;
                     users_select.appendChild(user);
                 }
             }
@@ -112,5 +113,33 @@ function get_users() {
 }
 
 function change_mission() {
+    user = document.getElementById('select-user').value;
+    name = document.getElementById('name-mission').value;
+    reward = document.getElementById('reward').value;
+    reports = document.getElementById('count-reports').value;
+    date = document.getElementById('time').value.replace('T',' ');
 
+    if (user === '' || name === '' || reward === '' || reports === '' || date === '')
+        window.Telegram.WebApp.showAlert('Заполните все поля!');
+
+    json = {
+        user: user,
+        name: name,
+        reward: reward,
+        reports: reports,
+        date: date
+    }
+
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('POST', window.location.href + '/change', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                window.location.reload()
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        }
+    };
 }
