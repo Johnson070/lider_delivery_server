@@ -9,6 +9,8 @@
     <script src="../static/js/mission_info.js"></script>
     <script src="../static/js/collapsive.js"></script>
     <script src="../static/js/popup-actions.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.3.1/build/ol.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 </head>
 
@@ -89,6 +91,12 @@
         <button class='button'>Назад</button>
         </a>
     </p>
+
+    <button type="button" class="collapsible_menu"><b>Карта отчетов</b></button>
+    <div class="content_menu map" id="map" style="width: 100vw; height: 400px;">
+
+    </div>
+    <hr>
 
     <div id="reports">
     </div>
