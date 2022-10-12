@@ -20,10 +20,10 @@ def application(a=None,b=None):
             if serve_on_server:
                 pass
             else:
-                threading.Thread(target=bot_tg.bot.polling).start()
+                # threading.Thread(target=bot_tg.bot.polling).start()
                 pass
 
-            server_flask.app.run(debug=True, host='localhost', port=443, ssl_context=('localhost.crt', 'localhost.key'))
+            server_flask.app.run(debug=True, host='localhost', port=80)#, ssl_context=('localhost.crt', 'localhost.key'))
         except Exception as e:
             print(e)
             print('restart',  datetime.datetime.now())

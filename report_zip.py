@@ -9,7 +9,7 @@ from bot_tg import bot
 
 class geo_json:
     class point:
-        def __init__(self, coords, id):
+        def __init__(self, coords, id, uuid=None):
             self.type = 'Feature'
             self.id = id
             self.geometry = {
@@ -19,7 +19,8 @@ class geo_json:
             self.properties = {
                 'iconCaption': f'Отчет #{id}',
                 'iconContent': id,
-                'marker-color': '#1e98ff'
+                'marker-color': '#1e98ff',
+                'uuid': uuid
             }
 
     def __init__(self, points):
@@ -67,6 +68,20 @@ def get_report(id):
     report.close()
 
     return file_name
+
+
+def get_geojson(id):
+    data = func.get_reports_by_id(id)
+    count_reports = len(data)
+    points = []
+
+    for _ in data:
+        points.append(jsonpickle.decode(_[0]))
+
+    points = [geo_json.point(points[i - 1], i, id) for i in range(1, count_reports + 1)]
+    geojson = geo_json(points)
+
+    return jsonpickle.encode(geojson, unpicklable=False)
 
 # if __name__ == '__main__':
 #     bot = telebot.TeleBot(sett.API_KEY)

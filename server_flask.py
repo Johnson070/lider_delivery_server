@@ -181,10 +181,10 @@ def change_mission(uuid):
     return Response(None, 200)
 
 
-@app.route('/mission/<uuid>/<method>', methods=['GET'])
+@app.route('/mission/<uuid>/<method>', methods=['GET', 'OPTIONS'])
 def manage_mission(uuid, method):
-    if not_auth():
-        return unauthorized()
+    # if not_auth():
+    #     return unauthorized()
 
     if method == 'to_proof':
         func.proof_mission(uuid)
@@ -210,6 +210,10 @@ def manage_mission(uuid, method):
     elif method == 'delete':
         func.delete_mission(uuid)
         return Response(None, 200)
+    elif method == 'geojson':
+        return Response(report_zip.get_geojson(uuid), 200, mimetype='application/json', headers={'Access-Control-Allow-Origin': '*',
+                                                                                                 'Access-Control-Allow-Methods': 'GET',
+                                                                                                 'Access-Control-Allow-Headers' :'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
     else:
         return Response(status=404)
 
