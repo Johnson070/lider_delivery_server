@@ -143,3 +143,79 @@ function change_mission() {
         }
     };
 }
+
+function init_map() {
+    var element = document.getElementById('popup');
+    const content = document.getElementById('popup-content');
+    const closer = document.getElementById('popup-closer');
+
+
+
+    var overlay  = new ol.Overlay({
+        element: element,
+        positioning: 'bottom-center',
+        stopEvent: false
+    });
+
+
+    closer.onclick = function () {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+    };
+
+
+    map = new ol.Map({
+        target: "map",
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM({
+                      url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                })
+            }),
+            new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    url: window.location.href+'/geojson',
+                    format: new ol.format.GeoJSON()
+                }),
+                style: new ol.style.Style({
+                    image: new ol.style.Icon(({
+                        anchor: [0.5, 64],
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'pixels',
+                        scale: 0.5,
+                        src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png'
+                    }))
+                })
+            })
+        ],
+        overlays: [overlay],
+        view: new ol.View({
+                center: ol.proj.fromLonLat([30.40346935341173, 60.06635279189136]),
+                zoom: 15
+        })
+    });
+
+
+    // Add an event handler for the map "singleclick" event
+    map.on('singleclick', function(evt) {
+
+        // Attempt to find a feature in one of the visible vector layers
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+            return feature;
+        });
+
+        if (feature) {
+
+            var coord = feature.getGeometry().getCoordinates();
+            var props = feature.getProperties();
+            var info = `${feature.get('iconCaption')} ${feature.get('uuid')}`;
+
+            content.innerHTML = info;
+            // Offset the popup so it points at the middle of the marker not the tip
+            overlay.setPosition(evt.coordinate);
+
+        }
+
+    });
+}
