@@ -20,7 +20,8 @@ class geo_json:
                 'iconCaption': f'Отчет #{id}',
                 'iconContent': id,
                 'marker-color': '#1e98ff',
-                'uuid': uuid
+                'uuid': uuid,
+                'id':id
             }
 
     def __init__(self, points):
@@ -82,6 +83,25 @@ def get_geojson(id):
     geojson = geo_json(points)
 
     return jsonpickle.encode(geojson, unpicklable=False)
+
+
+def get_center_map(id):
+    data = func.get_reports_by_id(id)
+    count_reports = len(data)
+    points = [0,0]
+
+    for _ in data:
+        point = jsonpickle.decode(_[0])
+        points[0] += point[0]
+        points[1] += point[1]
+
+    if points == [0,0]:
+        return jsonpickle.encode([30.19, 59.57], unpicklable=False)
+    else:
+        points[0] = points[0] / count_reports
+        points[1] = points[1] / count_reports
+
+    return jsonpickle.encode(points, unpicklable=False)
 
 # if __name__ == '__main__':
 #     bot = telebot.TeleBot(sett.API_KEY)

@@ -302,6 +302,8 @@ hr {
   background-color: var(--block-bg-color);
   width: 90%;
   height: auto;
+  max-height: 95%;
+  overflow-y: auto;
   text-align: center;
   border-radius: 1.5em;
   position: absolute;

@@ -10,48 +10,93 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
     }
 };
 
-var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
-xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-xmlhttp.send(); // Отправляем POST-запрос
-xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
-    if (xmlhttp.readyState == 4) { // Ответ пришёл
-        if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-            json = JSON.parse(this.responseText);
-            reports = document.getElementById("reports");
+// var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+// xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
+// xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+// xmlhttp.send(); // Отправляем POST-запрос
+// xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+//     if (xmlhttp.readyState == 4) { // Ответ пришёл
+//         if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+//             json = JSON.parse(this.responseText);
+//             reports = document.getElementById("reports");
+//
+//             for (var i = 0; i < json.length; i++) {
+//                 item = document.createElement('button');
+//                 item.type = 'button';
+//                 item.className = 'collapsible';
+//                 item.innerText = 'Отчет ' + (i+1);
+//                 reports.appendChild(item);
+//
+//                 report = document.createElement('div');
+//                 report.className = 'report-grid';
+//
+//                 images = document.createElement('div');
+//                 images.className = 'report-grid-photos'
+//                 for (var j = 0; j < json[i]['photos'].length; j++) {
+//                     photo = document.createElement('img');
+//                     photo.className = 'report-grid-photo';
+//                     photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
+//                     photo.loading = 'lazy';
+//                     images.appendChild(photo);
+//                 }
+//                 report.appendChild(images)
+//
+//                 video = document.createElement('iframe');
+//                 video.src = `/get_file?file_id=${json[i]['video']}`;
+//                 report.appendChild(video);
+//
+//                 reports.appendChild(report)
+//             }
+//             add_coll_listener()
+//         }
+//         else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+//     }
+// };
 
-            for (var i = 0; i < json.length; i++) {
-                item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'collapsible';
-                item.innerText = 'Отчет ' + (i+1);
-                reports.appendChild(item);
+function show_popup_report(id) {
+    popup = document.getElementById('report-popup');
+    popup.style.display = 'block';
 
-                report = document.createElement('div');
-                report.className = 'report-grid';
 
-                images = document.createElement('div');
-                images.className = 'report-grid-photos'
-                for (var j = 0; j < json[i]['photos'].length; j++) {
-                    photo = document.createElement('img');
-                    photo.className = 'report-grid-photo';
-                    photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
-                    photo.loading = 'lazy';
-                    images.appendChild(photo);
+
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                json = JSON.parse(this.responseText);
+                media = document.getElementById('media');
+                media.innerHTML = '';
+                media.innerText = '';
+
+                for (var i = 0; i < json.length; i++) {
+                    if (json[i]['id'] != id) continue;
+
+                    images = document.createElement('div');
+                    images.className = 'report-grid-photos'
+                    for (var j = 0; j < json[i]['photos'].length; j++) {
+                        photo = document.createElement('img');
+                        photo.className = 'report-grid-photo';
+                        photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
+                        photo.loading = 'lazy';
+                        images.appendChild(photo);
+                    }
+                    media.appendChild(images)
+
+                    video = document.createElement('iframe');
+                    video.src = `/get_file?file_id=${json[i]['video']}&`;
+                    video.setAttribute('autoplay', '0');
+                    video.setAttribute('mute', '1');
+                    media.appendChild(video);
                 }
-                report.appendChild(images)
-
-                video = document.createElement('iframe');
-                video.src = `/get_file?file_id=${json[i]['video']}`;
-                report.appendChild(video);
-
-                reports.appendChild(report)
+                add_coll_listener()
             }
-            add_coll_listener()
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
         }
-        else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
-    }
-};
+    };
+}
 
 let tg = window.Telegram.WebApp
 
@@ -145,77 +190,93 @@ function change_mission() {
 }
 
 function init_map() {
-    var element = document.getElementById('popup');
-    const content = document.getElementById('popup-content');
-    const closer = document.getElementById('popup-closer');
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href + '/center_map', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                const element = document.getElementById('popup');
+                const content = document.getElementById('popup-content');
+                const closer = document.getElementById('popup-closer');
 
 
 
-    var overlay  = new ol.Overlay({
-        element: element,
-        positioning: 'bottom-center',
-        stopEvent: false
-    });
+                var overlay  = new ol.Overlay({
+                    element: element,
+                    positioning: 'bottom-center',
+                    stopEvent: false
+                });
 
 
-    closer.onclick = function () {
-        overlay.setPosition(undefined);
-        closer.blur();
-        return false;
-    };
+                closer.onclick = function () {
+                    overlay.setPosition(undefined);
+                    closer.blur();
+                    return false;
+                };
 
 
-    map = new ol.Map({
-        target: "map",
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM({
-                      url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                })
-            }),
-            new ol.layer.Vector({
-                source: new ol.source.Vector({
-                    url: window.location.href+'/geojson',
-                    format: new ol.format.GeoJSON()
-                }),
-                style: new ol.style.Style({
-                    image: new ol.style.Icon(({
-                        anchor: [0.5, 64],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'pixels',
-                        scale: 0.5,
-                        src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png'
-                    }))
-                })
-            })
-        ],
-        overlays: [overlay],
-        view: new ol.View({
-                center: ol.proj.fromLonLat([30.40346935341173, 60.06635279189136]),
-                zoom: 15
-        })
-    });
+                map = new ol.Map({
+                    target: "map",
+                    layers: [
+                        new ol.layer.Tile({
+                            source: new ol.source.OSM({
+                                  url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            })
+                        }),
+                        new ol.layer.Vector({
+                            source: new ol.source.Vector({
+                                url: window.location.href+'/geojson',
+                                format: new ol.format.GeoJSON()
+                            }),
+                            style: new ol.style.Style({
+                                image: new ol.style.Icon(({
+                                    anchor: [0.5, 64],
+                                    anchorXUnits: 'fraction',
+                                    anchorYUnits: 'pixels',
+                                    scale: 0.5,
+                                    src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png'
+                                }))
+                            })
+                        })
+                    ],
+                    overlays: [overlay],
+                    view: new ol.View({
+                            center: ol.proj.fromLonLat(JSON.parse(this.responseText)),
+                            zoom: 15
+                    })
+                });
 
 
-    // Add an event handler for the map "singleclick" event
-    map.on('singleclick', function(evt) {
+                // Add an event handler for the map "singleclick" event
+                map.on('singleclick', function(evt) {
 
-        // Attempt to find a feature in one of the visible vector layers
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
-            return feature;
-        });
+                    // Attempt to find a feature in one of the visible vector layers
+                    var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+                        return feature;
+                    });
 
-        if (feature) {
+                    if (feature) {
 
-            var coord = feature.getGeometry().getCoordinates();
-            var props = feature.getProperties();
-            var info = `${feature.get('iconCaption')} ${feature.get('uuid')}`;
+                        var coord = feature.getGeometry().getCoordinates();
+                        var props = feature.getProperties();
+                        var info = `${props['iconCaption']}`;
 
-            content.innerHTML = info;
-            // Offset the popup so it points at the middle of the marker not the tip
-            overlay.setPosition(evt.coordinate);
+                        var btn = document.getElementById('btn-report');
+                        btn.onclick = function () {
+                            show_popup_report(props['id']);
+                        };
 
+                        content.innerHTML = info;
+                        // Offset the popup so it points at the middle of the marker not the tip
+                        overlay.setPosition(evt.coordinate);
+
+                    }
+
+                });
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
         }
-
-    });
+    };
 }

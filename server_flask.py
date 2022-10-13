@@ -214,6 +214,8 @@ def manage_mission(uuid, method):
         return Response(report_zip.get_geojson(uuid), 200, mimetype='application/json', headers={'Access-Control-Allow-Origin': '*',
                                                                                                  'Access-Control-Allow-Methods': 'GET',
                                                                                                  'Access-Control-Allow-Headers' :'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
+    elif method == 'center_map':
+        return Response(report_zip.get_center_map(uuid), 200)
     else:
         return Response(status=404)
 
@@ -263,6 +265,7 @@ def get_base64_reports(uuid):
     json_report = []
     for _ in range(0, len(reports)):
         json_report.append({})
+        json_report[-1]['id'] = _+1;
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
