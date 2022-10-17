@@ -64,16 +64,49 @@
             <div class="close-popup" onclick="hide_popup('add-mission-popup')">x</div>
             <p>Добавить задание</p>
             <hr>
-            <p>Выберите маршрут</p>
-            <select id="select-route"></select>
-            <p>Название задания</p>
-            <input id="name-mission" type="text" placeholder="Тестовое задание" required>
-            <p>Сколько дней на выполнение задания(начиная со следующего дня)</p>
-            <input id="days-expired" type="number" inputmode="decimal" value="10" required>
-            <p>Вознаграждение</p>
-            <input id="reward" type="number" inputmode="decimal" value="1000" required>
-            <p>Кол-во отчетов</p>
-            <input id="count-reports" type="number" inputmode="decimal" value="20" required>
+            <div class="text-info-user" style="align-content: center">
+                <div class="text-info-container">
+                    <div class="name-property">Выберите маршрут</div>
+                    <div class="value-property">
+                        <select id="select-route" onchange="change_reports()"></select>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Название задания</div>
+                    <div class="value-property">
+                        <input id="name-mission" type="text" placeholder="Тестовое задание" style="width: 150px" required>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Дней на выполнение</div>
+                    <div class="value-property">
+                        <input id="days-expired" type="number" inputmode="decimal" value="10" style="width: 120px"required>
+                    </div>
+                </div>
+{#                <div class="text-info-container">#}
+{#                    <div class="name-property">Вознаграждение</div>#}
+{#                    <div class="value-property">#}
+{#                        <input id="reward" type="number" inputmode="decimal" value="1000" style="width: 150px" required>#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="text-info-container">
+                    <div class="name-property">Минимальное кол-во отчетов</div>
+                    <div class="value-property">
+                        <input id="count-reports" type="number" inputmode="decimal" value="20" readonly style="width: 50px" required>
+                    </div>
+                </div>
+            </div>
+
+{#            <p>Выберите маршрут</p>#}
+{#            <select id="select-route" onchange="change_reports()"></select>#}
+{#            <p>Название задания</p>#}
+{#            <input id="name-mission" type="text" placeholder="Тестовое задание" required>#}
+{#            <p>Сколько дней на выполнение задания(начиная со следующего дня)</p>#}
+{#            <input id="days-expired" type="number" inputmode="decimal" value="10" required>#}
+{#            <p>Вознаграждение</p>#}
+{#            <input id="reward" type="number" inputmode="decimal" value="1000" required>#}
+{#            <p>Минимальное кол-во отчетов</p>#}
+{#            <input id="count-reports" type="number" inputmode="decimal" value="20" required>#}
             <p><button class='button' onclick="add_mission()">Добавить</button></p>
         </div>
     </div>

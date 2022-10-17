@@ -28,16 +28,17 @@ def close_db(conn, cursor):
 # парсинг geojson
 def parse_geo_json(json):
     try:
-        points = jsonpickle.decode(json)['features'][0]['geometry']
+        points = jsonpickle.decode(json)
 
-        if points['type'] == 'Polygon':
-            points = points['coordinates'][0]
-        elif points[type] == "LineString":
-            points = points['coordinates']
+        if points['features'][0]['geometry']['type'] == 'Polygon':
 
-        points = [(i[0], i[1]) for i in points]
+            poly = ''
+            for i in points['features'][0]['geometry']['coordinates'][0]:
+                poly += f'{i[1]} {i[0]} '
 
-        return points
+            return poly[0:-2]
+        else:
+            return False
     except:
         return False
 
@@ -119,8 +120,8 @@ def check_user_in_database(chat_id, username):
 def add_route(data):
     conn, cursor = open_db()
 
-    cursor.execute('''INSERT INTO routes VALUES (?, ?, ?, ?, ?)''',
-                   (str(uuid.uuid4()), data[0], data[1], jsonpickle.encode(data[2]), data[3],))
+    cursor.execute('''INSERT INTO routes VALUES (?, ?, ?, ?, ?, ?)''',
+                   (str(uuid.uuid4()), data[0], data[1], data[2], data[3], 20 if len(data) < 5 else data[4],))
     conn.commit()
     close_db(conn, cursor)
 
@@ -144,11 +145,11 @@ def delete_mission(id):
 
 def get_routes():
     conn, cursor = open_db()
-    routes = cursor.execute('''SELECT id,name FROM routes''').fetchall()
+    routes = cursor.execute('''SELECT id,name,buildings FROM routes''').fetchall()
     close_db(conn, cursor)
 
     if len(routes) > 0:
-        routes = [(i[0], i[1]) for i in routes]
+        routes = [(i[0], i[1], i[2]) for i in routes]
     else:
         routes = []
 
@@ -166,6 +167,17 @@ def get_route(id):
         route = ()
 
     return route
+
+
+def get_route_buildings(id):
+    conn, cursor = open_db()
+    buildings = cursor.execute('''SELECT buildings FROM routes WHERE id = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    if len(buildings) > 0:
+        return buildings[0][0]
+    else:
+        return 0
 
 
 def check_can_delete_route(id):
@@ -237,6 +249,17 @@ def get_full_info_mission(id):
     return mission
 
 
+def get_route_id_by_mission(id):
+    conn, cursor = open_db()
+    route_id = cursor.execute('''SELECT id_route FROM missions WHERE id = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    if len(route_id) > 0 and route_id[0][0] is not None:
+        route_id = route_id[0][0]
+    else:
+        route_id = None
+    return route_id
+
 def get_missions_by_user_id(user_id):
     conn, cursor = open_db()
     missions = cursor.execute('''SELECT id,comment FROM missions WHERE user = ? AND proof = "0"''', (user_id,)).fetchall()
@@ -245,6 +268,18 @@ def get_missions_by_user_id(user_id):
     data_missions = []
     if len(missions) > 0 and missions[0][0] is not None:
         data_missions = [(i[0], i[1]) for i in missions]
+
+    return data_missions
+
+
+def get_coords_mission_by_id(id):
+    conn, cursor = open_db()
+    coords = cursor.execute('''SELECT coords FROM routes WHERE id = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    data_missions = ''
+    if len(coords) > 0 and coords[0][0] is not None:
+        data_missions = jsonpickle.decode(coords[0][0])
 
     return data_missions
 
@@ -273,10 +308,15 @@ def remove_mission_by_id(id):
     close_db(conn, cursor)
 
 
-def get_count_reports_mission(id):
+def get_count_reports_mission(id, id_building=None):
     conn, cursor = open_db()
-    count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ?''',
-                           (id,)).fetchall()
+    count = None
+    if not id_building is None:
+        count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ? AND building_id = ?''',
+                       (id, id_building, )).fetchall()
+    else:
+        count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ?''',
+                       (id, )).fetchall()
     close_db(conn, cursor)
 
     if len(count) > 0 and count[0][0] is not None:
@@ -346,10 +386,12 @@ def get_location_start_for_mission(id):
 #     return int(row[0][0]) if len(row) > 0 else None
 
 
-def save_report_user(id, user_id, location, photo_id, video_id):
+def save_report_user(id, user_id, location, photo_id, video_id, building_id, type_rep):
     conn, cursor = open_db()
     location = jsonpickle.encode(location)
-    cursor.execute('''INSERT INTO reports VALUES (?, ?, ?, ?, ?)''', (id, user_id, location, photo_id, video_id,))
+    cursor.execute('''INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', (id, user_id, location, photo_id, video_id,
+                                            int(datetime.datetime.timestamp(datetime.datetime.now())), building_id, type_rep, ))
+    cursor.execute('''UPDATE missions SET reward = reward + ? WHERE id = ?''', (sett.cost_report[int(type_rep)][1], id))
     conn.commit()
 
 
@@ -433,15 +475,62 @@ def reject_mission_by_id(id):
 
 def get_reports_by_id(id):
     conn, cur = open_db()
-    reports = cur.execute('''SELECT location,photo_id,video_id FROM reports WHERE mission_id = ?''', (id,)).fetchall()
+    reports = cur.execute(
+        '''SELECT location,photo_id,video_id,[date],building_id FROM reports WHERE mission_id = ? ORDER BY [date] ASC;''',
+        (id,)).fetchall()
     close_db(conn, cur)
 
     if len(reports) > 0 and reports[0][0] is not None:
-        ids = [[i[0], i[1], i[2]] for i in reports]
+        ids = [[i[0], i[1], i[2], i[3], i[4]] for i in reports]
     else:
         return []
 
     return ids
+
+
+def delete_report(date, id_user):
+    conn, cur = open_db()
+    report_info = cur.execute(
+        '''SELECT mission_id,type FROM reports WHERE [date] = ?''',
+        (date,)).fetchall()[0]
+    cur.execute('''UPDATE missions SET reward = reward - ? WHERE id = ? AND [user] = ?''',
+                (sett.cost_report[report_info[1]][1], report_info[0], id_user, ))
+    cur.execute('''DELETE FROM reports WHERE mission_id = ? AND user_id = ? AND [date] = ?''',
+                (report_info[0], id_user, date))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def get_min_route(points: dict):
+    distances = {}
+
+    for idx in points.keys():
+        distances[idx] = {}
+
+        for id, point in points.items():
+            if id != idx:
+                distances[idx][id] = get_length_locations(point[0], point[1], points[idx][0], points[idx][1])
+
+        distances[idx] = sorted(distances[idx].items(), key=lambda kv: kv[1])
+
+    route = []
+
+    def min_route(distance, curr_id_point, route: list = []):
+
+        id = min(distances[curr_id_point], key=lambda kv: kv[1])
+
+        route.append(curr_id_point)
+        distances.pop(curr_id_point)
+        for idx in distances.keys():
+            distances[idx] = [i for i in distances[idx] if i[0] != curr_id_point]
+
+        if len(distances) > 0 and not [] in distance.values():
+            return min_route(distance, id[0], route)
+        else:
+            route.append(list(distance.keys())[-1])
+            return route
+
+    return min_route(distances, 0)
 
 
 def check_coordinates(id_mission, lat, lon):
@@ -452,7 +541,7 @@ def check_coordinates(id_mission, lat, lon):
     close_db(conn, cur)
     coords = jsonpickle.decode(coords[0][0])
 
-    for pos in coords:
+    for pos in coords.values():
         # print(get_length_locations(lat, lon, pos[0], pos[1]), lat, lon, pos[0], pos[1])
         if get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius:
             return True

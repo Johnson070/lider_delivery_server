@@ -22,6 +22,7 @@ bot = telebot.TeleBot(sett.API_KEY, threaded=False)  # реализация
 import functions as func
 import report_zip
 import markups
+import user_handlers
 
 # фильтр для проверки на права администратора
 class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
@@ -47,35 +48,6 @@ bot.add_custom_filter(IsAdminCallback())
 def start_bot():
     global bot
 
-    @bot.message_handler(commands=['start'])
-    def handler_start(msg):
-        args = msg.text.split(' ')
-        bot.clear_step_handler_by_chat_id(msg.chat.id)
-        if len(args) > 1:
-            if func.check_user_in_database(msg.chat.id, msg.chat.username):  # проверка что пользователь в базе
-                bot.send_message(msg.chat.id, 'Вы уже использовали приглашение',
-                                 reply_markup=types.ReplyKeyboardRemove())
-                bot.send_message(msg.chat.id, 'Бот-помощник для контроля раздачи листовок',
-                                 reply_markup=markups.get_clerk_menu())
-            elif func.use_invite_link(args[1], msg.chat.id, msg.chat.username):  # проверка кода приглашения
-                bot.send_message(msg.chat.id, 'Ваше приглашение использовано.',
-                                 reply_markup=types.ReplyKeyboardRemove())
-                bot.send_message(msg.chat.id, 'Бот-помощник для контроля раздачи листовок',
-                                 reply_markup=markups.get_clerk_menu())
-            else:
-                bot.send_message(msg.chat.id, 'Недествительное приглашение!', reply_markup=types.ReplyKeyboardRemove())
-        elif func.check_user_in_database(msg.chat.id, msg.chat.username):
-            bot.send_message(msg.chat.id, 'Начало работы!', reply_markup=types.ReplyKeyboardRemove())
-            bot.send_message(msg.chat.id, 'Бот-помощник для контроля раздачи листовок',
-                             reply_markup=markups.get_clerk_menu())
-        else:
-            msg_last = bot.send_message(msg.chat.id, 'Получите ссылку на приглашения у администратора.')
-            # for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
-            #     try:
-            #         bot.delete_message(msg.chat.id, i, timeout=1)
-            #     except:
-            #         pass
-
     @bot.message_handler(commands=['admin', 'admin_full'], is_chat_admin=True)
     def admin_menu(msg):
         full = msg.text == '/admin_full'
@@ -89,27 +61,7 @@ def start_bot():
     def download_db(call: types.CallbackQuery):
         bot.send_document(call.message.chat.id, open(sett.sqlite_file, 'rb'))
 
-    @bot.callback_query_handler(lambda call: call.data == 'start' or call.data == 'start_del')
-    def start_handler(call: types.CallbackQuery):
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)
-        if call.data == 'start_del':
-            bot.delete_message(call.message.chat.id, call.message.message_id)
-            call.message = bot.send_message(call.message.chat.id, 'Начало работы')
-        if func.check_user_in_database(call.message.chat.id, call.message.chat.username):
-            bot.edit_message_text('Бот-помощник для контроля раздачи листовок',
-                                  call.message.chat.id,
-                                  call.message.message_id,
-                                  reply_markup=markups.get_clerk_menu())
-        else:
-            msg_last = bot.edit_message_text('Получите ссылку на приглашения у администратора.',
-                                             call.message.chat.id,
-                                             call.message.message_id)
-            # print('Delete chat for user: ', call.message.chat.username)
-            # # for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
-            # #     try:
-            # #         bot.delete_message(call.message.chat.id, i, timeout=500)
-            # #     except:
-            # #         pass
+
 
     # =========================
     # обработчики маршрутов
@@ -572,174 +524,6 @@ def start_bot():
                               msg_id,
                               reply_markup=markups.back_to_clerk_menu(id))
 
-    # =========================
-    # обработчики отчетов пользователя по маршрутам
-    # =========================
-    # =========================
-    # Задания промоутера
-    # =========================
-    @bot.callback_query_handler(lambda call: call.data == 'quests_user')
-    def get_missions_user(call: types.CallbackQuery):
-        try:
-            bot.edit_message_text('Текущие задания.',
-                                  call.message.chat.id,
-                                  call.message.message_id,
-                                  reply_markup=markups.missions_by_user_id_menu(call.message.chat.id))
-        except:
-            bot.send_message(call.message.chat.id, 'Ошибка!')
-
-    @bot.callback_query_handler(lambda call: re.search(r'quest_user_(([a-f0-9]+-){4}([a-f0-9]+))$', call.data))
-    def show_mission_user(call: types.CallbackQuery):
-        id_mission = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
-        try:
-            bot.delete_message(call.message.chat.id, call.message.message_id)
-        except:
-            pass
-
-        mission = func.get_full_info_mission(id_mission)
-
-        if mission is None:
-            bot.send_message(call.message.chat.id, 'Такого задания не существует!')
-            return
-
-        route = func.get_route(mission[3])
-        pic_file = route[4]
-        link_route = route[2]
-        count_reports = func.get_count_reports_mission(id_mission)
-        expired = True if datetime.datetime.strptime(mission[4],
-                                                     '%Y-%m-%d %H:%M:%S') < datetime.datetime.now() else False
-        expired = True if mission[7] == 1 else expired
-
-        time_todo = datetime.datetime.strptime(mission[4], "%Y-%m-%d %H:%M:%S") - datetime.datetime.now()
-
-        bot.send_photo(call.message.chat.id,
-                       pic_file,
-                       caption='Это область в которой вы должны распространить рекламу.\n\n'
-                               + ("<u><b>Время для выполнения задания закончилось</b></u>\n" if expired else "") +
-                               f'Комментарий: {mission[2]}\n\n'
-                               f'Кол-во отчетов: {mission[5]}\n'
-                               f'Стоимость: {mission[6]} р.\n\n'
-                               f'Сделано <b>{count_reports}</b> из <b>{mission[5]}</b>\n\n'
-                               f'{"" if expired else f"У вас осталось: {time_todo.days} дн(ь/я/ей) {time_todo.seconds // 60 % 60} час(a/ов) {time_todo.seconds % 60} минут"}'
-                               f'\nМаршрут: <a href="{link_route}">открыть</a>',
-                       parse_mode='HTML',
-                       reply_markup=markups.mission_menu(mission[0], expired, link_route),
-                       protect_content=True)
-
-    # =========================
-    # Добавить отчет к заданию
-    # =========================
-    @bot.callback_query_handler(
-        lambda call: re.search(r'^report_mission_(([a-f0-9]+-){4}([a-f0-9]+))$', call.data) is not None)
-    def add_report_mission(call: types.CallbackQuery):
-        id = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
-        msg = bot.send_message(call.message.chat.id,
-                               'Отправьте свою геолокацию',
-                               reply_markup=markups.get_location_menu())
-        bot.delete_message(call.message.chat.id,
-                           call.message.message_id)
-        bot.register_next_step_handler(msg, check_location, msg.message_id, id)
-
-    def check_location(msg: types.Message, start_msg_id, id):
-        if msg.content_type == 'text' and (msg.text == '/start' or msg.text == 'Назад'):
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, start_msg_id)
-            except:
-                pass
-            handler_start(msg)
-        elif msg.content_type != 'web_app_data':
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-            except:
-                pass
-            bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-            return
-        try:
-            location = jsonpickle.decode(msg.web_app_data.data)
-            if not func.check_coordinates(id, location['longitude'], location['latitude']):
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-                return
-
-            coords = (location['longitude'], location['latitude'])
-            bot.delete_message(msg.chat.id, msg.message_id)
-            bot.delete_message(msg.chat.id, start_msg_id)
-            msg_new = bot.send_message(msg.chat.id,
-                                       'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
-                                       reply_markup=markups.stop_get_photos())
-            bot.register_next_step_handler(msg_new, parse_photos_report, msg_new.message_id, coords, id, None)
-        except:
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-            except:
-                pass
-            bot.register_next_step_handler(msg, check_location, start_msg_id, id)
-            return
-
-
-    def parse_photos_report(msg: types.Message, start_msg_id, coords, id, group_id):
-        if msg.content_type == 'text' and msg.text == '/start':
-            handler_start(msg)
-        elif not group_id is None and msg.text == 'Закончить отправку фото':
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, start_msg_id)
-            except:
-                pass
-            new_msg = bot.send_message(msg.chat.id,
-                                       'Отправьте кружочек с окружением и флаерами.',
-                                       reply_markup=types.ReplyKeyboardRemove())
-            bot.register_next_step_handler(new_msg, parse_video, new_msg.message_id, coords, id, group_id)
-            return
-        elif msg.content_type == 'photo':
-            if group_id is None:
-                group_id = str(uuid.uuid4())
-            bot.delete_message(msg.chat.id, msg.message_id)
-
-            func.add_photo_to_media(group_id, msg.photo[-1].file_id)
-
-            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
-        else:
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-            except:
-                pass
-            bot.register_next_step_handler(msg, parse_photos_report, start_msg_id, coords, id, group_id)
-
-    def parse_video(msg: types.Message, start_msg_id, coords, id, photos):
-        if msg.content_type == 'text' and msg.text == '/start':
-            handler_start(msg)
-        elif msg.content_type == 'video_note':
-            video_file_id = str(msg.video_note.file_id)
-
-            func.save_report_user(id, msg.chat.username, coords, photos, video_file_id)
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-                bot.delete_message(msg.chat.id, start_msg_id)
-            except:
-                pass
-            bot.send_message(msg.chat.id,
-                             'Отчет сохранён.',
-                             reply_markup=types.InlineKeyboardMarkup().add(
-                                 types.InlineKeyboardButton('Вернуться', callback_data=f'quest_user_{id}')))
-        else:
-            try:
-                bot.delete_message(msg.chat.id, msg.message_id)
-            except:
-                pass
-            bot.register_next_step_handler(msg, parse_video, start_msg_id, coords, id, photos)
-            return
-
-    # =========================
-    # Завершить задание
-    # =========================
-    @bot.callback_query_handler(lambda call:
-                                re.search(r'^complete_(([a-f0-9]+-){4}([a-f0-9]+))$', call.data) is not None)
-    def complete_mission(call: types.CallbackQuery):
-        id = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
-        func.complete_mission(id)
-        show_mission_user(call)
 
     # =========================
     # Исключить пользователя(админ)
@@ -892,31 +676,7 @@ def start_bot():
                          'Свяжитесь с менеджером для уточнения информации.')
         show_complete_info(call)
 
-    # =========================
-    # Информация о трудящимся(не админ)
-    # =========================
-    @bot.callback_query_handler(lambda call: call.data == 'information')
-    def user_info_clerk(call: types.CallbackQuery):
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)  # очистить очередь хандлеров если был выход
-
-        id = call.message.chat.id
-        clerk = func.get_clerk_by_id(id)
-        missions = [i[1] for i in func.get_missions_by_user_id(id)]
-
-        try:
-            bot.edit_message_text(sett.info_user_text.format(
-                clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
-                                  call.message.chat.id,
-                                  call.message.message_id,
-                                  parse_mode='HTML',
-                                  reply_markup=markups.back_cleck_menu())
-        except:
-            bot.send_message(call.message.chat.id, sett.info_user_text.format(
-                clerk[1], clerk[2], clerk[3], '\n'.join(missions) if missions else '<b>Нет заданий</b>'),
-                parse_mode='HTML',
-                reply_markup=markups.back_cleck_menu())
-        # except:
-        #     pass
+    user_handlers.init_user_actions()
 
     # @bot.message_handler(content_types=['photo'], func=lambda msg: msg.media_group_id is not None)
     # def save_media_group_id_photo(msg: types.Message):

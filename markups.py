@@ -18,22 +18,26 @@ def get_clerk_menu():
 def get_admin_menu(full_menu=False):
     markup = types.InlineKeyboardMarkup()
     markup.add(
-        types.InlineKeyboardButton("Маршруты", callback_data='routes'),
-        types.InlineKeyboardButton('Работники', callback_data='clerks'),
-        row_width=2
-    )
-
-    markup.add(types.InlineKeyboardButton('Выполненые задания', callback_data='completed_quests_0'))
-    markup.add(types.InlineKeyboardButton('Задания', callback_data='all_quests_0'))
-
-    markup.add(
-        types.InlineKeyboardButton('Статистика', callback_data='stats'),
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
+
     markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo('https://127.0.0.1/auth'))) #sett.WEBHOOK_URL_BASE +
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
     if full_menu:
+        markup.add(
+            types.InlineKeyboardButton("Маршруты", callback_data='routes'),
+            types.InlineKeyboardButton('Работники', callback_data='clerks'),
+            row_width=2
+        )
+
+        markup.add(types.InlineKeyboardButton('Выполненые задания', callback_data='completed_quests_0'))
+        markup.add(types.InlineKeyboardButton('Задания', callback_data='all_quests_0'))
+
+        markup.add(
+            types.InlineKeyboardButton('Статистика', callback_data='stats'),
+            types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
+        )
         markup.add(
             types.InlineKeyboardButton('Скачать DB', callback_data='download_db'),
             types.InlineKeyboardButton('Скачать Бота', callback_data='download_bot'),
@@ -213,6 +217,31 @@ def missions_by_user_id_menu(user_id):
     return markup
 
 
+def select_user_building(building_id, id, last_building):
+    markup = types.InlineKeyboardMarkup()
+
+    if last_building != 0:
+        markup.add(
+            types.InlineKeyboardButton('Следующий дом',
+                                       callback_data=f'building_{str(building_id + 1) if (building_id + 1) != last_building else "0"}_{id}'),
+            row_width=1
+        )
+
+        markup.add(
+            types.InlineKeyboardButton('Предыдущий дом',
+                                       callback_data=f'building_{str(building_id - 1) if building_id > 0 else str(last_building-1)}_{id}'),
+            row_width=1
+        )
+
+    markup.add(
+        types.InlineKeyboardButton('Добавить отчет для подъезда', callback_data=f'select_type_{building_id}_{id}'),
+        types.InlineKeyboardButton('Назад', callback_data=f'quests_user_back_{id}'),
+        row_width=1
+    )
+
+    return markup
+
+
 def mission_menu(mission_id, expired, route_url=None):
     markup = types.InlineKeyboardMarkup()
     if not expired:
@@ -226,10 +255,22 @@ def mission_menu(mission_id, expired, route_url=None):
         )
 
     if not expired:
-        markup.add(types.InlineKeyboardButton('Завершить', callback_data=f'complete_{mission_id}'))
+        markup.add(types.InlineKeyboardButton('Завершить', callback_data=f'confirm_{mission_id}'))
     markup.add(
         types.InlineKeyboardButton('Назад', callback_data='start_del')
     )
+    return markup
+
+
+def confirm_end_mission(id):
+    markup = types.InlineKeyboardMarkup()
+
+    markup.add(
+        types.InlineKeyboardButton('Подтвердить', callback_data=f'complete_{id}'),
+        types.InlineKeyboardButton('Назад', callback_data=f'quests_user_back_{id}'),
+        row_width=2
+    )
+
     return markup
 
 
@@ -237,7 +278,7 @@ def get_location_menu():
     markup = types.ReplyKeyboardMarkup()
 
     markup.add(
-        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/location')),
+        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo('https://127.0.0.1/location')), #sett.WEBHOOK_URL_BASE +
         types.KeyboardButton('Назад'),
         row_width=1
     )
@@ -321,7 +362,9 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
 def stop_get_photos():
     markup = types.ReplyKeyboardMarkup()
     markup.add(
-        types.KeyboardButton('Закончить отправку фото')
+        types.KeyboardButton('Закончить отправку фото'),
+        types.KeyboardButton('Назад'),
+        row_width=1
     )
 
     return markup

@@ -9,7 +9,7 @@ from bot_tg import bot
 
 class geo_json:
     class point:
-        def __init__(self, coords, id, uuid=None):
+        def __init__(self, coords, id, uuid=None, time=None):
             self.type = 'Feature'
             self.id = id
             self.geometry = {
@@ -21,7 +21,22 @@ class geo_json:
                 'iconContent': id,
                 'marker-color': '#1e98ff',
                 'uuid': uuid,
-                'id':id
+                'id':id,
+                'unix': time
+            }
+
+    class line_string:
+        def __init__(self, coords, id):
+            self.type = 'Feature'
+            self.id = id
+            self.geometry = {
+                'coordinates': coords,
+                'type': 'LineString'
+            }
+            self.properties = {
+                "stroke":"#ed4543",
+                "stroke-width":"5",
+                "stroke-opacity":0.9,
             }
 
     def __init__(self, points):
@@ -77,10 +92,11 @@ def get_geojson(id):
     points = []
 
     for _ in data:
-        points.append(jsonpickle.decode(_[0]))
+        points.append(jsonpickle.decode(_[0])[::-1])
 
-    points = [geo_json.point(points[i - 1], i, id) for i in range(1, count_reports + 1)]
-    geojson = geo_json(points)
+    data = [geo_json.point(points[i - 1], i, id, data[i-1][3]) for i in range(1, count_reports + 1)]
+    data.append(geo_json.line_string(points, data[-1].id+1))
+    geojson = geo_json(data)
 
     return jsonpickle.encode(geojson, unpicklable=False)
 
@@ -96,12 +112,12 @@ def get_center_map(id):
         points[1] += point[1]
 
     if points == [0,0]:
-        return jsonpickle.encode([30.19, 59.57], unpicklable=False)
+        return jsonpickle.encode([30.19,59.57], unpicklable=False)
     else:
         points[0] = points[0] / count_reports
         points[1] = points[1] / count_reports
 
-    return jsonpickle.encode(points, unpicklable=False)
+    return jsonpickle.encode(points[::-1], unpicklable=False)
 
 # if __name__ == '__main__':
 #     bot = telebot.TeleBot(sett.API_KEY)

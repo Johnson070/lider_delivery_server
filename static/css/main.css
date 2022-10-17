@@ -262,8 +262,14 @@ div.value-property {
 }
 
 #reports {
-  display: table;
-  width: 100%;
+  display: inline-block;
+  width: 98%;
+  text-align: center;
+}
+
+#reports .button {
+  margin: 5px 5px;
+  width: auto;
 }
 
 .report-grid-photo {
@@ -304,7 +310,7 @@ hr {
   height: auto;
   max-height: 95%;
   overflow-y: auto;
-  text-align: center;
+  text-align: -webkit-center;
   border-radius: 1.5em;
   position: absolute;
   color: var(--tg-theme-text-color);

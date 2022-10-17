@@ -52,12 +52,81 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
 //         else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
 //     }
 // };
+function report_block() {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                var json = JSON.parse(this.responseText);
+
+                var reports_buttons = document.getElementById('reports');
+
+                for (var i = 0; i < json.length; i++) {
+                    var btn_report = document.createElement('button');
+                    btn_report.className = 'button';
+                    btn_report.innerText = `Отчет №${json[i]['id']}`;
+
+                    const data = json[i];
+                    const idx = i;
+                    btn_report.addEventListener('click', function () {
+                            document.getElementById('delete_report').name = `${data['date']}`;
+
+                            media = document.getElementById('media');
+                            media.innerHTML = '';
+                            media.innerText = '';
+
+                            images = document.createElement('div');
+                            images.className = 'report-grid-photos'
+                            for (var j = 0; j < data['photos'].length; j++) {
+                                photo = document.createElement('img');
+                                photo.className = 'report-grid-photo';
+                                photo.src = `/get_file?file_id=${data['photos'][j]}`;
+                                photo.loading = 'lazy';
+                                images.appendChild(photo);
+                            }
+                            media.appendChild(images)
+
+                            video = document.createElement('iframe');
+                            video.src = `/get_file?file_id=${data['video']}&`;
+                            video.setAttribute('autoplay', '0');
+                            video.setAttribute('mute', '1');
+                            media.appendChild(video);
+
+                            popup = document.getElementById('report-popup');
+                            popup.style.display = 'block';
+                        }, false
+                    )
+
+                    reports_buttons.appendChild(btn_report);
+                }
+            }
+        }
+    };
+}
+
+function delete_report(id) {
+    var user_id = document.getElementById('user-id').name;
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('POST', window.location.href+'/delete_report', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(JSON.stringify([id, user_id])); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                document.location.reload(true)
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        }
+    };
+}
+
 
 function show_popup_report(id) {
     popup = document.getElementById('report-popup');
     popup.style.display = 'block';
-
-
 
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
@@ -74,6 +143,7 @@ function show_popup_report(id) {
                 for (var i = 0; i < json.length; i++) {
                     if (json[i]['id'] != id) continue;
 
+                    document.getElementById('delete_report').name = `${json[i]['date']}`;
                     images = document.createElement('div');
                     images.className = 'report-grid-photos'
                     for (var j = 0; j < json[i]['photos'].length; j++) {
@@ -216,13 +286,42 @@ function init_map() {
                     return false;
                 };
 
+                var style = new ol.style.Style({
+                    image: new ol.style.Icon(({
+                        anchor: [0.5, 64],
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'pixels',
+                        scale: 0.5,
+                        src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png',
+                    })),
+                    stroke: new ol.style.Stroke({
+                        color: "red",
+                        width: 2
+                    }),
+                    text: new ol.style.Text({
+                        placement: 'Point',
+                        text: '1',
+                        font: 'bold 16px Times New Roman',
+                        offsetY: -20,
+                        fill: new ol.style.Fill({color: 'rgb(0,0,0)'}),
+                        stroke: new ol.style.Stroke({color: 'rgb(255,255,255)', width: 1})
+                    })
+                });
+
+                var styleFunction = function(feature) {
+                    var text = `${feature.getProperties()['iconContent']}`;
+                    if (text == 'undefined')
+                        text = ''
+                    style.getText().setText(text);
+                    return style;
+                }
 
                 map = new ol.Map({
                     target: "map",
                     layers: [
                         new ol.layer.Tile({
                             source: new ol.source.OSM({
-                                  url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             })
                         }),
                         new ol.layer.Vector({
@@ -230,15 +329,7 @@ function init_map() {
                                 url: window.location.href+'/geojson',
                                 format: new ol.format.GeoJSON()
                             }),
-                            style: new ol.style.Style({
-                                image: new ol.style.Icon(({
-                                    anchor: [0.5, 64],
-                                    anchorXUnits: 'fraction',
-                                    anchorYUnits: 'pixels',
-                                    scale: 0.5,
-                                    src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png'
-                                }))
-                            })
+                            style: styleFunction
                         })
                     ],
                     overlays: [overlay],
@@ -258,10 +349,14 @@ function init_map() {
                     });
 
                     if (feature) {
+                        var d = new Date();
+                        var gmtHours = -d.getTimezoneOffset()/60;
+
 
                         var coord = feature.getGeometry().getCoordinates();
                         var props = feature.getProperties();
-                        var info = `${props['iconCaption']}`;
+                        var info = `${props['iconCaption']}<br>`;
+                        info += new Date((props['unix'] + gmtHours*60*60)*1000).toISOString().slice(0,19).replace('T',' ');
 
                         var btn = document.getElementById('btn-report');
                         btn.onclick = function () {
@@ -275,6 +370,22 @@ function init_map() {
                     }
 
                 });
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        }
+    };
+}
+
+function download_report(url) {
+    window.Telegram.WebApp.showAlert('Отчет формируется.\nОжидайте когда он вам придет в сообщения');
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', url, true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                window.Telegram.WebApp.showAlert('Отчет отправлен!');
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
         }

@@ -22,7 +22,7 @@
         border: 1px solid var(--tg-theme-secondary-bg-color);
         bottom: 12px;
         left: -50px;
-        min-width: 50px;
+        min-width: 100px;
       }
       .ol-popup:after, .ol-popup:before {
         top: 100%;
@@ -71,7 +71,7 @@
         <div class="text-info-container">
             <div class="name-property">Исполнитель</div>
             <div class="value-property">
-                <b><a class="link_user" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
+                <b><a class="link_user" id='user-id' name="{{ user_id }}" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
             </div>
         </div>
         <div class="text-info-container">
@@ -110,21 +110,21 @@
         {% if not proof and not rejected %}
             <div class="buttons-grid-wait">
              <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-             <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+             <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
              <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
              <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
             </div>
         {% else %}
         {% if proof and not rejected %}
             <div class="buttons-grid-done">
-            <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
             <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
             </div>
         {% else %}
         {% if rejected %}
             <div class="buttons-grid-rejected">
             <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-            <button class='button grid-item-btn-download' onclick='location.href="/download/report/{{ uuid }}";'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
             <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
             </div>
         {% endif %}
@@ -154,13 +154,15 @@
             <div id="media">
 
             </div>
+            <button class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
             <p></p>
         </div>
     </div>
 
     <hr>
-{#    <div id="reports">#}
-{#    </div>#}
+    <div id="reports">
+
+    </div>
 
     <div class="popup-blur" id="edit-mission-popup">
         <div class="popup-block">
@@ -214,6 +216,7 @@
             }
         });
     }
-    get_users('{{ user }}')
+    get_users('{{ user }}');
+    report_block();
 </script>
 </html>

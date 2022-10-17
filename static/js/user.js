@@ -97,8 +97,11 @@ function get_routes() {
                 for (var i = 0; i < json.length; i++){
                     route = document.createElement('option')
                     route.innerText = json[i][1];
+                    route.setAttribute('id', json[i][2]);
                     route.value = json[i][0];
                     routes.appendChild(route);
+
+                    if (i == 0) document.getElementById('count-reports').value = json[0][2];
                 }
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
@@ -106,14 +109,24 @@ function get_routes() {
     };
 }
 
+function changeFunc() {
+
+}
+
+function change_reports() {
+    var selectBox = document.getElementById("select-route");
+    var selectedValue = selectBox.options[selectBox.selectedIndex].id;
+    document.getElementById('count-reports').value = selectedValue;
+}
+
 function add_mission(){
     let uuid_mission = document.getElementById("select-route").value;
     let name_mission = document.getElementById("name-mission").value;
     let days_expired = document.getElementById("days-expired").value;
-    let reward = document.getElementById("reward").value;
+    // let reward = document.getElementById("reward").value;
     let count_reports = document.getElementById("count-reports").value;
 
-    if (uuid_mission === '' || name_mission === '' || days_expired === '' || reward === '' || count_reports === '') {
+    if (uuid_mission === '' || name_mission === '' || days_expired === '' || count_reports === '') {
         window.Telegram.WebApp.showAlert("Проверьте заполнены ли все поля");
         return;
     }
@@ -122,7 +135,7 @@ function add_mission(){
         uuid: uuid_mission,
         name: name_mission,
         days: days_expired,
-        reward: reward,
+        reward: 0,
         reports: count_reports
     }
 

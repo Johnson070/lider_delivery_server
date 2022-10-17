@@ -145,7 +145,8 @@ def info_mission(uuid):
                                 ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')),
                                proof=mission[7] and mission[8],
                                rejected=not mission[7] and mission[8],
-                               uuid=mission[0])
+                               uuid=mission[0],
+                               user_id=mission[1])
     except:
         return unauthorized()
 
@@ -247,7 +248,7 @@ def download_report(UUID):
     file_name = report_zip.get_report(UUID)
     with open(file_name, 'rb') as zip:
         file = zip.read()
-        resp = Response(file, mimetype='application/zip')
+        resp = Response('1', 200)
         bot_tg.bot.send_document(session['user_id'], file,
                                  visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
 
@@ -255,6 +256,16 @@ def download_report(UUID):
 
     return resp
 
+
+@app.route('/mission/<uuid>/delete_report', methods=['POST'])
+def delete_report(uuid):
+    if not_auth():
+        return unauthorized()
+
+    data = request.json
+    func.delete_report(data[0], data[1])
+
+    return Response('1', 200)
 
 @app.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
@@ -266,6 +277,8 @@ def get_base64_reports(uuid):
     for _ in range(0, len(reports)):
         json_report.append({})
         json_report[-1]['id'] = _+1;
+        json_report[-1]['date'] = reports[_][3];
+        json_report[-1]['building_id'] = reports[_][4];
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
@@ -328,13 +341,43 @@ def add_route():
     msg_photo = bot_tg.bot.send_photo(session['user_id'], photo)
     photo_file_id = msg_photo.photo[-1].file_id
     bot_tg.bot.delete_message(msg_photo.chat.id, msg_photo.message_id)
-    geojson = func.parse_geo_json(request.json['geojson'])
-    if isinstance(geojson, bool) and not geojson:
+    poly = func.parse_geo_json(request.json['geojson'])
+
+    if isinstance(poly, bool) and not poly:
         return Response('-1', 200)
     link_map = request.json['link_map']
     name_route = request.json['name_route']
 
-    func.add_route([name_route, link_map, geojson, photo_file_id])
+    import overpy
+
+    api = overpy.Overpass(url='''https://maps.mail.ru/osm/tools/overpass/api/interpreter''')
+    points = api.query(f'''
+        [out:json];
+        nwr[building~'apartments|house|yes'][amenity!~'place_of_worship|doctor|car_wash|courthouse|hospital|clinic'][!shop]["addr:street"](poly:"{poly}");
+        out center meta;
+    ''')
+    id_point = 0
+
+    def inc(id_point):
+        id_point += 1
+        return id_point-1
+
+    coords = [(float(i.center_lat), float(i.center_lon)) for i in points.relations]
+    coords1 = [(float(i.center_lat), float(i.center_lon)) for i in points.ways]
+    coords2 = [(float(i.lat), float(i.lon)) for i in points.nodes]
+
+    coords = coords + coords1 + coords2
+
+    import operator
+
+    coords = sorted(coords, key=operator.itemgetter(0,1))
+    coords = {k:(i[0], i[1]) for i,k in zip(coords, range(0,len(coords)))}
+
+    min_route = func.get_min_route(coords)
+    coords = {k:coords[min_route[k]] for k in range(0, len(min_route))}
+
+
+    func.add_route([name_route, link_map, jsonpickle.encode(coords), photo_file_id, len(coords)])
 
     return Response('1', 200)
 
