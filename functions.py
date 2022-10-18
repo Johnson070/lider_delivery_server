@@ -533,6 +533,16 @@ def get_min_route(points: dict):
     return min_route(distances, 0)
 
 
+def get_costs():
+    conn, cur = open_db()
+    costs = cur.execute('''SELECT * FROM types_cost''').fetchall()
+    close_db(conn, cur)
+
+    costs = {i[0]: (i[1], i[2]) for i in costs}
+
+    return costs
+
+
 def check_coordinates(id_mission, lat, lon):
     conn, cur = open_db()
     id_route = cur.execute('''SELECT id_route FROM missions WHERE id = ?''', (id_mission,)).fetchall()[0][0]

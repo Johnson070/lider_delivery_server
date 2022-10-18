@@ -61,6 +61,8 @@ body {
   margin: 0px 18px;
   overflow: hidden;
   background-color: var(--tg-theme-secondary-bg-color);
+
+  text-align: center;
 }
 
 .link_user:visited,
@@ -166,7 +168,7 @@ div.value-property {
 
 /* Style the collapsible content. Note: hidden by default */
 .content_menu {
-  padding: 18px 0px;
+  padding: 5px 0px;
   display: none;
   width: 100%;
   margin: 0px 18px;
@@ -177,9 +179,14 @@ div.value-property {
 
 .menu_button {
   text-decoration: none;
-  margin: 20px;
-
+  width: auto;
   color: var(--tg-theme-text-color);
+}
+
+.div-menu-button {
+    margin: 10px 10px;
+    width: auto;
+    display: inline-block;
 }
 
 .grid-item-btn-proof{

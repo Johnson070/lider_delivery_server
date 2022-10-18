@@ -1,5 +1,5 @@
 import os
-
+from functions import get_costs
 
 cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c'
 API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не сообщать, получать в @BotFather
@@ -26,11 +26,6 @@ info_proof_mission_text = 'Выполнил: <b>@{}</b>\n' \
                           'Время окончания: {}\n' \
                           'Статус: {}'
 
-cost_report = {
-    0: ('На улице', 10.0),
-    1: ('В парадной', 20.0),
-    2: ('Не удалось', 5.0),
-    3: ('Это не жилой дом', 2.0)
-}
+cost_report = get_costs()
 
 admins = [425637878, 2007858008,5243958813]  # id чатов кто имеет права администратора

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
+    <title>Delivery Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <script src="../static/js/collapsive.js"></script>
+    <script src="../static/js/settings.js"></script>
+    <script src="../static/js/popup-actions.js"></script>
+    <link rel="stylesheet" href="../static/css/main.css">
+</head>
+<body>
+    <button type="button" class="collapsible"><b>Меню</b></button>
+    <div class="content_menu">
+      <div class="div-menu-button"><a class="menu_button" type="button" href='/'>Задания</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/settings'><b>Настройки</b></a></div>
+    </div>
+    <div style="width: 95%">
+        <button class="button" onclick="create_link()">Создать код приглашения</button>
+        <button class="button" onclick="show_popup('cost-report-popup')">Изменить стоимость репортов</button>
+        <button class="button ext-button" onclick="download_db()">Скачать базу данных</button>
+    </div>
+
+    <div class="popup-blur" id="cost-report-popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup('cost-report-popup')">x</div>
+            <p>Стоимость отчетов</p>
+            <hr>
+            <div class="text-info-user">
+                <div class="text-info-container">
+                    <div class="name-property">Пользователь</div>
+                    <div class="value-property">
+                        <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required>
+                    </div>
+                </div>
+            </div>
+            <button class="button" onclick="">Сохранить</button>
+            <p></p>
+        </div>
+    </div>
+
+    <div id="usercard">
+
+   </div>
+</body>
+<script>
+    add_coll_listener();
+
+    let tg = window.Telegram.WebApp;
+
+    let usercard = document.getElementById("usercard"); //получаем блок usercard
+    let profName = document.createElement('p'); //создаем параграф
+    profName.innerText = `${tg.initDataUnsafe.user.first_name}`;
+    profName.id = 'username';
+
+    let id_user = document.createElement('p');
+    id_user.innerText = `${tg.initDataUnsafe.user.id}`
+    id_user.id = 'user_id';
+
+    usercard.appendChild(profName); //добавляем
+    usercard.appendChild(id_user); //добавляем
+</script>
+</html>

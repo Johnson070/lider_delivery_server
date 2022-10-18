@@ -456,6 +456,38 @@ def get_location():
     return render_template('location.html')
 
 
+@app.route('/settings', methods=['GET'])
+def settings_page():
+    if not_auth():
+        return unauthorized()
+
+    return render_template('settings.html')
+
+
+@app.route('/settings/download_db/<id>', methods=['GET'])
+def download_db(id):
+    if not_auth():
+        return unauthorized()
+
+    bot_tg.bot.send_document(id, open(settings.sqlite_file, 'rb'))
+
+    return Response('1',200)
+
+
+@app.route('/settings/create_link/<id>', methods=['GET'])
+def create_link(id):
+    if not_auth():
+        return unauthorized()
+
+    link, image = func.create_invite_link(id)
+    bot_tg.bot.send_photo(id, image,
+                   parse_mode='HTML',
+                   caption=f'Приглашение активно 6 часов после создания.\n'
+                           f'<a href="{link}">Активировать</a>')
+
+    return Response('1',200)
+
+
 if not __name__ == '__main__':
     bot_tg.start_bot()
 
@@ -465,7 +497,7 @@ if not __name__ == '__main__':
         bot_tg.bot.remove_webhook()
         time.sleep(0.1)
 
-        bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+        # bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
 
 
 
