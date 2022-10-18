@@ -11,7 +11,8 @@ WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 WEBHOOK_URL_BASE = "https://bdfix.ru"
 WEBHOOK_URL_PATH = "/%s/" % (API_KEY)
 
-allow_radius = 1.0  # допустимый радиус отправки от нод геолокации в км
+allow_radius = 2.0  # допустимый радиус отправки от нод геолокации в км
+allow_speed = 50 # допустимая корость перемещения между точками в км/ч
 
 info_user_text = 'Пользователь: <b>@{}</b>\n\n' \
                  'Баланс: <u><b>{}</b></u> руб.\n' \
@@ -28,4 +29,8 @@ info_proof_mission_text = 'Выполнил: <b>@{}</b>\n' \
 
 cost_report = get_costs()
 
-admins = [425637878, 2007858008,5243958813]  # id чатов кто имеет права администратора
+permissions = {
+    0: 'admin',
+    1: 'moder',
+    2: 'user'
+}

@@ -219,6 +219,7 @@ def init_user_actions():
         type_rep = re.findall(r'(\d+)', call.data)[0]
         building_id = re.findall(r'(\d+)', call.data)[1]
         msg = bot.send_message(call.message.chat.id,
+                               'Не уходите с места где вы размещали рекламу.\n\n'
                                'Отправьте свою геолокацию',
                                reply_markup=markups.get_location_menu())
         try:
@@ -236,7 +237,7 @@ def init_user_actions():
             except:
                 pass
             handler_start(msg)
-        elif msg.content_type != 'web_app_data':
+        elif msg.content_type != 'web_app_data':# and msg.content_type != 'location': #TODO: удалить
             try:
                 bot.delete_message(msg.chat.id, msg.message_id)
             except:
@@ -245,9 +246,43 @@ def init_user_actions():
             return
         try:
             location = jsonpickle.decode(msg.web_app_data.data)
-            if not func.check_coordinates(id, location['latitude'], location['longitude']):
+            # location = jsonpickle.decode(msg.web_app_data.data) if msg.content_type == 'web_app_data' \
+            #     else {'latitude':msg.location.latitude, 'longitude':msg.location.longitude}
+
+            pass_location = func.check_coordinates(id, location['latitude'], location['longitude'])
+            if pass_location == 1:
                 bot.delete_message(msg.chat.id, msg.message_id)
+
+                try:
+                    bot.delete_message(msg.chat.id, start_msg_id)
+                except:
+                    pass
+
+                start_msg_id = bot.send_message(msg.chat.id,
+                                                'Не уходите с места где вы размещали рекламу.\n'
+                                                'Если вы уйдете далеко от точки, то геолокация не зачтется.\n\n'
+                                                'Отправьте свою геолокацию',
+                                                reply_markup=markups.get_location_menu()).message_id
+
                 bot.register_next_step_handler(msg, check_location, start_msg_id, id, building_id, type_rep)
+                return
+            elif pass_location == 2:
+                bot.delete_message(msg.chat.id, msg.message_id)
+                try:
+                    bot.delete_message(msg.chat.id, start_msg_id)
+                except:
+                    pass
+
+                for admin_chat_id in func.get_admins():
+                    bot.send_message(admin_chat_id,
+                                     f'Система обнаружила, что пользователь {msg.chat.username} перемещяется слишком быстро.\n'
+                                     f'Задание: {func.get_full_info_mission(id)[2]}')
+
+                bot.send_message(msg.chat.id,
+                                'Кажется вы перемещяетесь слишком быстро.\n'
+                                'За повторное нарушение вам будет начислен штраф!',
+                                reply_markup=markups.back_cleck_menu())
+
                 return
 
             coords = (location['latitude'], location['longitude'])

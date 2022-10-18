@@ -64,7 +64,7 @@ def get_report(id):
     points = []
 
     for _ in range(0, count_reports):
-        points.append(jsonpickle.decode(data[_][0]))
+        points.append(jsonpickle.decode(data[_][0])[::-1])
         photos_ids = None
         if data[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', data[_][1]) is None:
             photos_ids = func.get_photos_by_media_id(data[_][1])
@@ -77,7 +77,9 @@ def get_report(id):
             report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', func.download_file(photos_ids[num]))
             time.sleep(0.5)
 
+    line_string = geo_json.line_string(points, len(points)+1)
     points = [geo_json.point(points[i - 1], i) for i in range(1, count_reports + 1)]
+    points.append(line_string)
     geojson = geo_json(points)
     report.writestr(f'yandex_map_json_points.geojson', jsonpickle.encode(geojson, unpicklable=False))
 

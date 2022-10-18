@@ -1,5 +1,3 @@
-// TODO: сделать динамическую прогрузку фото
-
 var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
 xmlhttp.open('GET', '/validate', true); // Открываем асинхронное соединение
 xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку

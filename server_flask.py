@@ -23,7 +23,8 @@ app.secret_key = settings.cookie_secret_key
 
 
 def not_auth():
-    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or not session['user_id'] in settings.admins:
+    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or \
+            not func.get_user_permission(session['user_id']) == settings.permissions[0]:
         return True
     return False
 
@@ -105,7 +106,7 @@ def validate_query_save():
 
 @app.route('/unauthorized')
 def unauthorized():  #
-    return render_template('unauthorized.html')
+    return Response(render_template('unauthorized.html'), 401)
 
 
 @app.route('/auth')
@@ -464,6 +465,42 @@ def settings_page():
     return render_template('settings.html')
 
 
+@app.route('/settings/permissions', methods=['GET'])
+def get_user_permissions():
+    if not_auth():
+        return unauthorized()
+
+    return Response(jsonpickle.encode({i[0]: (i[1], i[2]) for i in func.get_clerks()}, unpicklable=False), mimetype='application/json')
+
+
+@app.route('/settings/permissions', methods=['POST'])
+def set_user_permissions():
+    if not_auth():
+        return unauthorized()
+
+    func.set_user_permission(*request.json)
+
+    return Response('1',200)
+
+
+@app.route('/settings/costs', methods=['GET'])
+def get_costs_request():
+    if not_auth():
+        return unauthorized()
+
+    return Response(jsonpickle.encode(func.get_costs(), unpicklable=False), mimetype='application/json')
+
+
+@app.route('/settings/costs', methods=['POST'])
+def set_costs_request():
+    if not_auth():
+        return unauthorized()
+
+    func.change_costs(request.json)
+
+    return Response('1', 200)
+
+
 @app.route('/settings/download_db/<id>', methods=['GET'])
 def download_db(id):
     if not_auth():
@@ -497,7 +534,7 @@ if not __name__ == '__main__':
         bot_tg.bot.remove_webhook()
         time.sleep(0.1)
 
-        # bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+        bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
 
 
 

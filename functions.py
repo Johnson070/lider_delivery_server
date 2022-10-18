@@ -69,17 +69,35 @@ def use_invite_link(code, chat_id, username):
     data = cursor.execute(f'SELECT expire FROM invites WHERE code = "{code}"').fetchall()
 
     if len(data) > 0 and datetime.datetime.strptime(data[0][0], '%Y-%m-%d %H:%M:%S') > datetime.datetime.now():
-        cursor.execute(f'DELETE FROM invites WHERE code = ?', (code, ))
-        cursor.execute('''INSERT INTO users VALUES (?, ?, ?)''', (chat_id, username, 0.))
+        cursor.execute(f'DELETE FROM invites WHERE code = ?', (code,))
+        cursor.execute('''INSERT INTO users VALUES (?, ?, ?, ?)''', (chat_id, username, 0., 'user'))
         conn.commit()
         close_db(conn, cursor)
         return True
     elif len(data) > 0 and datetime.datetime.strptime(data[0][0], '%Y-%m-%d %H:%M:%S') < datetime.datetime.now():
-        cursor.execute(f'DELETE FROM invites WHERE code = ?', (code, ))
+        cursor.execute(f'DELETE FROM invites WHERE code = ?', (code,))
         conn.commit()
 
     close_db(conn, cursor)
     return False
+
+
+def get_user_permission(id):
+    conn, cursor = open_db()
+    permission = cursor.execute('''SELECT permissions FROM users WHERE id = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    if len(permission) > 0 and permission[0][0] is not None:
+        return permission[0][0]
+
+    return 'user'
+
+
+def set_user_permission(id, permission):
+    conn, cursor = open_db()
+    cursor.execute('''UPDATE users SET permissions = ? WHERE id = ?''', (permission, id,)).fetchall()
+    conn.commit()
+    close_db(conn, cursor)
 
 
 def delete_all_links():
@@ -134,10 +152,10 @@ def delete_mission(id):
 
     for _ in reports:
         if _.isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', _) is None:
-            cursor.execute('''DELETE FROM media WHERE photo_id = ?;''', (_, ))
+            cursor.execute('''DELETE FROM media WHERE photo_id = ?;''', (_,))
 
-    cursor.execute('''DELETE FROM reports WHERE mission_id = ?;''', (id, ))
-    cursor.execute('''DELETE FROM missions WHERE id = ?;''', (id, ))
+    cursor.execute('''DELETE FROM reports WHERE mission_id = ?;''', (id,))
+    cursor.execute('''DELETE FROM missions WHERE id = ?;''', (id,))
     conn.commit()
 
     close_db(conn, cursor)
@@ -200,20 +218,32 @@ def delete_route(id):
 
 def get_clerks():
     conn, cursor = open_db()
-    users = cursor.execute('''SELECT id,username FROM users''').fetchall()
+    users = cursor.execute('''SELECT id,username,permissions FROM users''').fetchall()
     close_db(conn, cursor)
 
     if len(users) > 0 and users[0][0] is not None:
-        users = [(i[0], i[1]) for i in users]
+        users = [(i[0], i[1], i[2]) for i in users]
     else:
         users = []
     return users
 
 
+def get_admins():
+    conn, cursor = open_db()
+    users = cursor.execute('''SELECT id FROM users WHERE permissions = ?''', (sett.permissions[0],)).fetchall()
+    close_db(conn, cursor)
+
+    if len(users) > 0 and users[0][0]:
+        return [int(i[0]) for i in users]
+
+    return []
+
+
 def get_clerk_by_id(id):
     conn, cursor = open_db()
-    user = cursor.execute('''SELECT * FROM users WHERE id = ?''', (id,)).fetchall()
-    not_proof = cursor.execute('''SELECT SUM(reward) FROM missions WHERE status = 1 AND proof = 0 AND user = ?''', (id, )).fetchall()
+    user = cursor.execute('''SELECT id,username,earned FROM users WHERE id = ?''', (id,)).fetchall()
+    not_proof = cursor.execute('''SELECT SUM(reward) FROM missions WHERE status = 1 AND proof = 0 AND user = ?''',
+                               (id,)).fetchall()
     close_db(conn, cursor)
 
     if len(user) > 0 and user[0][0] is not None:
@@ -224,7 +254,7 @@ def get_clerk_by_id(id):
     return user
 
 
-def get_mission_by_id(id, not_completed = False):
+def get_mission_by_id(id, not_completed=False):
     conn, cursor = open_db()
     mission = cursor.execute(f'''SELECT comment FROM missions WHERE id = ?
                             {' AND status = "0"' if not_completed else ''}''', (id,)).fetchall()
@@ -260,9 +290,11 @@ def get_route_id_by_mission(id):
         route_id = None
     return route_id
 
+
 def get_missions_by_user_id(user_id):
     conn, cursor = open_db()
-    missions = cursor.execute('''SELECT id,comment FROM missions WHERE user = ? AND proof = "0"''', (user_id,)).fetchall()
+    missions = cursor.execute('''SELECT id,comment FROM missions WHERE user = ? AND proof = "0"''',
+                              (user_id,)).fetchall()
     close_db(conn, cursor)
 
     data_missions = []
@@ -313,10 +345,10 @@ def get_count_reports_mission(id, id_building=None):
     count = None
     if not id_building is None:
         count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ? AND building_id = ?''',
-                       (id, id_building, )).fetchall()
+                               (id, id_building,)).fetchall()
     else:
         count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ?''',
-                       (id, )).fetchall()
+                               (id,)).fetchall()
     close_db(conn, cursor)
 
     if len(count) > 0 and count[0][0] is not None:
@@ -389,23 +421,25 @@ def get_location_start_for_mission(id):
 def save_report_user(id, user_id, location, photo_id, video_id, building_id, type_rep):
     conn, cursor = open_db()
     location = jsonpickle.encode(location)
-    cursor.execute('''INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', (id, user_id, location, photo_id, video_id,
-                                            int(datetime.datetime.timestamp(datetime.datetime.now())), building_id, type_rep, ))
+    cursor.execute('''INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                   (id, user_id, location, photo_id, video_id,
+                    int(datetime.datetime.timestamp(datetime.datetime.now())), building_id, type_rep,))
     cursor.execute('''UPDATE missions SET reward = reward + ? WHERE id = ?''', (sett.cost_report[int(type_rep)][1], id))
     conn.commit()
 
 
 def complete_mission(id):
     conn, cur = open_db()
-    cur.execute('''UPDATE missions SET status = "1" WHERE id = ?''', (id, ))
+    cur.execute('''UPDATE missions SET status = "1" WHERE id = ?''', (id,))
     conn.commit()
     close_db(conn, cur)
 
 
 def change_mission(id, user, name, reward, reports, date):
     conn, cur = open_db()
-    cur.execute('''UPDATE missions SET user = ?, comment = ?, reward = ?, count_reports=?, date_expire=? WHERE id = ?''',
-                (user, name, reward, reports, date, id,))
+    cur.execute(
+        '''UPDATE missions SET user = ?, comment = ?, reward = ?, count_reports=?, date_expire=? WHERE id = ?''',
+        (user, name, reward, reports, date, id,))
     conn.commit()
     close_db(conn, cur)
 
@@ -432,7 +466,7 @@ def get_photos_by_media_id(media_group_id):
 
 def change_balance_clerk(id, balance):
     conn, cur = open_db()
-    cur.execute('''UPDATE users SET earned = ? WHERE id = ?''', (balance,id,))
+    cur.execute('''UPDATE users SET earned = ? WHERE id = ?''', (balance, id,))
     conn.commit()
     close_db(conn, cur)
 
@@ -446,9 +480,9 @@ def kick_user(id):
 
 def proof_mission(id):
     conn, cur = open_db()
-    user, reward = cur.execute('''SELECT user,reward FROM missions WHERE id = ?''', (id, )).fetchall()[0]
-    cur.execute('''UPDATE users SET earned = earned + ? WHERE id = ?''', (reward, user, ))
-    cur.execute('''UPDATE missions SET proof = 1, status = 1 WHERE id = ?''', (id, ))
+    user, reward = cur.execute('''SELECT user,reward FROM missions WHERE id = ?''', (id,)).fetchall()[0]
+    cur.execute('''UPDATE users SET earned = earned + ? WHERE id = ?''', (reward, user,))
+    cur.execute('''UPDATE missions SET proof = 1, status = 1 WHERE id = ?''', (id,))
     conn.commit()
     close_db(conn, cur)
 
@@ -457,15 +491,15 @@ def retry_mission_by_id(id):
     conn, cur = open_db()
     cur.execute('''UPDATE missions SET date_expire = 
                         (CASE WHEN date_expire >= DATETIME("now") THEN DATETIME(date_expire, "+1 day") ELSE DATETIME("now", "start of day", "+3 days", "-1 second") END)
-                        WHERE id = ?''', (id, ))
-    cur.execute('''UPDATE missions SET status = 0, proof = 0 WHERE id = ?''', (id, ))
+                        WHERE id = ?''', (id,))
+    cur.execute('''UPDATE missions SET status = 0, proof = 0 WHERE id = ?''', (id,))
     conn.commit()
     close_db(conn, cur)
 
 
 def reject_mission_by_id(id):
     conn, cur = open_db()
-    mission = cur.execute('''SELECT status, proof, reward, user FROM missions WHERE id = ?''', (id, )).fetchall()[0]
+    mission = cur.execute('''SELECT status, proof, reward, user FROM missions WHERE id = ?''', (id,)).fetchall()[0]
     cur.execute('''UPDATE users SET earned = earned - (CASE WHEN (? = 1 AND ? = 1) THEN ? ELSE 0 END)
                     WHERE id = ?''', *(mission,))
     cur.execute('''UPDATE missions SET status = 0,proof = 1 WHERE id = ?''', (id,))
@@ -494,7 +528,7 @@ def delete_report(date, id_user):
         '''SELECT mission_id,type FROM reports WHERE [date] = ?''',
         (date,)).fetchall()[0]
     cur.execute('''UPDATE missions SET reward = reward - ? WHERE id = ? AND [user] = ?''',
-                (sett.cost_report[report_info[1]][1], report_info[0], id_user, ))
+                (sett.cost_report[report_info[1]][1], report_info[0], id_user,))
     cur.execute('''DELETE FROM reports WHERE mission_id = ? AND user_id = ? AND [date] = ?''',
                 (report_info[0], id_user, date))
     conn.commit()
@@ -543,33 +577,50 @@ def get_costs():
     return costs
 
 
+def change_costs(costs: dict):
+    conn, cur = open_db()
+    for i in costs.keys():
+        cur.execute('''UPDATE types_cost SET cost = ? WHERE id = ?;''', (costs[i], i,))
+
+    conn.commit()
+    close_db(conn, cur)
+
+
 def check_coordinates(id_mission, lat, lon):
     conn, cur = open_db()
     id_route = cur.execute('''SELECT id_route FROM missions WHERE id = ?''', (id_mission,)).fetchall()[0][0]
-
     coords = cur.execute('''SELECT coords FROM routes WHERE id = ?''', (id_route,)).fetchall()
+    last_report= cur.execute('''SELECT location,MAX(date) FROM reports WHERE mission_id = ?''', (id_mission,)).fetchall()
     close_db(conn, cur)
     coords = jsonpickle.decode(coords[0][0])
 
     for pos in coords.values():
         # print(get_length_locations(lat, lon, pos[0], pos[1]), lat, lon, pos[0], pos[1])
         if get_length_locations(lat, lon, pos[0], pos[1]) <= sett.allow_radius:
-            return True
-
-    return False
+            if len(last_report) and last_report[0][0] is not None:
+                current_time_h = int(datetime.datetime.timestamp(datetime.datetime.now())) / 60. / 60.
+                last_time_h = int(last_report[0][1]) / 60. / 60.
+                max_distance_allow_speed = sett.allow_speed * (current_time_h - last_time_h)
+                last_coords = jsonpickle.decode(last_report[0][0])
+                current_distance = get_length_locations(lat, lon, last_coords[0], last_coords[1])
+                if current_distance >= max_distance_allow_speed:
+                    return 2
+            return 0
+    return 1
 
 
 def get_length_locations(lat1, lon1, lat2, lon2):
     def degrees_to_rads(deg):
         return (deg * math.pi) / 180.0
+
     lat1 = degrees_to_rads(lat1)
     lat2 = degrees_to_rads(lat2)
     lon1 = degrees_to_rads(lon1)
     lon2 = degrees_to_rads(lon2)
     return 2 * 6371 * math.asin(math.sqrt(
-        math.pow(math.sin(((lat2-lat1)/2.0)), 2.0) +
+        math.pow(math.sin(((lat2 - lat1) / 2.0)), 2.0) +
         math.cos(lat1) * math.cos(lat2) *
-        math.pow(math.sin(((lon2-lon1)/2.0)), 2.0)
+        math.pow(math.sin(((lon2 - lon1) / 2.0)), 2.0)
     ))
 
 
@@ -579,14 +630,14 @@ def execute_db(command):
     conn.commit()
     close_db(conn, cur)
 
+
 # скачивание файла с сервера телеграмм
 def download_file(file_id):
-
     get_file_link = f'https://api.telegram.org/bot{sett.API_KEY}/getFile?file_id={file_id}'
 
     r = requests.get(get_file_link)
 
-    for _ in range(0,5):
+    for _ in range(0, 5):
         if r.status_code == 200:
             file_path = r.json()['result']['file_path']
             download_file_raw = f'https://api.telegram.org/file/bot{sett.API_KEY}/{file_path}'
