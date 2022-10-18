@@ -1,5 +1,4 @@
 import os
-from functions import get_costs
 
 cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c'
 API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не сообщать, получать в @BotFather
@@ -26,8 +25,6 @@ info_proof_mission_text = 'Выполнил: <b>@{}</b>\n' \
                           'Количество отчетов <b>{}</b> из <b>{}</b>\n' \
                           'Время окончания: {}\n' \
                           'Статус: {}'
-
-cost_report = get_costs()
 
 permissions = {
     0: 'admin',

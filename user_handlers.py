@@ -207,7 +207,7 @@ def init_user_actions():
         bot.send_message(call.message.chat.id,
                          'Выберите тип отчета',
                          reply_markup=types.InlineKeyboardMarkup().add(
-                             *[types.InlineKeyboardButton(sett.cost_report[i][0], callback_data=f'ent_report_{i}_{building_id}_{id}') for i in sett.cost_report.keys()],
+                             *[types.InlineKeyboardButton(func.get_costs()[i][0], callback_data=f'ent_report_{i}_{building_id}_{id}') for i in func.get_costs().keys()],
                              types.InlineKeyboardButton("Назад", callback_data=f'building_{building_id}_{id}'),
                              row_width=1
                          ))

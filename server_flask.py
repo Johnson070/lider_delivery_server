@@ -8,8 +8,8 @@ import os
 
 import functions
 import report_zip
-import settings
 import functions as func
+import settings
 import jsonpickle
 from telebot import types
 import bot_tg

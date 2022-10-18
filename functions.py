@@ -424,7 +424,7 @@ def save_report_user(id, user_id, location, photo_id, video_id, building_id, typ
     cursor.execute('''INSERT INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                    (id, user_id, location, photo_id, video_id,
                     int(datetime.datetime.timestamp(datetime.datetime.now())), building_id, type_rep,))
-    cursor.execute('''UPDATE missions SET reward = reward + ? WHERE id = ?''', (sett.cost_report[int(type_rep)][1], id))
+    cursor.execute('''UPDATE missions SET reward = reward + ? WHERE id = ?''', (get_costs()[int(type_rep)][1], id))
     conn.commit()
 
 
@@ -528,7 +528,7 @@ def delete_report(date, id_user):
         '''SELECT mission_id,type FROM reports WHERE [date] = ?''',
         (date,)).fetchall()[0]
     cur.execute('''UPDATE missions SET reward = reward - ? WHERE id = ? AND [user] = ?''',
-                (sett.cost_report[report_info[1]][1], report_info[0], id_user,))
+                (get_costs()[report_info[1]][1], report_info[0], id_user,))
     cur.execute('''DELETE FROM reports WHERE mission_id = ? AND user_id = ? AND [date] = ?''',
                 (report_info[0], id_user, date))
     conn.commit()
