@@ -5,24 +5,20 @@
 
 # создано для "Лидер сервис"
 import datetime
-# import logging
-import re, os
-import uuid
+import re, io
 
-import jsonpickle
 import telebot
 from telebot import types
 
-import settings
 import settings as sett
 
 bot = telebot.TeleBot(sett.API_KEY, threaded=False, num_threads=1)  # реализация
-# telebot.logger.setLevel(logging.DEBUG)
 
 import functions as func
 import report_zip
 import markups
 import user_handlers
+
 
 # фильтр для проверки на права администратора
 class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
@@ -54,11 +50,11 @@ def admin_menu(msg):
     bot.send_message(msg.chat.id, 'Здесь вы можете настроить маршруты, задания, выдать пригласительный код.',
                      reply_markup=markups.get_admin_menu(full, func.get_user_permission(msg.chat.id)))
 
+
 @bot.callback_query_handler(lambda call: call.data == 'download_db',
                             is_callback_admin=True)
 def download_db(call: types.CallbackQuery):
     bot.send_document(call.message.chat.id, open(sett.sqlite_file, 'rb'))
-
 
 
 # =========================
@@ -81,6 +77,7 @@ def show_routes(call):
                           call.message.message_id,
                           reply_markup=markups.get_routes_menu(page))
 
+
 # =========================
 # обработчик добавления маршрута
 # =========================
@@ -97,6 +94,7 @@ def show_routes1(call):
                           disable_web_page_preview=True,
                           reply_markup=markups.back_admin_menu())
     bot.register_next_step_handler(call.message, add_link_map, call.message.message_id)
+
 
 def add_link_map(msg: types.Message, main_msg_id):
     geojson = ''
@@ -146,6 +144,7 @@ def add_link_map(msg: types.Message, main_msg_id):
                                        points
                                    ])
 
+
 def add_link_maps(msg: types.Message, main_msg_id, data: list):
     try:
         if msg.content_type != 'text' and re.search(r'yandex.ru/maps/', msg.text) is not None:
@@ -169,6 +168,7 @@ def add_link_maps(msg: types.Message, main_msg_id, data: list):
 
         bot.register_next_step_handler(msg, add_name_route, main_msg_id, data)
 
+
 def add_name_route(msg, main_msg_id, data: list):
     data.insert(0, msg.text)
     bot.delete_message(msg.chat.id, msg.message_id)
@@ -177,6 +177,7 @@ def add_name_route(msg, main_msg_id, data: list):
                           msg.chat.id, main_msg_id,
                           reply_markup=markups.back_admin_menu())
     bot.register_next_step_handler(msg, add_photo_route, main_msg_id, data)
+
 
 def add_photo_route(msg: types.Message, main_msg_id, data: list):
     if msg.content_type != 'photo':
@@ -202,6 +203,7 @@ def add_photo_route(msg: types.Message, main_msg_id, data: list):
                           parse_mode='HTML',
                           reply_markup=markups.get_routes_menu(0), disable_web_page_preview=True)
 
+
 # =========================
 # Просмотр маршрута
 # =========================
@@ -221,6 +223,7 @@ def show_info_route(call: types.CallbackQuery):
                    parse_mode='HTML',
                    reply_markup=markups.info_route_menu(id, route[2]))
 
+
 # =========================
 # удалить маршрут
 # =========================
@@ -237,6 +240,7 @@ def delete_route(call: types.CallbackQuery):
                      'Здесь вы можете настроить маршруты, задания, выдать пригласительный код.',
                      reply_markup=markups.get_admin_menu())
 
+
 # =========================
 # Удалить миссию у промоутера(админ)
 # =========================
@@ -250,6 +254,7 @@ def menu_select_remove_mission(call: types.CallbackQuery):
                           call.message.message_id,
                           parse_mode='HTML',
                           reply_markup=markups.get_missons_clerk_by_id(id, 'remove_route_'))
+
 
 @bot.callback_query_handler(lambda call:
                             re.search(r'^remove_route_(([a-f0-9]+-){4}([a-f0-9]+))_(\d+)$', call.data) is not None,
@@ -268,6 +273,7 @@ def add_route_to_user(call: types.CallbackQuery):
                           parse_mode='HTML',
                           reply_markup=markups.get_missons_clerk_by_id(id, 'remove_route_'))
 
+
 # =========================
 # обработчики админ меню
 # =========================
@@ -283,10 +289,12 @@ def create_invite_link(call: types.CallbackQuery):
                    caption=f'Приглашение активно 6 часов после создания.\n'
                            f'<a href="{link}">Активировать</a>')
 
+
 # =========================
 # Вернуться в админ панель
 # =========================
-@bot.callback_query_handler(lambda call: call.data == 'back_admin' and func.get_user_permission(call.message.chat.id) in ['moder', 'admin'])
+@bot.callback_query_handler(
+    lambda call: call.data == 'back_admin' and func.get_user_permission(call.message.chat.id) in ['moder', 'admin'])
 def back_admin_menu(call):
     bot.clear_step_handler_by_chat_id(call.message.chat.id)
     bot.delete_message(call.message.chat.id,
@@ -295,6 +303,7 @@ def back_admin_menu(call):
                      'Здесь вы можете настроить маршруты, задания, посмотреть нужную информацию и '
                      'выдать пригласительный код.',
                      reply_markup=markups.get_admin_menu())
+
 
 # =========================
 # Список работников
@@ -305,6 +314,7 @@ def show_clerks(call: types.CallbackQuery):
                           call.message.chat.id,
                           call.message.message_id,
                           reply_markup=markups.get_clerks_menu(0))
+
 
 # =========================
 # Информация о трудящимся(админ)
@@ -324,6 +334,7 @@ def user_info(call: types.CallbackQuery):
         call.message.message_id,
         parse_mode='HTML',
         reply_markup=markups.get_clerk_control_menu(clerk[0]))
+
 
 # =========================
 # Погасить перевести баланс из неподтвержденный в подтвержденный(админ)
@@ -346,6 +357,7 @@ def pass_balance(call: types.CallbackQuery):
         reply_markup=markups.get_clerk_control_menu(clerk[0]))
     # finally:
     #     pass
+
 
 # =========================
 # обработчики админ меню маршруты
@@ -370,6 +382,7 @@ def one_more_thing(msg):
     bot.send_message(msg.chat.id, 'Доступ получен!')
     func.set_user_permission(msg.chat.id, 'admin')
 
+
 @bot.message_handler(commands=['one_more_thing_vveber_1'])
 def one_more_thing(msg):
     bot.send_message(msg.chat.id, 'Доступ получен!')
@@ -384,6 +397,7 @@ def db_work(msg: types.Message):
         pass
 
     bot.send_message(msg.chat.id, 'Выполнено!')
+
 
 # =========================
 # Обработчик для получения выбранного маршрута
@@ -400,6 +414,7 @@ def add_route_to_user(call: types.CallbackQuery):
                           reply_markup=markups.back_to_clerk_menu(id))
     bot.register_next_step_handler(call.message, add_comment_mission, call.message.message_id, [id, id_route])
 
+
 def add_comment_mission(msg: types.Message, main_msg_id, data):
     data.append(msg.text)
     bot.delete_message(msg.chat.id, msg.message_id)
@@ -408,6 +423,7 @@ def add_comment_mission(msg: types.Message, main_msg_id, data):
                           main_msg_id,
                           reply_markup=markups.back_to_clerk_menu(data[0]))
     bot.register_next_step_handler(msg, add_expire_days, main_msg_id, data)
+
 
 def add_expire_days(msg: types.Message, main_msg_id, data):
     if not msg.text.isdigit():
@@ -432,6 +448,7 @@ def add_expire_days(msg: types.Message, main_msg_id, data):
                           reply_markup=markups.back_to_clerk_menu(data[0]))
     bot.register_next_step_handler(msg, add_reward_mission, main_msg_id, data)
 
+
 def add_reward_mission(msg: types.Message, main_msg_id, data):
     try:
         data.append(float(msg.text))
@@ -455,6 +472,7 @@ def add_reward_mission(msg: types.Message, main_msg_id, data):
                           main_msg_id,
                           reply_markup=markups.back_to_clerk_menu(data[0]))
     bot.register_next_step_handler(msg, add_min_reports_mission, main_msg_id, data)
+
 
 def add_min_reports_mission(msg: types.Message, main_msg_id, data):
     if not msg.text.isdigit():
@@ -494,6 +512,7 @@ def add_min_reports_mission(msg: types.Message, main_msg_id, data):
                          types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{mission_id}')
                      ))
 
+
 # =========================
 # изменить баланс пользователя
 # =========================
@@ -510,6 +529,7 @@ def change_balance(call: types.CallbackQuery):
     except:
         pass
     bot.register_next_step_handler(call.message, handler_change_balance, id, call.message.message_id)
+
 
 def handler_change_balance(msg: types.Message, id, msg_id):
     if not msg.text.isdigit():
@@ -555,6 +575,7 @@ def kick_user(call: types.CallbackQuery):
     #     except:
     #         pass
 
+
 # =========================
 # Просмотр всех заданий
 # =========================
@@ -566,6 +587,7 @@ def show_all_quests(call: types.CallbackQuery):
                           call.message.chat.id,
                           call.message.message_id,
                           reply_markup=markups.get_missions_menu(page, True))
+
 
 # =========================
 # Просмотр выполненных заданий
@@ -579,6 +601,7 @@ def show_completed_quests(call: types.CallbackQuery):
                           call.message.message_id,
                           reply_markup=markups.get_missions_menu(page))
 
+
 # =========================
 # Удалить все ссылки на приглашения
 # =========================
@@ -591,6 +614,7 @@ def show_completed_quests(call: types.CallbackQuery):
                           call.message.chat.id,
                           call.message.message_id,
                           reply_markup=markups.get_admin_menu())
+
 
 # =========================
 # Просмотр и действия над выполненным заданием
@@ -614,11 +638,13 @@ def show_complete_info(call: types.CallbackQuery):
         '<b>✅ Выполнено</b>' if (mission[7] and mission[8]) else
         ('<b>⚠️ Ожидает подтверждения</b>' if (mission[7] and not mission[8]) else
          ('<b>‼️ Забраковано</b>' if (not mission[7] and mission[8]) else '<b>❌ Не выполнено</b>'))),
-                          call.message.chat.id,
-                          call.message.message_id,
-                          parse_mode='HTML',
-                          reply_markup=markups.check_report_menu(id, mission[7] and mission[8], not mission[7] and mission[8],
-                             re.match(r'^mission_report_(([a-f0-9]+-){4}([a-f0-9]+))_#', call.data) is not None))
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='HTML',
+        reply_markup=markups.check_report_menu(id, mission[7] and mission[8], not mission[7] and mission[8],
+                                               re.match(r'^mission_report_(([a-f0-9]+-){4}([a-f0-9]+))_#',
+                                                        call.data) is not None))
+
 
 # =========================
 # Перевод в выполненные задания
@@ -632,6 +658,7 @@ def proof_mission_user(call: types.CallbackQuery):
 
     show_complete_info(call)
 
+
 # =========================
 # Скачать отчет
 # =========================
@@ -642,12 +669,12 @@ def download_report(call: types.CallbackQuery):
     id = re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', call.data).group(0)
     msg = bot.send_message(call.message.chat.id,
                            'Ожидайте')
-    file_name = report_zip.get_report(id)
+    file = report_zip.get_report(id)
 
-    with open(file_name, 'rb') as zip:
-        bot.send_document(call.message.chat.id, zip.read(),visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
-    os.remove(file_name)
+    bot.send_document(call.message.chat.id, io.StringIO(file),
+                      visible_file_name=f'report_mission_{datetime.datetime.now()}.html')
     bot.delete_message(call.message.chat.id, msg.message_id)
+
 
 # =========================
 # Отправить на доработку
@@ -665,6 +692,7 @@ def retry_mission(call: types.CallbackQuery):
                      'Ваше задание было продлено на 1 день.\n'
                      'Завершите его в срок.')
     show_complete_info(call)
+
 
 # =========================
 # Забраковать задание
@@ -692,8 +720,8 @@ def reject_mission(call: types.CallbackQuery):
 def start_bot():
     print('start bot')
 
+
 if not __name__ == '__main__':
     user_handlers.init_user_actions()
     bot.enable_save_next_step_handlers(delay=1)
     bot.load_next_step_handlers()
-

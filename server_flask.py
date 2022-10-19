@@ -1,3 +1,4 @@
+import io
 import time
 
 from flask import Flask, session, Response, request, render_template, abort
@@ -41,6 +42,7 @@ def not_auth_user():
         return True
     return False
 
+
 def validate_from_request(data):
     data = data.decode('utf-8')
 
@@ -56,7 +58,7 @@ def validate_from_request(data):
         hash = hash.group(0).replace('&hash=', '')
     else:
         hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=900) and validate(
+    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=90000000) and validate(
         hash, data, settings.API_KEY)
 
 
@@ -90,7 +92,7 @@ def webhook():
 
 @app.route('/favicon.ico', methods=['GET'])
 def favicon():
-    return Response(open('static/favicon.ico','rb'), mimetype='image/jpeg')
+    return Response(open('static/favicon.ico', 'rb'), mimetype='image/jpeg')
 
 
 @app.route('/validate/moder', methods=['GET'])
@@ -103,6 +105,7 @@ def validate_query():
         return Response('0' if not_auth_moder() else '1', 200)
     else:
         return Response('0' if not_auth() else '1', 200)
+
 
 @app.route('/validate/moder', methods=['POST'])
 @app.route('/validate/user', methods=['POST'])
@@ -133,6 +136,7 @@ def unauthorized():  #
 @app.route('/auth')
 def auth():
     return render_template('auth.html')
+
 
 @app.route('/auth_moder')
 def auth_moder():
@@ -236,13 +240,15 @@ def manage_mission(uuid, method):
         func.delete_mission(uuid)
         return Response(None, 200)
     elif method == 'geojson':
-        return Response(report_zip.get_geojson(uuid), 200, mimetype='application/json', headers={'Access-Control-Allow-Origin': '*',
-                                                                                                 'Access-Control-Allow-Methods': 'GET',
-                                                                                                 'Access-Control-Allow-Headers' :'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
+        return Response(report_zip.get_geojson(uuid), 200, mimetype='application/json',
+                        headers={'Access-Control-Allow-Origin': '*',
+                                 'Access-Control-Allow-Methods': 'GET',
+                                 'Access-Control-Allow-Headers': 'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
     elif method == 'center_map':
         return Response(report_zip.get_center_map(uuid), 200)
     else:
         return Response(status=404)
+
 
 @app.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
@@ -269,14 +275,10 @@ def download_report(UUID):
     if not_auth() and not_auth_moder():
         return 0
 
-    file_name = report_zip.get_report(UUID)
-    with open(file_name, 'rb') as zip:
-        file = zip.read()
-        resp = Response('1', 200)
-        bot_tg.bot.send_document(session['user_id'], file,
-                                 visible_file_name=f'report_mission_{datetime.datetime.now()}.zip')
-
-    os.remove(file_name)
+    file = report_zip.get_report(UUID)
+    resp = Response('1', 200)
+    bot_tg.bot.send_document(session['user_id'], io.StringIO(file),
+                             visible_file_name=f'report_mission_{datetime.datetime.now()}.html')
 
     return resp
 
@@ -291,6 +293,7 @@ def delete_report(uuid):
 
     return Response('1', 200)
 
+
 @app.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
     if not_auth() and not_auth_moder():
@@ -300,9 +303,9 @@ def get_base64_reports(uuid):
     json_report = []
     for _ in range(0, len(reports)):
         json_report.append({})
-        json_report[-1]['id'] = _+1;
-        json_report[-1]['date'] = reports[_][3];
-        json_report[-1]['building_id'] = reports[_][4];
+        json_report[-1]['id'] = _ + 1
+        json_report[-1]['date'] = reports[_][3]
+        json_report[-1]['building_id'] = reports[_][4]
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
@@ -357,6 +360,7 @@ def routes_list():
     return Response(jsonpickle.encode(func.get_routes(), unpicklable=False))
 
 
+# TODO: проверка ссылки
 @app.route('/routes/add', methods=['POST'])
 def add_route():
     if not_auth():
@@ -382,26 +386,42 @@ def add_route():
     ''')
     id_point = 0
 
-    def inc(id_point):
-        id_point += 1
-        return id_point-1
+    def parse_addr(node: overpy.Node = None, rel: overpy.Relation = None, way: overpy.Way = None):
+        addr = ''
+        if node is not None:
+            addr += node.tags.get('addr:street', '') + ', '
+            addr += node.tags.get('addr:housenumber', '')
+        elif rel is not None:
+            addr += rel.tags.get('addr:street', '') + ', '
+            addr += rel.tags.get('addr:housenumber', '')
+        elif way is not None:
+            addr += way.tags.get('addr:street', '') + ', '
+            addr += way.tags.get('addr:housenumber', '')
+        return addr
 
-    coords = [(float(i.center_lat), float(i.center_lon)) for i in points.relations]
-    coords1 = [(float(i.center_lat), float(i.center_lon)) for i in points.ways]
-    coords2 = [(float(i.lat), float(i.lon)) for i in points.nodes]
+    coords = [(float(i.center_lat), float(i.center_lon), parse_addr(rel=i)) for i in points.relations]
+    coords1 = [(float(i.center_lat), float(i.center_lon), parse_addr(way=i)) for i in points.ways]
+    coords2 = [(float(i.lat), float(i.lon), parse_addr(node=i)) for i in points.nodes]
 
     coords = coords + coords1 + coords2
 
     import operator
 
-    coords = sorted(coords, key=operator.itemgetter(0,1))
-    coords = {k:(i[0], i[1]) for i,k in zip(coords, range(0,len(coords)))}
+    coords = sorted(coords, key=operator.itemgetter(0, 1))
 
-    min_route = func.get_min_route(coords)
-    coords = {k:coords[min_route[k]] for k in range(0, len(min_route))}
+    addr = {}
+    coords_dict = {}
+    for i, k in zip(coords, range(0, len(coords))):
+        coords_dict[k] = (i[0], i[1])
+        addr[k] = i[2]
 
+    min_route = func.get_min_route(coords_dict)
+    coords_dict = {k: coords_dict[min_route[k]] for k in range(0, len(min_route))}
 
-    func.add_route([name_route, link_map, jsonpickle.encode(coords), photo_file_id, len(coords)])
+    jsonpickle.set_preferred_backend('json')
+    jsonpickle.set_encoder_options('json', ensure_ascii=False)
+    func.add_route([name_route, link_map, jsonpickle.encode(coords_dict), photo_file_id, len(coords),
+                    jsonpickle.encode(addr, unpicklable=False)])
 
     return Response('1', 200)
 
@@ -450,13 +470,14 @@ def manage_user(uid, method):
 
     if method == 'add_mission':
         json = request.json
-        mission_id = func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'], json['reports'])
+        mission_id = func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'],
+                                             json['reports'])
         bot_tg.bot.send_message(uid,
-                         'Вам выдано новое задание!\n'
-                         'Старт завтра.',
-                         reply_markup=types.InlineKeyboardMarkup().add(
-                             types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{mission_id}')
-                         ))
+                                'Вам выдано новое задание!\n'
+                                'Старт завтра.',
+                                reply_markup=types.InlineKeyboardMarkup().add(
+                                    types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{mission_id}')
+                                ))
 
         return Response(None, 200)
     elif method == 'delete_mission':
@@ -469,7 +490,7 @@ def manage_user(uid, method):
     elif method == 'kick':
         func.kick_user(uid)
         bot_tg.bot.send_message(uid, 'Вы были исключены администратором.\n'
-                             'Спасибо за использование!')
+                                     'Спасибо за использование!')
         return Response(None, 200)
     else:
         Response(None, 401)
@@ -493,7 +514,8 @@ def get_user_permissions():
     if not_auth():
         return unauthorized()
 
-    return Response(jsonpickle.encode({i[0]: (i[1], i[2]) for i in func.get_clerks()}, unpicklable=False), mimetype='application/json')
+    return Response(jsonpickle.encode({i[0]: (i[1], i[2]) for i in func.get_clerks()}, unpicklable=False),
+                    mimetype='application/json')
 
 
 @app.route('/settings/permissions', methods=['POST'])
@@ -503,7 +525,7 @@ def set_user_permissions():
 
     func.set_user_permission(*request.json)
 
-    return Response('1',200)
+    return Response('1', 200)
 
 
 @app.route('/settings/costs', methods=['GET'])
@@ -531,7 +553,7 @@ def download_db(id):
 
     bot_tg.bot.send_document(id, open(settings.sqlite_file, 'rb'))
 
-    return Response('1',200)
+    return Response('1', 200)
 
 
 @app.route('/settings/create_link/<id>', methods=['GET'])
@@ -541,11 +563,11 @@ def create_link(id):
 
     link, image = func.create_invite_link(id)
     bot_tg.bot.send_photo(id, image,
-                   parse_mode='HTML',
-                   caption=f'Приглашение активно 6 часов после создания.\n'
-                           f'<a href="{link}">Активировать</a>')
+                          parse_mode='HTML',
+                          caption=f'Приглашение активно 6 часов после создания.\n'
+                                  f'<a href="{link}">Активировать</a>')
 
-    return Response('1',200)
+    return Response('1', 200)
 
 
 if not __name__ == '__main__':
@@ -558,7 +580,5 @@ if not __name__ == '__main__':
         time.sleep(0.1)
 
         bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
-
-
 
 application = app

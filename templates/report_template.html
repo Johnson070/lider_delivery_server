@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Отчет</title>
+    <style>
+        .text-info-user {
+          color: black;
+          background-color: lightgray;
+          width: 90%;
+          border-radius: 1em;
+          margin: 10px 0;
+        }
+
+        .text-info-container{
+          display: flex;
+          position: relative;
+          padding: 5px 10px;
+        }
+
+        div.name-property {
+          display: inline-block;
+          float: left;
+          width: 100%;
+          margin-right: -100%;
+          text-align: left;
+        }
+
+        div.value-property {
+          display: inline-block;
+          float: right;
+          width: 100%;
+          margin-right: -100%;
+          text-align: right;
+        }
+
+        .link_user:visited,
+        .link_user:not(:visited),
+        .link_user {
+          color: darkblue;
+          text-decoration: underline;
+        }
+
+        .info-report {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #reports {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .media {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .report {
+            flex-grow: 1;
+            width: 33%;
+            text-align: center;
+            border: black 1px solid;
+        }
+
+        .report-img {
+            flex-grow: 1;
+            width: 33%; /* you can use % */
+            height: auto;
+            text-align: center;
+        }
+        .report-img img {
+            width: 100%;
+        }
+
+        body {
+
+        }
+    </style>
+</head>
+<body>
+    <div class="info-report">
+       <div class="text-info-user">
+        <div class="text-info-container">
+            <div class="name-property">Исполнитель</div>
+            <div class="value-property">
+                <b><a class="link_user" id='user-id' name="{{ user_id }}" href='https://t.me/{{ user }}'>@{{ user }}</a></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Задание</div>
+            <div class="value-property">
+                <b>{{ name_mission }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Вознаграждение</div>
+            <div class="value-property">
+                <b>{{ reward }}</b> руб.
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Количество отчетов</div>
+            <div class="value-property">
+                <b>{{ count }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Количество домов в задании</div>
+            <div class="value-property">
+                <b>{{ buildings }}</b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Статус</div>
+            <div class="value-property">
+                <b>{{ status }}</b>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div id="reports">
+        {{ reports|safe }}
+    </div>
+</body>
+</html>

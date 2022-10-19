@@ -44,7 +44,7 @@ async function save_route() {
     let link_map = document.getElementById("link-map").value;
     let name_route = document.getElementById("name-route").value;
 
-    if (file === undefined || file1 === undefined || link_map === '' || name_route === '') {
+    if (file === undefined || file1 === undefined || link_map.match(/https:\/\/api-maps\.yandex\.ru\/services\/constructor\/1\.0\/js\/\?um=constructor%3A(.+)/).length > 0 || name_route === '') {
         window.Telegram.WebApp.showAlert('Заполните все поля и выберите файлы!');
         return;
     }
@@ -61,6 +61,7 @@ async function save_route() {
         name_route: name_route
     }
 
+    window.Telegram.WebApp.showAlert('Ожидайте');
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', window.location.href + '/add', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку

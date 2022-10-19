@@ -1,3 +1,4 @@
+import datetime
 import re
 import time
 import zipfile, jsonpickle, uuid
@@ -57,36 +58,60 @@ def get_raw_by_id(id):
 
 
 def get_report(id):
-    file_name = sett.file_report_path.format(id, uuid.uuid4())
-    report = zipfile.ZipFile(file_name, 'w')
+    mission = func.get_full_info_mission(id)
+    count_reports = func.get_count_reports_mission(id)
+    buildings = func.get_route_buildings(mission[3])
+    user = func.get_clerk_by_id(mission[1])[1]
 
     data = func.get_reports_by_id(id)
-    count_reports = len(data)
-    points = []
 
+    reports = ''
+    report = '''
+        <div class="report">
+            <p>
+                Отчет №{0}<br>
+                Дом {1}<br>
+                {2}<br>
+                {3}
+            </p>
+            <div class="media">
+                {4}
+            </div>
+        </div>
+    '''
+    img = '''<div class='report-img'><img src="data:image/png;base64, {0}" /></div>'''
+
+    def bytes_to_base64_string(value: bytes) -> str:
+        import base64
+        return base64.b64encode(value).decode('ASCII')
+
+    count_reports = len(data)
     for _ in range(0, count_reports):
-        points.append(jsonpickle.decode(data[_][0])[::-1])
+        addrs = func.get_addr_buildings(mission[3])
         photos_ids = None
         if data[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', data[_][1]) is None:
             photos_ids = func.get_photos_by_media_id(data[_][1])
         else:
             photos_ids = [data[_][1]]
 
-        report.writestr(f'Отчет #{_ + 1}/video_note.mp4', func.download_file(data[_][2]))
-
+        imgs = ''
         for num in range(0, len(photos_ids)):
-            report.writestr(f'Отчет #{_ + 1}/photo_report_{num}.png', func.download_file(photos_ids[num]))
-            time.sleep(0.5)
+            imgs += img.format(bytes_to_base64_string(func.download_file(photos_ids[num])))
 
-    line_string = geo_json.line_string(points, len(points)+1)
-    points = [geo_json.point(points[i - 1], i) for i in range(1, count_reports + 1)]
-    points.append(line_string)
-    geojson = geo_json(points)
-    report.writestr(f'yandex_map_json_points.geojson', jsonpickle.encode(geojson, unpicklable=False))
+        reports += report.format(_+1, data[_][4]+1,datetime.datetime.fromtimestamp(data[_][3]), addrs[str(data[_][4])], imgs)
 
-    report.close()
-
-    return file_name
+    from server_flask import render_template
+    return render_template('report_template.html',
+                           reports=reports,
+                           user=user,
+                           name_mission=mission[2],
+                           reward=mission[6],
+                           count=count_reports,
+                           all_count=mission[5],
+                           buildings=buildings,
+                           status='✅ Выполнено' if (mission[7] and mission[8]) else
+                           ('⚠️ Ожидает подтверждения' if (mission[7] and not mission[8]) else
+                            ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')))
 
 
 def get_geojson(id):
@@ -125,12 +150,23 @@ def get_center_map(id):
 
     return jsonpickle.encode(points[::-1], unpicklable=False)
 
-# if __name__ == '__main__':
-#     bot = telebot.TeleBot(sett.API_KEY)
-#
-#     @bot.message_handler(regexp='test_zip_(([a-f0-9]+-){4}([a-f0-9]+))$')
-#     def test_send_zip(msg):
-#         get_report(bot, re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', msg.text).group(0))
-#         pass
-#
-#     bot.polling(none_stop=True, interval=0, timeout=2000)
+if __name__ == '__main__':
+    from flask import Flask, render_template, Response
+    import os
+
+
+    project_root = os.path.dirname(os.path.realpath('__file__'))
+    template_path = os.path.join(project_root, 'templates')
+    static_path = os.path.join(project_root, 'static')
+    app = Flask(__name__, template_folder=template_path, static_folder=static_path)
+
+
+
+    @app.route('/users', methods=['GET'])
+    def test_pdf():
+
+        return get_report('34f0cb62-b47e-46b3-b981-6c3a43c293be')
+
+
+    app.run(host='127.0.0.1',port=8080, debug=True)
+    #get_report('34f0cb62-b47e-46b3-b981-6c3a43c293be')

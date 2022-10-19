@@ -138,8 +138,8 @@ def check_user_in_database(chat_id, username):
 def add_route(data):
     conn, cursor = open_db()
 
-    cursor.execute('''INSERT INTO routes VALUES (?, ?, ?, ?, ?, ?)''',
-                   (str(uuid.uuid4()), data[0], data[1], data[2], data[3], 20 if len(data) < 5 else data[4],))
+    cursor.execute('''INSERT INTO routes VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                   (str(uuid.uuid4()), data[0], data[1], data[2], data[3], 20 if len(data) < 5 else data[4], '' if len(data) < 6 else data[5],))
     conn.commit()
     close_db(conn, cursor)
 
@@ -197,6 +197,16 @@ def get_route_buildings(id):
     else:
         return 0
 
+
+def get_addr_buildings(id):
+    conn, cursor = open_db()
+    addreses = cursor.execute('''SELECT addrs FROM routes WHERE id = ?''', (id,)).fetchall()
+    close_db(conn, cursor)
+
+    if len(addreses) > 0 and addreses[0][0] is not None:
+        return jsonpickle.decode(addreses[0][0])
+    else:
+        return 0
 
 def check_can_delete_route(id):
     conn, cursor = open_db()
