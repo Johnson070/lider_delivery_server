@@ -344,10 +344,10 @@ def get_count_reports_mission(id, id_building=None):
     conn, cursor = open_db()
     count = None
     if not id_building is None:
-        count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ? AND building_id = ?''',
+        count = cursor.execute('''SELECT COUNT() FROM reports WHERE mission_id = ? AND building_id = ?''',
                                (id, id_building,)).fetchall()
     else:
-        count = cursor.execute('''SELECT COUNT(*) FROM reports WHERE mission_id = ?''',
+        count = cursor.execute('''SELECT COUNT() FROM reports WHERE mission_id = ?''',
                                (id,)).fetchall()
     close_db(conn, cursor)
 
@@ -355,6 +355,13 @@ def get_count_reports_mission(id, id_building=None):
         count = count[0][0]
 
     return count
+
+
+def delete_media_by_group_id(id):
+    conn, cursor = open_db()
+    cursor.execute('''DELETE FROM media WHERE photo_id = ?''', (id,))
+    conn.commit()
+    close_db(conn, cursor)
 
 
 def get_missions(all_by_desc=False, web=False):
@@ -444,9 +451,9 @@ def change_mission(id, user, name, reward, reports, date):
     close_db(conn, cur)
 
 
-def add_photo_to_media(msg_id, file_id):
+def add_photo_to_media(msg_id, file_id, hash):
     conn, cur = open_db()
-    cur.execute('''INSERT INTO media VALUES (?, ?)''', (msg_id, file_id,))
+    cur.execute('''INSERT INTO media VALUES (?, ?, ?)''', (msg_id, file_id, hash, ))
     conn.commit()
     close_db(conn, cur)
 
@@ -462,6 +469,17 @@ def get_photos_by_media_id(media_group_id):
         return []
 
     return ids
+
+
+def check_file_hash(hash):
+    conn, cur = open_db()
+    count_dublicates = cur.execute('''SELECT count() FROM media WHERE hash = ?''', (hash,)).fetchall()
+    close_db(conn, cur)
+
+    if len(count_dublicates) > 0 and count_dublicates[0][0] is not None and count_dublicates[0][0] > 0:
+        return False
+    else:
+        return True
 
 
 def change_balance_clerk(id, balance):
@@ -569,7 +587,7 @@ def get_min_route(points: dict):
 
 def get_costs():
     conn, cur = open_db()
-    costs = cur.execute('''SELECT * FROM types_cost''').fetchall()
+    costs = cur.execute('''SELECT * FROM types_cost ORDER BY [id] ASC''').fetchall()
     close_db(conn, cur)
 
     costs = {i[0]: (i[1], i[2]) for i in costs}
@@ -586,6 +604,7 @@ def change_costs(costs: dict):
     close_db(conn, cur)
 
 
+#TO#DO: добавить проверку времени между отчетами
 def check_coordinates(id_mission, lat, lon):
     conn, cur = open_db()
     id_route = cur.execute('''SELECT id_route FROM missions WHERE id = ?''', (id_mission,)).fetchall()[0][0]

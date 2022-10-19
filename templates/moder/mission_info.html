@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="../static/js/mission_info.js"></script>
-    <script src="../static/js/collapsive.js"></script>
-    <script src="../static/js/popup-actions.js"></script>
+    <script src="../static/js/moder/mission_info.js"></script>
+    <script src="../static/js/moder/collapsive.js"></script>
+    <script src="../static/js/moder/popup-actions.js"></script>
     <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
@@ -64,9 +64,6 @@
     <button type="button" class="collapsible_menu"><b>Меню</b></button>
     <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/'><b>Задания</b></a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/settings'>Настройки</a></div>
     </div>
     <div class="text-info-user">
         <div class="text-info-container">
@@ -185,9 +182,9 @@
                     <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required></div>
             </div>
             <div class="text-info-container">
-                <div class="name-property">Кол-во домов</div>
+                <div class="name-property">Кол-во отчетов</div>
                 <div class="value-property">
-                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" readonly></div>
+                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" required></div>
             </div>
             <div class="text-info-container">
                 <div class="name-property">Время окончания</div>
@@ -199,7 +196,6 @@
     </div>
 
     <button class='button ext-button' onclick='show_popup("edit-mission-popup")'>Изменить</button>
-    <button class='button delete-button' onclick='confirm_delete_mission()'>Удалить</button>
     <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>

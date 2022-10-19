@@ -9,7 +9,7 @@ from bot_tg import bot
 
 class geo_json:
     class point:
-        def __init__(self, coords, id, uuid=None, time=None):
+        def __init__(self, coords, id, uuid=None, time=None, building_id=None):
             self.type = 'Feature'
             self.id = id
             self.geometry = {
@@ -22,6 +22,7 @@ class geo_json:
                 'marker-color': '#1e98ff',
                 'uuid': uuid,
                 'id':id,
+                'building':building_id,
                 'unix': time
             }
 
@@ -96,8 +97,11 @@ def get_geojson(id):
     for _ in data:
         points.append(jsonpickle.decode(_[0])[::-1])
 
-    data = [geo_json.point(points[i - 1], i, id, data[i-1][3]) for i in range(1, count_reports + 1)]
-    data.append(geo_json.line_string(points, data[-1].id+1))
+    data = [geo_json.point(points[i - 1], i, id, data[i-1][3], data[i-1][4]) for i in range(1, count_reports + 1)]
+    try:
+        data.append(geo_json.line_string(points, data[-1].id+1))
+    except:
+        pass
     geojson = geo_json(data)
 
     return jsonpickle.encode(geojson, unpicklable=False)

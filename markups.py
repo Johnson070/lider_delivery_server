@@ -15,13 +15,13 @@ def get_clerk_menu():
     return markup
 
 
-def get_admin_menu(full_menu=False):
+def get_admin_menu(full_menu=False, role=None):
     markup = types.InlineKeyboardMarkup()
     markup.add(
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
 
-    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo('https://127.0.0.1/auth'))) #sett.WEBHOOK_URL_BASE +
+    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo('https://127.0.0.1/auth' + (f'_{role}' if role is not None and role != 'admin' else '')))) #sett.WEBHOOK_URL_BASE +
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
     if full_menu:

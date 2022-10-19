@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="../static/js/collapsive.js"></script>
+    <script src="../static/js/moder/collapsive.js"></script>
     <link rel="stylesheet" href="../static/css/main.css">
 </head>
 
@@ -14,9 +14,6 @@
    <button type="button" class="collapsible"><b>Меню</b></button>
    <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/'><b>Задания</b></a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/settings'>Настройки</a></div>
    </div>
    <div>
       <input type="checkbox" id="all" class="checkbox">
@@ -39,21 +36,19 @@
 <script>
     // TODO: сделат фильтр по заданиям
 
-    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', 'validate', true); // Открываем асинхронное соединение
-    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-    xmlhttp.send(); // Отправляем POST-запрос
-    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
-        if (xmlhttp.readyState == 4) { // Ответ пришёл
-            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                if (this.responseText == '0') {
-                    window.location.href = '/unauthorized'
-                }
-            }
-        }
-    };
+   var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+   xmlhttp.open('GET', 'validate/moder', true); // Открываем асинхронное соединение
+   xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+   xmlhttp.send(); // Отправляем POST-запрос
+   xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+   if (xmlhttp.readyState == 4) { // Ответ пришёл
+     if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+       if(this.responseText == '0') window.location.href = '/unauthorized'
+     }
+   }
+   };
 
-   
+
    let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
 
    tg.expand(); //расширяем на все окно

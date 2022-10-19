@@ -29,6 +29,13 @@ def not_auth():
     return False
 
 
+def not_auth_moder():
+    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or \
+            not func.get_user_permission(session['user_id']) == settings.permissions[1]:
+        return True
+    return False
+
+
 def not_auth_user():
     if not 'initdata' in session.keys() or not validate_from_request(session['initdata']):
         return True
@@ -49,7 +56,7 @@ def validate_from_request(data):
         hash = hash.group(0).replace('&hash=', '')
     else:
         hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=6000000) and validate(
+    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=900) and validate(
         hash, data, settings.API_KEY)
 
 
@@ -71,7 +78,8 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
 @app.route(settings.WEBHOOK_URL_PATH, methods=['POST', 'GET'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
-        bot_tg.bot.load_next_step_handlers()
+        bot_tg.bot.load_next_step_handlers(del_file_after_loading=False)
+
         json_string = request.get_data().decode('utf-8')
         update = types.Update.de_json(json_string)
         bot_tg.bot.process_new_updates([update])
@@ -85,11 +93,18 @@ def favicon():
     return Response(open('static/favicon.ico','rb'), mimetype='image/jpeg')
 
 
+@app.route('/validate/moder', methods=['GET'])
 @app.route('/validate/user', methods=['GET'])
 @app.route('/validate', methods=['GET'])
 def validate_query():
-    return Response('0' if (not_auth_user() if request.path == '/validate/user' else not_auth()) else '1', 200)
+    if request.path == '/validate/user':
+        return Response('0' if not_auth_user() else '1', 200)
+    elif request.path == '/validate/moder':
+        return Response('0' if not_auth_moder() else '1', 200)
+    else:
+        return Response('0' if not_auth() else '1', 200)
 
+@app.route('/validate/moder', methods=['POST'])
 @app.route('/validate/user', methods=['POST'])
 @app.route('/validate', methods=['POST'])
 def validate_query_save():
@@ -101,7 +116,13 @@ def validate_query_save():
         data_user['user'][0]
     )['id']
     session['initdata'] = request.data
-    return Response('0' if (not_auth_user() if request.path == '/validate/user' else not_auth()) else '1', 200)
+
+    if request.path == '/validate/user':
+        return Response('0' if not_auth_user() else '1', 200)
+    elif request.path == '/validate/moder':
+        return Response('0' if not_auth_moder() else '1', 200)
+    else:
+        return Response('0' if not_auth() else '1', 200)
 
 
 @app.route('/unauthorized')
@@ -111,22 +132,24 @@ def unauthorized():  #
 
 @app.route('/auth')
 def auth():
-    # return "", 200
-
     return render_template('auth.html')
+
+@app.route('/auth_moder')
+def auth_moder():
+    return render_template('/moder/auth.html')
 
 
 @app.route('/')
 def index():
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
-    return render_template('index.html')
+    return render_template(('moder/' if not not_auth_moder() else '') + 'index.html')
 
 
 @app.route('/mission/<uuid>', methods=['GET'])
 def info_mission(uuid):
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     try:
@@ -134,7 +157,7 @@ def info_mission(uuid):
         count_reports = func.get_count_reports_mission(uuid)
         user = func.get_clerk_by_id(mission[1])[1]
 
-        return render_template('mission_info.html',
+        return render_template(('moder/' if not not_auth_moder() else '') + 'mission_info.html',
                                user=user,
                                name_mission=mission[2],
                                reward=mission[6],
@@ -154,7 +177,7 @@ def info_mission(uuid):
 
 @app.route('/get_missions', methods=['GET'])
 def get_missions():
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     all = request.args.get('all')
@@ -185,8 +208,8 @@ def change_mission(uuid):
 
 @app.route('/mission/<uuid>/<method>', methods=['GET', 'OPTIONS'])
 def manage_mission(uuid, method):
-    # if not_auth():
-    #     return unauthorized()
+    if not_auth() and not_auth_moder():
+        return unauthorized()
 
     if method == 'to_proof':
         func.proof_mission(uuid)
@@ -209,7 +232,7 @@ def manage_mission(uuid, method):
                                 'Ваше задание было продлено на 1 день.\n'
                                 'Завершите его в срок.')
         return Response(None, 200)
-    elif method == 'delete':
+    elif method == 'delete' and not not_auth():
         func.delete_mission(uuid)
         return Response(None, 200)
     elif method == 'geojson':
@@ -223,7 +246,7 @@ def manage_mission(uuid, method):
 
 @app.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     if not 'file_id' in request.args.keys():
@@ -243,7 +266,7 @@ def get_file_by_file_id():
 
 @app.route('/download/report/<UUID>', methods=['GET'])
 def download_report(UUID):
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return 0
 
     file_name = report_zip.get_report(UUID)
@@ -260,7 +283,7 @@ def download_report(UUID):
 
 @app.route('/mission/<uuid>/delete_report', methods=['POST'])
 def delete_report(uuid):
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     data = request.json
@@ -270,7 +293,7 @@ def delete_report(uuid):
 
 @app.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     reports = func.get_reports_by_id(uuid)
@@ -393,7 +416,7 @@ def users_list():
 
 @app.route('/users/list', methods=['GET'])
 def get_users_list():
-    if not_auth():
+    if not_auth() and not_auth_moder():
         return unauthorized()
 
     return jsonpickle.encode(func.get_clerks(), unpicklable=False)
