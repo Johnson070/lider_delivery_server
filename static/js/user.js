@@ -145,7 +145,7 @@ function add_mission(){
     xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
-            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+            if(xmlhttp.status != 401) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload();
             }
             else if (xmlhttp.status == 401) window.location.href = '/unauthorized';

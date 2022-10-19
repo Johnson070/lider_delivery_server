@@ -694,6 +694,6 @@ def start_bot():
 
 if not __name__ == '__main__':
     user_handlers.init_user_actions()
-    bot.enable_save_next_step_handlers(delay=2)
-    bot.load_next_step_handlers(del_file_after_loading=False)
+    bot.enable_save_next_step_handlers(delay=1)
+    bot.load_next_step_handlers()
 

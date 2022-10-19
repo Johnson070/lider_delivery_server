@@ -57,6 +57,7 @@
       #popup-content {
           color: var(--tg-theme-text-color);
       }
+
     </style>
 </head>
 
@@ -64,6 +65,9 @@
     <button type="button" class="collapsible_menu"><b>Меню</b></button>
     <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/'><b>Задания</b></a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/settings'>Настройки</a></div>
     </div>
     <div class="text-info-user">
         <div class="text-info-container">
@@ -136,7 +140,6 @@
         </a>
     </p>
 
-    {# TODO: изменить размер балуна и добавить подпись номер дома добавить перелистывание #}
     <div id="map" class="map" style="width: 98%; height: 400px;"></div>
     <div id="popup" class="ol-popup">
         <a href="#" id="popup-closer" class="ol-popup-closer"></a>
@@ -145,9 +148,18 @@
     </div>
 
     <div class="popup-blur" id="report-popup">
-        <div class="popup-block">
-            <div class="close-popup" onclick="hide_popup('report-popup')">x</div>
-            <p id="report-name"></p>
+        <div class="popup-block" id="animation-popup">
+{#            <div class="close-popup" onclick="hide_popup('report-popup')">x</div>#}
+            <div class="popup-status-bar">
+                <div class="navigation">
+                    <button class="button" onclick="change_report(this.name)" id="prev-report-button"><</button>
+                    <p id="report-name"></p>
+                    <button class="button" onclick="change_report(this.name)" id="next-report-button">></button>
+                </div>
+
+                <button class="button" id="close" onclick="hide_popup('report-popup')">x</button>
+            </div>
+
             <hr>
             <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
             <div id="media">
@@ -182,9 +194,9 @@
                     <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required></div>
             </div>
             <div class="text-info-container">
-                <div class="name-property">Кол-во отчетов</div>
+                <div class="name-property">Кол-во домов</div>
                 <div class="value-property">
-                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" required></div>
+                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" readonly></div>
             </div>
             <div class="text-info-container">
                 <div class="name-property">Время окончания</div>
@@ -215,5 +227,34 @@
     }
     get_users('{{ user }}');
     report_block();
+
+    var touchstartX = 0;
+    var touchstartY = 0;
+    var touchendX = 0;
+    var touchendY = 0;
+
+    var gestureZone = document.getElementById('report-popup');
+
+    gestureZone.addEventListener('touchstart', function(event) {
+        touchstartX = event.changedTouches[0].screenX;
+        touchstartY = event.changedTouches[0].screenY;
+    }, false);
+
+    gestureZone.addEventListener('touchend', function(event) {
+        touchendX = event.changedTouches[0].screenX;
+        touchendY = event.changedTouches[0].screenY;
+        handleGesture();
+    }, false);
+
+
+    function handleGesture() {
+        var swiped = 'swiped: ';
+        if (touchendX < touchstartX) {
+            document.getElementById('next-report-button').dispatchEvent(new Event('click'))
+        }
+        if (touchendX > touchstartX) {
+             document.getElementById('prev-report-button').dispatchEvent(new Event('click'))
+        }
+    }
 </script>
 </html>

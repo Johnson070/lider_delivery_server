@@ -78,7 +78,7 @@ def validate(hash_str, init_data, token, c_str="WebAppData"):
 @app.route(settings.WEBHOOK_URL_PATH, methods=['POST', 'GET'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
-        bot_tg.bot.load_next_step_handlers(del_file_after_loading=False)
+        # bot_tg.bot.load_next_step_handlers(del_file_after_loading=False)
 
         json_string = request.get_data().decode('utf-8')
         update = types.Update.de_json(json_string)

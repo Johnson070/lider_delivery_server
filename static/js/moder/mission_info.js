@@ -1,5 +1,5 @@
 var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-xmlhttp.open('GET', '/validate/moder', true); // Открываем асинхронное соединение
+xmlhttp.open('GET', '/validate', true); // Открываем асинхронное соединение
 xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
 xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
@@ -8,6 +8,48 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
     }
 };
 
+// var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+// xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
+// xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+// xmlhttp.send(); // Отправляем POST-запрос
+// xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+//     if (xmlhttp.readyState == 4) { // Ответ пришёл
+//         if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+//             json = JSON.parse(this.responseText);
+//             reports = document.getElementById("reports");
+//
+//             for (var i = 0; i < json.length; i++) {
+//                 item = document.createElement('button');
+//                 item.type = 'button';
+//                 item.className = 'collapsible';
+//                 item.innerText = 'Отчет ' + (i+1);
+//                 reports.appendChild(item);
+//
+//                 report = document.createElement('div');
+//                 report.className = 'report-grid';
+//
+//                 images = document.createElement('div');
+//                 images.className = 'report-grid-photos'
+//                 for (var j = 0; j < json[i]['photos'].length; j++) {
+//                     photo = document.createElement('img');
+//                     photo.className = 'report-grid-photo';
+//                     photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
+//                     photo.loading = 'lazy';
+//                     images.appendChild(photo);
+//                 }
+//                 report.appendChild(images)
+//
+//                 video = document.createElement('iframe');
+//                 video.src = `/get_file?file_id=${json[i]['video']}`;
+//                 report.appendChild(video);
+//
+//                 reports.appendChild(report)
+//             }
+//             add_coll_listener()
+//         }
+//         else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+//     }
+// };
 function report_block() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('GET', window.location.href + '/report', true); // Открываем асинхронное соединение
@@ -27,7 +69,12 @@ function report_block() {
 
                     const data = json[i];
                     const idx = i;
+                    const count_reports = json.length;
+                    btn_report.id = `report_${idx+1}`;
                     btn_report.addEventListener('click', function () {
+                            document.getElementById('next-report-button').name = `report_${count_reports == idx+1 ? 1 : idx+2 }`;
+                            document.getElementById('prev-report-button').name = `report_${idx == 0 ? (count_reports) : idx }`;
+
                             document.getElementById('delete_report').name = `${data['date']}`;
 
                             document.getElementById('report-name').innerText =
@@ -101,6 +148,9 @@ function show_popup_report(id) {
 
                 for (var i = 0; i < json.length; i++) {
                     if (json[i]['id'] != id) continue;
+
+                    document.getElementById('next-report-button').name = `report_${(json.length) == id ? 1 : id+1 }`;
+                    document.getElementById('prev-report-button').name = `report_${id == 1 ? (json.length) : id-1 }`;
 
                     document.getElementById('report-name').innerText =
                                 `Отчет №${json[i]['id']} Дом ${json[i]['building_id']+1}`;
@@ -338,3 +388,22 @@ function download_report(url) {
         }
     };
 }
+
+function change_report(name) {
+    var open_report = new Event('click');
+    var slide = new Event('slide');
+
+    var block = document.getElementById('animation-popup');
+    block.dispatchEvent(slide);
+    // block.classList.add('change-slide');
+    document.getElementById(name).dispatchEvent(open_report);
+
+    // block.addEventListener('animationend', function () {
+    //     this.classList.remove('change-slide');
+    // })
+}
+
+// if (!/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification)))
+//     document.getElementById('animation-popup').addEventListener('slide', function () {
+//         this.classList.remove('change-slide');
+//     })

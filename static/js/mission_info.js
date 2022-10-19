@@ -69,7 +69,12 @@ function report_block() {
 
                     const data = json[i];
                     const idx = i;
+                    const count_reports = json.length;
+                    btn_report.id = `report_${idx+1}`;
                     btn_report.addEventListener('click', function () {
+                            document.getElementById('next-report-button').name = `report_${count_reports == idx+1 ? 1 : idx+2 }`;
+                            document.getElementById('prev-report-button').name = `report_${idx == 0 ? (count_reports) : idx }`;
+
                             document.getElementById('delete_report').name = `${data['date']}`;
 
                             document.getElementById('report-name').innerText =
@@ -143,6 +148,9 @@ function show_popup_report(id) {
 
                 for (var i = 0; i < json.length; i++) {
                     if (json[i]['id'] != id) continue;
+
+                    document.getElementById('next-report-button').name = `report_${(json.length) == id ? 1 : id+1 }`;
+                    document.getElementById('prev-report-button').name = `report_${id == 1 ? (json.length) : id-1 }`;
 
                     document.getElementById('report-name').innerText =
                                 `Отчет №${json[i]['id']} Дом ${json[i]['building_id']+1}`;
@@ -395,3 +403,22 @@ function download_report(url) {
         }
     };
 }
+
+function change_report(name) {
+    var open_report = new Event('click');
+    var slide = new Event('slide');
+
+    var block = document.getElementById('animation-popup');
+    block.dispatchEvent(slide);
+    // block.classList.add('change-slide');
+    document.getElementById(name).dispatchEvent(open_report);
+
+    // block.addEventListener('animationend', function () {
+    //     this.classList.remove('change-slide');
+    // })
+}
+
+// if (!/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification)))
+//     document.getElementById('animation-popup').addEventListener('slide', function () {
+//         this.classList.remove('change-slide');
+//     })
