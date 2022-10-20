@@ -7,7 +7,7 @@ file_report_path = os.path.join(os.getcwd(), 'report_{}_{}.zip')
 
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 
-WEBHOOK_URL_BASE = "https://bdfix.ru"
+WEBHOOK_URL_BASE = "https://bdfix.ru/delivery_bot"
 WEBHOOK_URL_PATH = "/%s/" % (API_KEY)
 
 allow_radius = 2.0  # допустимый радиус отправки от нод геолокации в км

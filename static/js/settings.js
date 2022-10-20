@@ -9,7 +9,7 @@ function download_db() {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.Telegram.WebApp.showAlert('База данных была отправлена в чат.');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -24,7 +24,7 @@ function create_link() {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.Telegram.WebApp.showAlert('Приглашение отправлено в чат.');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -47,7 +47,7 @@ function save_report_costs() {
         if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
             window.Telegram.WebApp.showAlert('Сохранено.');
         }
-        else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -79,7 +79,7 @@ function get_report_costs() {
                    div_costs.appendChild(container);
                 });
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -115,7 +115,7 @@ function get_user_permissions() {
                    div_costs.appendChild(container);
                 });
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -132,7 +132,7 @@ function set_user_permission(elem) {
         if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
             window.Telegram.WebApp.showAlert('Сохранено.');
         }
-        else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }

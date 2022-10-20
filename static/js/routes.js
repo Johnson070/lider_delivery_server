@@ -12,13 +12,13 @@ function get_routes() {
 
                 for (var i = 0; i < json.length; i++){
                     route = document.createElement('a')
-                    route.href = `/routes/${json[i][0]}`;
+                    route.href = `/delivery_bot/routes/${json[i][0]}`;
                     route.innerText = json[i][1];
                     route.className = 'button'
                     routes.appendChild(route)
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -31,9 +31,9 @@ function delete_route() {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.location.href = '/routes'
+                window.location.href = '/delivery_bot/routes'
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -44,7 +44,7 @@ async function save_route() {
     let link_map = document.getElementById("link-map").value;
     let name_route = document.getElementById("name-route").value;
 
-    if (file === undefined || file1 === undefined || link_map.match(/https:\/\/api-maps\.yandex\.ru\/services\/constructor\/1\.0\/js\/\?um=constructor%3A(.+)/).length > 0 || name_route === '') {
+    if (file === undefined || file1 === undefined || link_map.match(/https:\/\/yandex\.ru\/maps\/\?um=constructor(.+)/) == null || name_route === '') {
         window.Telegram.WebApp.showAlert('Заполните все поля и выберите файлы!');
         return;
     }
@@ -76,7 +76,7 @@ async function save_route() {
 
                 window.location.reload(true);
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }

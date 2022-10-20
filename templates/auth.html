@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="/delivery_bot/static/css/main.css">
 </head>
 
 <body>
@@ -20,16 +20,16 @@
    }
 
    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-   xmlhttp.open('POST', '/validate', true); // Открываем асинхронное соединение
+   xmlhttp.open('POST', '/delivery_bot/validate', true); // Открываем асинхронное соединение
    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
    xmlhttp.send(window.Telegram.WebApp.initData); // Отправляем POST-запрос
    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
        if (xmlhttp.readyState == 4) { // Ответ пришёл
           sleep(3);
           if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-             window.location.href = `/`;
+             window.location.href = `/delivery_bot`;
           }
-          else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+          else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
        }
    };
 

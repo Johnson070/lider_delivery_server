@@ -21,7 +21,7 @@ def get_admin_menu(full_menu=False, role=None):
         types.InlineKeyboardButton('Ссылка на приглашения', callback_data='invite_link')
     )
 
-    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo('https://127.0.0.1/auth' + (f'_{role}' if role is not None and role != 'admin' else '')))) #sett.WEBHOOK_URL_BASE +
+    markup.add(types.InlineKeyboardButton('Админ панель', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/auth' + (f'_{role}' if role is not None and role != 'admin' else '')))) #sett.WEBHOOK_URL_BASE +
     if func.count_invite_links() > 0:
         markup.add(types.InlineKeyboardButton('Сбросить все ссылки', callback_data='reset_links'))
     if full_menu:
@@ -278,7 +278,7 @@ def get_location_menu():
     markup = types.ReplyKeyboardMarkup()
 
     markup.add(
-        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo('https://127.0.0.1/location')), #sett.WEBHOOK_URL_BASE +
+        types.KeyboardButton('Отправить геолокацию', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/location')), #sett.WEBHOOK_URL_BASE +
         types.KeyboardButton('Назад'),
         row_width=1
     )
@@ -332,7 +332,7 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
         )
 
         markup.add(
-            types.InlineKeyboardButton('Скачать отчет(zip)', callback_data=f'download_rep_{id}'),
+            types.InlineKeyboardButton('Скачать отчет', callback_data=f'download_rep_{id}'),
             types.InlineKeyboardButton('На доработку(+1 день)', callback_data=f'retry_rep_{id}')
         )
 
@@ -341,7 +341,7 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
         )
     elif proof and not rejected:
         markup.add(
-            types.InlineKeyboardButton('Скачать отчет(zip)', callback_data=f'download_rep_{id}'),
+            types.InlineKeyboardButton('Скачать отчет', callback_data=f'download_rep_{id}'),
             types.InlineKeyboardButton('Забраковать(⚠️)', callback_data=f'reject_{id}')
         )
     elif rejected:
@@ -349,7 +349,7 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
             types.InlineKeyboardButton('Перевести в выполненные', callback_data=f'to_proof_{id}')
         )
         markup.add(
-            types.InlineKeyboardButton('Скачать отчет(zip)', callback_data=f'download_rep_{id}'),
+            types.InlineKeyboardButton('Скачать отчет', callback_data=f'download_rep_{id}'),
             types.InlineKeyboardButton('На доработку(+1 день)', callback_data=f'retry_rep_{id}'),
             row_width=2
         )

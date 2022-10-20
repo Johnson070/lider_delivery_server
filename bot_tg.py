@@ -57,6 +57,13 @@ def download_db(call: types.CallbackQuery):
     bot.send_document(call.message.chat.id, open(sett.sqlite_file, 'rb'))
 
 
+@bot.message_handler(commands=['credits'])
+def credits(msg: types.Message):
+    bot.send_message(msg.chat.id,
+                     'Сделано для "Лидер сервис"\n'
+                     '© Владимир Вебер(@vveber) 2022')
+
+
 # =========================
 # обработчики маршрутов
 # =========================

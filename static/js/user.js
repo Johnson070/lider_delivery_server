@@ -15,7 +15,7 @@ function get_missions() {
                     link_mission = document.createElement('a');
                     link_mission.className = 'link_user';
                     link_mission.innerText = json[i][1];
-                    link_mission.href = `/mission/${json[i][0]}`;
+                    link_mission.href = `/delivery_bot/mission/${json[i][0]}`;
                     item.appendChild(link_mission);
                     missions.appendChild(item);
 
@@ -34,7 +34,7 @@ function get_missions() {
                     remove_buttons.appendChild(btn);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -53,9 +53,9 @@ function kick_user() {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.location.href = '/users'
+                window.location.href = '/delivery_bot/users'
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -77,14 +77,14 @@ function change_balance(elem = null) {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
 
 function get_routes() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', '/routes/list', true); // Открываем асинхронное соединение
+    xmlhttp.open('GET', '/delivery_bot/routes/list', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
@@ -104,7 +104,7 @@ function get_routes() {
                     if (i == 0) document.getElementById('count-reports').value = json[0][2];
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -148,7 +148,7 @@ function add_mission(){
             if(xmlhttp.status != 401) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload();
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -163,7 +163,7 @@ function delete_mission(id) {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload();
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }

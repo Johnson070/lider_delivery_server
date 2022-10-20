@@ -2,6 +2,7 @@ import io
 import time
 
 from flask import Flask, session, Response, request, render_template, abort
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 import hmac
 import hashlib, re, datetime
 from urllib.parse import unquote, parse_qs, urlparse
@@ -19,9 +20,12 @@ project_root = os.path.dirname(os.path.realpath('__file__'))
 template_path = os.path.join(project_root, 'templates')
 static_path = os.path.join(project_root, 'static')
 app = Flask(__name__, template_folder=template_path, static_folder=static_path)
-
 app.secret_key = settings.cookie_secret_key
-
+app
+# app.wsgi_app = DispatcherMiddleware(
+#     Response('Not Found', status=404),
+#     {'/dilivery_bot': app.wsgi_app}
+# )
 
 def not_auth():
     if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or \
@@ -58,7 +62,7 @@ def validate_from_request(data):
         hash = hash.group(0).replace('&hash=', '')
     else:
         hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=90000000) and validate(
+    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=900) and validate(
         hash, data, settings.API_KEY)
 
 

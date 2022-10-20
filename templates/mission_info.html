@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="../static/js/mission_info.js"></script>
-    <script src="../static/js/collapsive.js"></script>
-    <script src="../static/js/popup-actions.js"></script>
-    <link rel="stylesheet" type= "text/css" href="../static/css/main.css">
+    <script src="/delivery_bot/static/js/mission_info.js"></script>
+    <script src="/delivery_bot/static/js/collapsive.js"></script>
+    <script src="/delivery_bot/static/js/popup-actions.js"></script>
+    <link rel="stylesheet" type= "text/css" href="/delivery_bot/static/css/main.css">
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
@@ -64,10 +64,10 @@
 <body onload="init_map()">
     <button type="button" class="collapsible_menu"><b>Меню</b></button>
     <div class="content_menu">
-      <div class="div-menu-button"><a class="menu_button" type="button" href='/'><b>Задания</b></a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/settings'>Настройки</a></div>
+      <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'><b>Задания</b></a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/settings'>Настройки</a></div>
     </div>
     <div class="text-info-user">
         <div class="text-info-container">
@@ -112,21 +112,21 @@
         {% if not proof and not rejected %}
             <div class="buttons-grid-wait">
              <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-             <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
+             <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
              <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
              <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
             </div>
         {% else %}
         {% if proof and not rejected %}
             <div class="buttons-grid-done">
-            <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
             <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
             </div>
         {% else %}
         {% if rejected %}
             <div class="buttons-grid-rejected">
             <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-            <button class='button grid-item-btn-download' onclick='download_report("/download/report/{{ uuid }}");'>Скачать отчет(zip)</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
             <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
             </div>
         {% endif %}
@@ -135,7 +135,7 @@
 
     </div>
     <p>
-        <a href='/'>
+        <a href='/delivery_bot/'>
         <button class='button'>Назад</button>
         </a>
     </p>

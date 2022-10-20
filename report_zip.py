@@ -1,7 +1,6 @@
 import datetime
 import re
-import time
-import zipfile, jsonpickle, uuid
+import jsonpickle, uuid
 import functions as func
 import settings as sett
 
@@ -80,6 +79,7 @@ def get_report(id):
         </div>
     '''
     img = '''<div class='report-img'><img src="data:image/png;base64, {0}" /></div>'''
+    video = '''<div class='report-img'><iframe src="data:video/mp4;base64, {0}"  autoplay=0/></div>'''
 
     def bytes_to_base64_string(value: bytes) -> str:
         import base64
@@ -94,11 +94,12 @@ def get_report(id):
         else:
             photos_ids = [data[_][1]]
 
-        imgs = ''
+        medias = ''
         for num in range(0, len(photos_ids)):
-            imgs += img.format(bytes_to_base64_string(func.download_file(photos_ids[num])))
+            medias += img.format(bytes_to_base64_string(func.download_file(photos_ids[num])))
+        # medias += video.format(bytes_to_base64_string(func.download_file(data[_][2])))
 
-        reports += report.format(_+1, data[_][4]+1,datetime.datetime.fromtimestamp(data[_][3]), addrs[str(data[_][4])], imgs)
+        reports += report.format(_+1, data[_][4]+1, datetime.datetime.fromtimestamp(data[_][3]), addrs[str(data[_][4])], medias)
 
     from server_flask import render_template
     return render_template('report_template.html',

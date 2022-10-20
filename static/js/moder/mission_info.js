@@ -1,10 +1,10 @@
 var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-xmlhttp.open('GET', '/validate', true); // Открываем асинхронное соединение
+xmlhttp.open('GET', '/delivery_bot/validate', true); // Открываем асинхронное соединение
 xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
 xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
     if (xmlhttp.readyState == 4) { // Ответ пришёл
-        if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+        if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
     }
 };
 
@@ -47,7 +47,7 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
 //             }
 //             add_coll_listener()
 //         }
-//         else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+//         else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
 //     }
 // };
 function report_block() {
@@ -124,7 +124,7 @@ function delete_report(id) {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -161,21 +161,21 @@ function show_popup_report(id) {
                     for (var j = 0; j < json[i]['photos'].length; j++) {
                         photo = document.createElement('img');
                         photo.className = 'report-grid-photo';
-                        photo.src = `/get_file?file_id=${json[i]['photos'][j]}`;
+                        photo.src = `/delivery_bot/get_file?file_id=${json[i]['photos'][j]}`;
                         photo.loading = 'lazy';
                         images.appendChild(photo);
                     }
                     media.appendChild(images)
 
                     video = document.createElement('iframe');
-                    video.src = `/get_file?file_id=${json[i]['video']}&`;
+                    video.src = `/delivery_bot/get_file?file_id=${json[i]['video']}&`;
                     video.setAttribute('autoplay', '0');
                     video.setAttribute('mute', '1');
                     media.appendChild(video);
                 }
                 add_coll_listener()
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -195,14 +195,14 @@ function manage_mission(item) {
                 if (item.id == 'delete') window.location.href = '/'
                 else document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
 
 function get_users(username) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', '/users/list', true); // Открываем асинхронное соединение
+    xmlhttp.open('GET', '/delivery_bot/users/list', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
@@ -219,7 +219,7 @@ function get_users(username) {
                     users_select.appendChild(user);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -251,7 +251,7 @@ function change_mission() {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload()
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -368,7 +368,7 @@ function init_map() {
 
                 });
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }
@@ -384,7 +384,7 @@ function download_report(url) {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.Telegram.WebApp.showAlert('Отчет отправлен!');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }
     };
 }

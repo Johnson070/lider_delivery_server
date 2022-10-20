@@ -6,17 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="../static/js/collapsive.js"></script>
-    <link rel="stylesheet" href="../static/css/main.css">
+    <script src="/delivery_bot/static/js/collapsive.js"></script>
+    <link rel="stylesheet" href="/delivery_bot/static/css/main.css">
 </head>
 
 <body>
    <button type="button" class="collapsible"><b>Меню</b></button>
    <div class="content_menu">
-      <div class="div-menu-button"><a class="menu_button" type="button" href='/'><b>Задания</b></a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/routes'>Маршруты</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/users'>Пользователи</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/settings'>Настройки</a></div>
+      <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'><b>Задания</b></a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/settings'>Настройки</a></div>
    </div>
    <div>
       <input type="checkbox" id="all" class="checkbox">
@@ -40,14 +40,14 @@
     // TODO: сделат фильтр по заданиям
 
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', 'validate', true); // Открываем асинхронное соединение
+    xmlhttp.open('GET', '/delivery_bot/validate', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 if (this.responseText == '0') {
-                    window.location.href = '/unauthorized'
+                    window.location.href = '/delivery_bot/unauthorized'
                 }
             }
         }
@@ -72,13 +72,13 @@
 
                 for (var i = 0; i < json.length; i++) {
                     item = document.createElement('a');
-                    item.href = `/mission/${json[i][0]}`;
+                    item.href = `/delivery_bot/mission/${json[i][0]}`;
                     item.innerText = json[i][1];
                     item.className = 'button'
                     missions.appendChild(item);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/unauthorized';
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
         }};
     }
 
