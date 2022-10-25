@@ -90,7 +90,7 @@
         <div class="text-info-container">
             <div class="name-property">Осталось времени</div>
             <div class="value-property">
-                <b><span id="time-remaining">qdqqdqwd</span></b>
+                <b><span id="time-remaining">qdqqdцуацуайцвцйвцйqwd</span></b>
             </div>
         </div>
         <div class="text-info-container">
@@ -103,7 +103,7 @@
 
     <div class="manage-mission">
         <button class="button delete-button">Завершить задание</button>
-        <button class="button">Добавить отчет</button>
+        <button class="button" onclick="show_popup('add-report-popup')">Добавить отчет</button>
     </div>
 
     <div id="map" class="map" style="width: 98%; height: 400px;"></div>
@@ -119,11 +119,46 @@
     <div class="popup-blur" id="add-report-popup">
         <div class="popup-block">
             <div class="popup-status-bar">
-                <div class="navigation">
+                <div class="navigation" style="width: 40px;">
                     <p>Добавить отчет</p>
+                    <button class="button" id="close" onclick="hide_popup('add-report-popup')">x</button>
+                </div>
+                <hr>
+                <p>Ваш тэг<br><b><span id="tag_day" style="font-size: 22px;margin: 10px;"></span></b><br>
+                    Его нужно написать на листочке и на всех отчетах должно быть отчетливо видно тэг.</p>
+                <p>На фотографиях и видео должна быть отчетливо видны все листовки.</p>
+                <div class="text-info-user" >
+                    <div class="text-info-container">
+                        <div class="name-property">Тип отчета</div>
+                        <div class="value-property">
+                            <select id="type-report"></select>
+                        </div>
+                    </div>
+                    <div class="text-info-container">
+                        <div class="name-property">Фото</div>
+                        <div class="value-property">
+                            <input type="file" id="photo-report" multiple accept="image/*" maxsize="" required style="width: 200px">
+                        </div>
+                    </div>
+                    <div class="text-info-container">
+                        <div class="name-property">Видео</div>
+                        <div class="value-property">
+                            <input type="file" id="video-report" accept="video/*" required style="width: 200px">
+                        </div>
+                    </div>
                 </div>
 
-                <button class="button" id="close" onclick="hide_popup('add-report-popup')">x</button>
+                <button type="button" class="button" onclick="get_location_save_report();" style="margin-bottom: 10px;">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-blur" id="location-popup">
+        <div class="popup-block">
+            <div class="popup-status-bar">
+                <div class="navigation">
+                    <p>Разрешите доступ к геолокации</p>
+                </div>
             </div>
         </div>
     </div>
@@ -166,6 +201,8 @@
         });
     }
     report_block();
+    get_costs_types();
+    get_tag_day();
 
         var touchstartX = 0;
     var touchstartY = 0;

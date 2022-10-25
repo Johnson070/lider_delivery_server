@@ -217,10 +217,7 @@ def change_mission(uuid):
 
     json = request.json
 
-    bot_tg.bot.send_message(json['user'], 'Вам было назначено задание',
-                            reply_markup=types.InlineKeyboardMarkup().add(
-                                types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{uuid}')
-                            ))
+    bot_tg.bot.send_message(json['user'], 'Вам было назначено задание')
     func.change_mission(uuid, json['user'], json['name'], json['reward'], json['reports'], json['date'])
 
     return Response(None, 200)
@@ -281,7 +278,7 @@ def get_file_by_file_id():
 
     file = func.download_file(file_id)
     if file is not None:
-        if file_id.find('DQA') != -1:
+        if file_id.find('AgA') == -1:
             return Response(file, mimetype='video/mp4')
         else:
             return Response(file, mimetype='image/jpeg')
@@ -497,10 +494,7 @@ def manage_user(uid, method):
                                              json['reports'])
         bot_tg.bot.send_message(uid,
                                 'Вам выдано новое задание!\n'
-                                'Старт завтра.',
-                                reply_markup=types.InlineKeyboardMarkup().add(
-                                    types.InlineKeyboardButton('Открыть', callback_data=f'quest_user_{mission_id}')
-                                ))
+                                'Старт завтра.')
 
         return Response(None, 200)
     elif method == 'delete_mission':

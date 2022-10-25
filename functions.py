@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import math
 import re
 
@@ -41,6 +42,19 @@ def parse_geo_json(json):
             return False
     except:
         return False
+
+
+def get_hash(s, char_length=8):
+    """Geneate hexadecimal string with given length from a string
+    >>> short_str("hello world", 8)
+    '309ecc48'
+    """
+
+    if char_length > 128:
+        raise ValueError("char_length {} exceeds 128".format(char_length))
+    hash_object = hashlib.sha512(s.encode())
+    hash_hex = hash_object.hexdigest()
+    return hash_hex[0:char_length].upper()
 
 
 # создание qr кода на добавление пользователя работает 1 день и только для одного пользователя
@@ -198,13 +212,20 @@ def get_route_buildings(id):
         return 0
 
 
-def get_addr_buildings(id):
+
+
+def get_addr_buildings(id, user_id=None):
     conn, cursor = open_db()
-    addreses = cursor.execute('''SELECT addrs FROM routes WHERE id = ?''', (id,)).fetchall()
+    addresses = None
+    if user_id is None:
+        addresses = cursor.execute('''SELECT addrs FROM routes WHERE id = ?''', (id,)).fetchall()
+    else:
+        addresses = cursor.execute('''SELECT routes.addrs FROM routes, missions WHERE missions.user = ? AND routes.id = missions.id_route AND missions.id = ?;''',
+                                   (user_id, id, ))
     close_db(conn, cursor)
 
-    if len(addreses) > 0 and addreses[0][0] is not None:
-        return jsonpickle.decode(addreses[0][0])
+    if len(addresses) > 0 and addresses[0][0] is not None:
+        return jsonpickle.decode(addresses[0][0])
     else:
         return 0
 
@@ -406,33 +427,16 @@ def get_missions(all_by_desc=False, web=False):
     return missions
 
 
-def get_location_start_for_mission(id):
+def get_coords_buildings(mission_id, user_id):
     conn, cursor = open_db()
-    location = cursor.execute('''SELECT coords FROM routes WHERE id = ?''', (id,)).fetchall()
+    location = cursor.execute('''SELECT routes.coords FROM routes, missions WHERE missions.user = ? AND routes.id = missions.id_route AND missions.id = ?;''',
+                              (user_id, mission_id,)).fetchall()
     close_db(conn, cursor)
 
     if len(location) > 0 and location[0][0] is not None:
-        location = location[0][0]
-        location = jsonpickle.decode(location)[0]
-        return location
+        return jsonpickle.decode(location[0][0])
 
-    return None
-
-
-# def set_channel_photo_sklad(id_channel):
-#     conn, cursor = open_db()
-#     cursor.execute('DELETE FROM channel_photo')
-#     cursor.execute(f'INSERT INTO channel_photo VALUES ("{id_channel}")')
-#     conn.commit()
-#     close_db(conn, cursor)
-#
-#
-# def get_channel_photo_sklad():
-#     conn, cursor = open_db()
-#     row = cursor.execute('SELECT id FROM channel_photo').fetchall()
-#     close_db(conn, cursor)
-#
-#     return int(row[0][0]) if len(row) > 0 else None
+    return {}
 
 
 def save_report_user(id, user_id, location, photo_id, video_id, building_id, type_rep):

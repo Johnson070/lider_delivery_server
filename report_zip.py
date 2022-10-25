@@ -133,6 +133,20 @@ def get_geojson(id, user_id=None):
     return jsonpickle.encode(geojson, unpicklable=False)
 
 
+def get_geojson_building(mission_id, user_id=None):
+    data = func.get_coords_buildings(mission_id, user_id)
+    count_reports = len(data)
+    points = []
+
+    for _ in data.values():
+        points.append(_[::-1])
+
+    data = [geo_json.point(points[i - 1], i, 'building') for i in range(1, count_reports + 1)]
+    geojson = geo_json(data)
+
+    return jsonpickle.encode(geojson, unpicklable=False)
+
+
 def get_center_map(id, user_id=None):
     data = func.get_reports_by_id(id, user_id)
     count_reports = len(data)

@@ -1,4 +1,7 @@
+import datetime
 import re
+import ssl
+import time
 
 import jsonpickle
 from flask import Response, request, render_template, session
@@ -57,8 +60,9 @@ def get_missions():
 
     return jsonpickle.encode(
         [[i[0], ('✅ ' if (i[2] and i[3]) else
-                        ('⚠️ ' if (i[2] and not i[3]) else
-                         ('❗️❗️ ' if (not i[2] and i[3]) else '❌ '))) + i[1]] for i in func.get_missions_by_user_id(session.get('user_id'))]
+                 ('⚠️ ' if (i[2] and not i[3]) else
+                  ('❗️❗️ ' if (not i[2] and i[3]) else '❌ '))) + i[1]] for i in
+         func.get_missions_by_user_id(session.get('user_id'))]
     )
 
 
@@ -80,8 +84,90 @@ def mission_methods(uuid, method):
                         headers={'Access-Control-Allow-Origin': '*',
                                  'Access-Control-Allow-Methods': 'GET',
                                  'Access-Control-Allow-Headers': 'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
+    elif method == 'geojson_buildings':
+        return Response(report_zip.get_geojson_building(uuid, session.get('user_id')), 200, mimetype='application/json',
+                        headers={'Access-Control-Allow-Origin': '*',
+                                 'Access-Control-Allow-Methods': 'GET',
+                                 'Access-Control-Allow-Headers': 'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
+    elif method == 'get_reports_types':
+        return Response(jsonpickle.encode(func.get_costs(), unpicklable=False), 200)
+    elif method == 'hash':
+        return Response('#' +
+                        func.get_hash(str(datetime.datetime.now().replace(hour=0, minute=0, second=0,
+                                                                          microsecond=0)) +
+                                      str(session.get('user_id'))), 200)
     elif method == 'center_map':
         return Response(report_zip.get_center_map(uuid, session.get('user_id')), 200)
+
+
+@user_bp.route('/mission/<uid>/add_report', methods=['POST'])
+def add_report(uid):
+    if not_auth_user():
+        return unauthorized()
+
+    json = request.json
+
+    pass_location = func.check_coordinates(uid, json['lat'], json['lon'])
+    if pass_location == 0:
+        uuid_report = str(uuid.uuid4())
+        media_photos_uuid = str(uuid.uuid4())
+
+        photos = []
+        videos = []
+
+
+        for photo in json['photos']:
+            msg = bot_tg.bot.send_photo(session.get('user_id'), bytes(photo))
+
+            if not func.check_file_hash(msg.photo[-1].file_unique_id):
+                try:
+                    bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+                except:
+                    pass
+                return Response('3')
+
+            func.add_photo_to_media(media_photos_uuid, msg.photo[-1].file_id, msg.photo[-1].file_unique_id)
+            try:
+                bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            except:
+                pass
+            time.sleep(0.5)
+
+        msg = bot_tg.bot.send_video(session.get('user_id'), bytes(json['video']))
+
+        if not func.check_file_hash(msg.video.file_unique_id):
+            try:
+                bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            except:
+                pass
+            return Response('3')
+
+        try:
+            bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+        except:
+            pass
+        time.sleep(0.5)
+
+        min_distance_to_building = [0, 9999999999999999]
+        for key, coords in func.get_coords_buildings(uid, session.get('user_id')).items():
+            distance = func.get_length_locations(coords[0], coords[1], json['lat'], json['lon'])
+            min_distance_to_building = [key, distance] if distance <= min_distance_to_building[
+                1] else min_distance_to_building
+        func.save_report_user(uid, session.get('user_id'),
+                              (json['lat'], json['lon']),
+                              media_photos_uuid, msg.video.file_id,
+                              min_distance_to_building[0], json['type_report'])
+
+        return Response('0')
+    elif pass_location == 1:
+        return Response('1',200)
+    elif pass_location == 2:
+        for admin_chat_id in func.get_admins():
+            bot_tg.bot.send_message(admin_chat_id,
+                            f'Система обнаружила, что пользователь {session.get("user_id")} перемещяется слишком быстро.\n'
+                            f'Задание: {func.get_full_info_mission(uid)[2]}')
+
+        return Response('2',200)
 
 
 @user_bp.route('/mission/<uuid>/report', methods=['GET'])

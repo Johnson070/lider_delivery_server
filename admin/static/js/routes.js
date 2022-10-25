@@ -62,6 +62,7 @@ async function save_route() {
     }
 
     window.Telegram.WebApp.showAlert('Ожидайте');
+    document.getElementById('route-add-popup').style.display = 'none';
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', window.location.href + '/add', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку

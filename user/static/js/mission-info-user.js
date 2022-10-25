@@ -1,3 +1,129 @@
+
+
+function get_costs_types() {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href+'/get_reports_types', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                let sel = document.getElementById('type-report');
+
+                let json = JSON.parse(this.responseText);
+
+                for (var i = 0; i < Object.keys(json).length; i++){
+                    var opt = document.createElement('option');
+                    opt.innerText = json[i][0];
+                    opt.value = i;
+                    sel.appendChild(opt);
+                }
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+        }
+    };
+}
+
+
+function get_tag_day() {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href+'/hash', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                document.getElementById('tag_day').innerText = this.responseText;
+
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+        }
+    };
+}
+
+function errorHandler(err) {
+        if(err.code == 1) {
+           window.Telegram.WebApp.showAlert("Error: Access is denied!");
+        }
+        else if( err.code == 2) {
+           window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+        }
+        else {
+           window.Telegram.WebApp.showAlert(`Произошла ошибка перезагрузите страницу!\n`+
+               `${err.message}`);
+        }
+    }
+
+function get_location_save_report(){
+    geolocation.setTracking(false);
+    if(navigator.geolocation && geolocation.getPosition() !== undefined){
+        save_report(ol.proj.toLonLat(geolocation.getPosition()))
+    } else{
+        window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+    }
+}
+
+async function save_report(location) {
+    let selection = document.getElementById('type-report');
+    let type_report = selection[selection.selectedIndex].value;
+    let photos = document.getElementById('photo-report').files;
+    let video = document.getElementById('video-report').files;
+
+    if (photos.length == 0 || video.length == 0) {
+        window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению');
+        return;
+    }
+
+    //TODO: сделать ограницение на 5 мб
+    //TODO: при скрытии выключать iframe
+
+    json = {
+        photos: [],
+        video: null,
+        type_report: type_report,
+        lat: location[1],
+        lon: location[0]
+    }
+
+    for (var i = 0; i < photos.length; i++) {
+        json['photos'].push(Array.from(new Uint8Array(await photos[i].arrayBuffer())));
+    }
+    json['video'] = Array.from(new Uint8Array(await video[0].arrayBuffer()));
+
+    hide_popup('add-report-popup');
+    window.Telegram.WebApp.showAlert('Ожидайте.');
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open('POST', window.location.href + '/add_report', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 401) window.location.href = '/manage_bot/unauthorized';
+            else if (xmlhttp.status == 200) {
+                if (this.responseText == '0') window.location.reload();
+                else if (this.responseText === '1') {
+                    window.Telegram.WebApp.showAlert('Кажется вы ушли слишком делако от дома.\n' +
+                        'Не уходите с места где вы размещали рекламу.\n' +
+                        'Если вы уйдете далеко от точки, то отчет не будет принят.')
+                }
+                else if (this.responseText === '2') {
+                    window.Telegram.showAlert('Кажется вы перемещяетесь слишком быстро.\n' +
+                        'За повторное нарушение вам будет начислен штраф!')
+                }
+                else if (this.responseText === '3') {
+                    window.Telegram.WebApp.showAlert('Вы отправили фото или видео которое уже отправляли.\n' +
+                        'Удалите дубликаты и отправьте заново.')
+                }
+            }
+            else {
+                window.Telegram.WebApp.showAlert('Произошла ошибка попробуйте снова.')
+            }
+        }
+    };
+    geolocation.setTracking(true);
+}
+
+
 function init_map() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('GET', window.location.href + '/center_map', true); // Открываем асинхронное соединение
@@ -25,20 +151,20 @@ function init_map() {
                     return false;
                 };
 
-                var style = new ol.style.Style({
+                var style_geojson = new ol.style.Style({
                     image: new ol.style.Icon(({
                         anchor: [0.5, 64],
                         anchorXUnits: 'fraction',
                         anchorYUnits: 'pixels',
                         scale: 0.5,
-                        src: 'http://maps.google.com/mapfiles/kml/paddle/ylw-blank.png',
+                        src: 'https://maps.google.com/mapfiles/kml/paddle/ylw-blank.png',
                     })),
                     stroke: new ol.style.Stroke({
                         color: "red",
                         width: 2
                     }),
                     text: new ol.style.Text({
-                        placement: 'Point',
+                        placement: '',
                         text: '1',
                         font: 'bold 16px Times New Roman',
                         offsetY: -20,
@@ -47,12 +173,26 @@ function init_map() {
                     })
                 });
 
+                var style_buildings = new ol.style.Style({
+                    image: new ol.style.Icon(({
+                        anchor: [0.5, 64],
+                        anchorXUnits: 'fraction',
+                        anchorYUnits: 'pixels',
+                        scale: 0.5,
+                        src: 'https://maps.google.com/mapfiles/kml/paddle/red-blank.png',
+                    })),
+                    stroke: new ol.style.Stroke({
+                        color: "red",
+                        width: 2
+                    })
+                });
+
                 var styleFunction = function(feature) {
                     var text = `${feature.getProperties()['iconContent']}`;
                     if (text == 'undefined')
                         text = ''
-                    style.getText().setText(text);
-                    return style;
+                    style_geojson.getText().setText(text);
+                    return style_geojson;
                 }
 
                 const view = new ol.View({
@@ -67,17 +207,17 @@ function init_map() {
                             source: new ol.source.OSM({
                                 url: "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             })
-                        }),
-                        new ol.layer.Vector({
-                            source: new ol.source.Vector({
-                                url: window.location.href+'/geojson',
-                                format: new ol.format.GeoJSON()
-                            }),
-                            style: styleFunction
                         })
                     ],
                     overlays: [overlay],
                     view: view
+                });
+
+                geolocation = new ol.Geolocation({
+                    trackingOptions: {
+                        enableHighAccuracy: true,
+                    },
+                    projection: view.getProjection(),
                 });
 
                 function showLocation(position) {}
@@ -88,6 +228,7 @@ function init_map() {
                     else if( err.code == 2) {
                        window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
                     }
+                    show_popup('location-popup');
                 }
                 function getLocation(){
                     if(navigator.geolocation){
@@ -99,26 +240,7 @@ function init_map() {
                     }
                 }
 
-                const geolocation = new ol.Geolocation({
-  // enableHighAccuracy must be set to true to have the heading value.
-                trackingOptions: {
-                    enableHighAccuracy: true,
-                  },
-                  projection: view.getProjection(),
-                });
-
-                function el(id) {
-                  return document.getElementById(id);
-                }
-
                 geolocation.setTracking(true);
-
-                // handle geolocation error.
-                geolocation.on('error', function (error) {
-                  const info = document.getElementById('info');
-                  info.innerHTML = error.message;
-                  info.style.display = '';
-                });
 
                 const accuracyFeature = new ol.Feature();
                 geolocation.on('change:accuracyGeometry', function () {
@@ -143,7 +265,7 @@ function init_map() {
 
                 geolocation.on('change:position', function () {
                   const coordinates = geolocation.getPosition();
-                  view.center = coordinates ? new ol.geom.Point(coordinates) : null;
+                  map.getView().setCenter(coordinates);
                   positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
                 });
 
@@ -151,7 +273,25 @@ function init_map() {
                   map: map,
                   source: new ol.source.Vector({
                     features: [accuracyFeature, positionFeature],
-                  }),
+                  })
+                });
+
+                new ol.layer.Vector({
+                    map: map,
+                    source: new ol.source.Vector({
+                        url: window.location.href+'/geojson',
+                        format: new ol.format.GeoJSON()
+                    }),
+                    style: styleFunction
+                });
+
+                new ol.layer.Vector({
+                    map: map,
+                    source: new ol.source.Vector({
+                        url: window.location.href+'/geojson_buildings',
+                        format: new ol.format.GeoJSON()
+                    }),
+                    style: style_buildings
                 });
 
                 // Add an event handler for the map "singleclick" event
@@ -169,6 +309,9 @@ function init_map() {
 
                         var coord = feature.getGeometry().getCoordinates();
                         var props = feature.getProperties();
+
+                        if (props['uuid'] == 'building') return;
+
                         var info = `${props['iconCaption']}<br>`;
                         info += new Date((props['unix'] + gmtHours*60*60)*1000).toISOString().slice(0,19).replace('T',' ');
                         info += `<br>Номер дома: ${props['building']+1}`;
@@ -237,7 +380,7 @@ function report_block() {
                             media.appendChild(images)
 
                             video = document.createElement('iframe');
-                            video.src = `/delivery_bot/user/get_file?file_id=${data['video']}&`;
+                            video.src = `/delivery_bot/user/get_file?file_id=${data['video']}`;
                             video.setAttribute('autoplay', '0');
                             video.setAttribute('mute', '1');
                             media.appendChild(video);
@@ -308,7 +451,7 @@ function show_popup_report(id) {
                     media.appendChild(images)
 
                     video = document.createElement('iframe');
-                    video.src = `/delivery_bot/user/get_file?file_id=${json[i]['video']}&`;
+                    video.src = `/delivery_bot/user/get_file?file_id=${json[i]['video']}`;
                     video.setAttribute('autoplay', '0');
                     video.setAttribute('mute', '1');
                     media.appendChild(video);
