@@ -1,5 +1,9 @@
+import re
+
 import jsonpickle
 from flask import Response, request, render_template, session
+
+import report_zip
 from server_flask import user_bp, not_auth_user, unauthorized
 import bot_tg, uuid
 import functions as func
@@ -65,6 +69,51 @@ def mission_info(uid):
 
     return render_template('mission_info_user.html')
 
+
+@user_bp.route('/mission/<uuid>/<method>', methods=['GET'])
+def mission_methods(uuid, method):
+    if not_auth_user():
+        return unauthorized()
+
+    if method == 'geojson':
+        return Response(report_zip.get_geojson(uuid, session.get('user_id')), 200, mimetype='application/json',
+                        headers={'Access-Control-Allow-Origin': '*',
+                                 'Access-Control-Allow-Methods': 'GET',
+                                 'Access-Control-Allow-Headers': 'Content-Type,x-requested-with,Access-Control-Allow-Headers'})
+    elif method == 'center_map':
+        return Response(report_zip.get_center_map(uuid, session.get('user_id')), 200)
+
+
+@user_bp.route('/mission/<uuid>/report', methods=['GET'])
+def get_base64_reports(uuid):
+    if not_auth_user():
+        return unauthorized()
+
+    reports = func.get_reports_by_id(uuid, session.get('user_id'))
+    json_report = []
+    for _ in range(0, len(reports)):
+        json_report.append({})
+        json_report[-1]['id'] = _ + 1
+        json_report[-1]['date'] = reports[_][3]
+        json_report[-1]['building_id'] = reports[_][4]
+        json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
+        if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
+            reports[_][1] = func.get_photos_by_media_id(reports[_][1])
+        json_report[-1]['photos'] = [reports[_][1]] if isinstance(reports[_][1], str) else reports[_][1]
+        json_report[-1]['video'] = reports[_][2]
+
+    return jsonpickle.encode(json_report, unpicklable=False)
+
+
+@user_bp.route('/mission/<uuid>/delete_report', methods=['POST'])
+def delete_report(uuid):
+    if not_auth_user():
+        return unauthorized()
+
+    data = request.json
+    func.delete_report(data[0], session.get('user_id'))
+
+    return Response('1', 200)
 
 
 def init():

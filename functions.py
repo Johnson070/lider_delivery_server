@@ -535,11 +535,17 @@ def reject_mission_by_id(id):
     close_db(conn, cur)
 
 
-def get_reports_by_id(id):
+def get_reports_by_id(id, user_id=None):
     conn, cur = open_db()
-    reports = cur.execute(
+    reports = ''
+    if user_id is None:
+        reports = cur.execute(
         '''SELECT location,photo_id,video_id,[date],building_id FROM reports WHERE mission_id = ? ORDER BY [date] ASC;''',
         (id,)).fetchall()
+    else:
+        reports = cur.execute(
+        '''SELECT location,photo_id,video_id,[date],building_id FROM reports WHERE mission_id = ? AND user_id = ? ORDER BY [date] ASC;''',
+        (id, user_id, )).fetchall()
     close_db(conn, cur)
 
     if len(reports) > 0 and reports[0][0] is not None:

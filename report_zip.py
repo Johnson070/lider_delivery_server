@@ -115,8 +115,8 @@ def get_report(id):
                             ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')))
 
 
-def get_geojson(id):
-    data = func.get_reports_by_id(id)
+def get_geojson(id, user_id=None):
+    data = func.get_reports_by_id(id, user_id)
     count_reports = len(data)
     points = []
 
@@ -133,8 +133,8 @@ def get_geojson(id):
     return jsonpickle.encode(geojson, unpicklable=False)
 
 
-def get_center_map(id):
-    data = func.get_reports_by_id(id)
+def get_center_map(id, user_id=None):
+    data = func.get_reports_by_id(id, user_id)
     count_reports = len(data)
     points = [0,0]
 
@@ -144,12 +144,13 @@ def get_center_map(id):
         points[1] += point[1]
 
     if points == [0,0]:
-        return jsonpickle.encode([30.19,59.57], unpicklable=False)
+        return jsonpickle.encode([30.19, 59.57], unpicklable=False)
     else:
         points[0] = points[0] / count_reports
         points[1] = points[1] / count_reports
 
     return jsonpickle.encode(points[::-1], unpicklable=False)
+
 
 if __name__ == '__main__':
     from flask import Flask, render_template, Response

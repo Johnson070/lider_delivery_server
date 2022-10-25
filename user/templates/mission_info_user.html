@@ -8,18 +8,192 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
     <script src="/delivery_bot/user/static/js/popup-actions.js"></script>
     <script src="/delivery_bot/user/static/js/collapsive.js"></script>
+    <script src="/delivery_bot/user/static/js/mission-info-user.js"></script>
     <link rel="stylesheet" type= "text/css" href="/delivery_bot/user/static/css/main.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
+    <style>
+      .ol-popup {
+        position: absolute;
+        background-color: var(--tg-theme-secondary-bg-color);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid var(--tg-theme-secondary-bg-color);
+        bottom: 12px;
+        left: -50px;
+        min-width: 150px;
+      }
+      .ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+      .ol-popup:after {
+        border-top-color: var(--tg-theme-secondary-bg-color);
+        border-width: 10px;
+        left: 48px;
+        margin-left: -10px;
+      }
+      .ol-popup:before {
+        border-top-color: var(--tg-theme-secondary-bg-color);
+        border-width: 11px;
+        left: 48px;
+        margin-left: -11px;
+      }
+      .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+      }
+      .ol-popup-closer:after {
+        content: "✖";
+      }
+      #popup-content {
+          color: var(--tg-theme-text-color);
+      }
+
+    </style>
 </head>
-<body>
-    <button type="button" class="collapsible"><b>Меню</b></button>
+<body onload='init_map();'>
+    <button type="button" class="collapsible_menu"><b>Меню</b></button>
     <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/user/'><b>Задания</b></a></div>
       <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/user/info'>Информация</a></div>
     </div>
 
+    <div class="text-info-user">
+        <div class="text-info-container">
+            <div class="name-property">Задание</div>
+            <div class="value-property">
+                <b><span id="name-mission">qdqqdqwd</span></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Вознаграждение</div>
+            <div class="value-property">
+                <b><span id="reward">qdqqdqwd</span></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Кол-во домов</div>
+            <div class="value-property">
+                <b><span id="buildings">qdqqdqwd</span></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Осталось времени</div>
+            <div class="value-property">
+                <b><span id="time-remaining">qdqqdqwd</span></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Статус</div>
+            <div class="value-property">
+                <b><span id="status-mission">qdqqdqwd</span></b>
+            </div>
+        </div>
+    </div>
+
+    <div class="manage-mission">
+        <button class="button delete-button">Завершить задание</button>
+        <button class="button">Добавить отчет</button>
+    </div>
+
+    <div id="map" class="map" style="width: 98%; height: 400px;"></div>
+    <div id="popup" class="ol-popup">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content"></div>
+        <button class="button" id="btn-report">Посмотреть отчет</button>
+    </div>
+
+    <div id="reports">
+    </div>
+
+    <div class="popup-blur" id="add-report-popup">
+        <div class="popup-block">
+            <div class="popup-status-bar">
+                <div class="navigation">
+                    <p>Добавить отчет</p>
+                </div>
+
+                <button class="button" id="close" onclick="hide_popup('add-report-popup')">x</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-blur" id="report-popup">
+        <div class="popup-block">
+{#            <div class="close-popup" onclick="hide_popup('report-popup')">x</div>#}
+            <div class="popup-status-bar">
+                <div class="navigation">
+                    <button class="button" onclick="change_report(this.name)" id="prev-report-button"><</button>
+                    <p id="report-name"></p>
+                    <button class="button" onclick="change_report(this.name)" id="next-report-button">></button>
+                </div>
+
+                <button class="button" id="close" onclick="hide_popup('report-popup')">x</button>
+            </div>
+
+            <hr>
+            <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <div id="media">
+
+            </div>
+            <p></p>
+        </div>
+    </div>
 </body>
 <script>
-    add_coll_listener();
-    get_missions();
+    var coll = document.getElementsByClassName("collapsible_menu");
+    for (var i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+
+            if (content.style.display === "block" || content.style.display === "grid") {
+                content.style.display = "none";
+            } else {
+                if (content.className.search('report') != -1) content.style.display = 'grid';
+                else content.style.display = "block";
+            }
+        });
+    }
+    report_block();
+
+        var touchstartX = 0;
+    var touchstartY = 0;
+    var touchendX = 0;
+    var touchendY = 0;
+
+    var gestureZone = document.getElementById('report-popup');
+
+    gestureZone.addEventListener('touchstart', function(event) {
+        touchstartX = event.changedTouches[0].screenX;
+        touchstartY = event.changedTouches[0].screenY;
+    }, false);
+
+    gestureZone.addEventListener('touchend', function(event) {
+        touchendX = event.changedTouches[0].screenX;
+        touchendY = event.changedTouches[0].screenY;
+        handleGesture();
+    }, false);
+
+
+    function handleGesture() {
+        var swiped = 'swiped: ';
+        if (touchendX < touchstartX) {
+            document.getElementById('next-report-button').dispatchEvent(new Event('click'))
+        }
+        if (touchendX > touchstartX) {
+             document.getElementById('prev-report-button').dispatchEvent(new Event('click'))
+        }
+    }
 </script>
 </html>

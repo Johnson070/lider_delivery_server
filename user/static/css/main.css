@@ -453,6 +453,23 @@ hr {
   }
 }
 
+.locate {
+  top: 6em;
+  left: .5em;
+}
+
+.manage-mission {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.manage-mission > * {
+  margin: 0 5px;
+  height: 40px;
+}
+
 
 .loading-icon {
   position: absolute;

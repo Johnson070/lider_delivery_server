@@ -269,8 +269,9 @@ def manage_mission(uuid, method):
 
 @admin_bp.route('/get_file', methods=['GET'])
 @moder_bp.route('/get_file', methods=['GET'])
+@user_bp.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
-    if not_auth() and not_auth_moder():
+    if not_auth() and not_auth_moder() and not_auth_user():
         return unauthorized()
 
     if not 'file_id' in request.args.keys():
