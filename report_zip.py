@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
 
     project_root = os.path.dirname(os.path.realpath('__file__'))
-    template_path = os.path.join(project_root, 'templates')
+    template_path = os.path.join(project_root, 'admin/templates')
     static_path = os.path.join(project_root, 'static')
     app = Flask(__name__, template_folder=template_path, static_folder=static_path)
 

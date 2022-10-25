@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="/delivery_bot/static/js/moder/mission_info.js"></script>
-    <script src="/delivery_bot/static/js/moder/collapsive.js"></script>
-    <script src="/delivery_bot/static/js/moder/popup-actions.js"></script>
-    <link rel="stylesheet" type= "text/css" href="/delivery_bot/static/css/main.css">
+    <script src="/delivery_bot/moder/static/js/mission_info.js"></script>
+    <script src="/delivery_bot/moder/static/js/collapsive.js"></script>
+    <script src="/delivery_bot/moder/static/js/popup-actions.js"></script>
+    <link rel="stylesheet" type= "text/css" href="/delivery_bot/moder/static/css/main.css">
 
     <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
@@ -64,10 +64,7 @@
 <body onload="init_map()">
     <button type="button" class="collapsible_menu"><b>Меню</b></button>
     <div class="content_menu">
-      <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'><b>Задания</b></a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/users'>Пользователи</a></div>
-      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/settings'>Настройки</a></div>
+      <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/moder'><b>Задания</b></a></div>
     </div>
     <div class="text-info-user">
         <div class="text-info-container">
@@ -208,7 +205,7 @@
     </div>
 
     <button class='button ext-button' onclick='show_popup("edit-mission-popup")'>Изменить</button>
-    <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
+    <p class="hint">Панель администрирования бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>
     var coll = document.getElementsByClassName("collapsible_menu");

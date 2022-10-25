@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
+    <title>Delivery Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <script src="/delivery_bot/static/js/popup-actions.js"></script>
+    <script src="/delivery_bot/static/js/collapsive.js"></script>
+    <link rel="stylesheet" href="/delivery_bot/static/css/main.css">
+</head>
+<body>
+    <button type="button" class="collapsible"><b>Меню</b></button>
+    <div class="content_menu">
+      <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'>Задания</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/settings'>Настройки</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/rekruts'><b>Анкеты</b></a></div>
+    </div>
+    <div>
+      <input type="checkbox" id="all" class="checkbox">
+      <label for="all">Отображать все анкеты</label>
+    </div>
+    <div id="main" class="div-buttons">
+
+    </div>
+
+    <div class="popup-blur" id="rekrut-report">
+        <div class="popup-block">
+            <div class="popup-status-bar">
+                    <p id="report-name">Анкета</p>
+                    <button class="button" id="close" onclick="hide_popup('rekrut-report')">x</button>
+            </div>
+            <hr>
+            <div class="text-info-user" id="rekrut-report">
+                <div class="text-info-container">
+                    <div class="name-property">Соискатель</div>
+                    <div class="value-property">
+                        <b><a class="link_user" id='user-id' href=''></a></b>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">ФИО</div>
+                    <div class="value-property">
+                        <input type="text" id='full_name' placeholder="ФИО" readonly>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Дата рождения</div>
+                    <div class="value-property">
+                        <input type="date" id="birthday" readonly>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Район проживания(работы)</div>
+                    <div class="value-property">
+                        <input type="text" style='width: 100px;' id="region" placeholder="Фрунзенский р-н" readonly>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Ожидаемая з/п</div>
+                    <div class="value-property">
+                        <input type="number" id='reward' inputmode="numeric" readonly>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    Персональные качества<br>
+                    <textarea style='width: 100%; max-width: 100%;' id="qualities" readonly rows="10"></textarea>
+                </div>
+                <div class="text-info-container">
+                    О себе<br>
+                    <textarea style='width: 85%; max-width: 85%;' id="info" readonly rows="10"></textarea>
+                </div>
+                <div style="width: 95%;">
+                    Фото
+                    <img style="width: 100%" id="photo">
+                </div>
+                <button type="button" class="button" id="pass-user" onclick="pass_rekrut()">Принять</button>
+                <p></p>
+            </div>
+        </div>
+    </div>
+
+    <p class="hint">
+      ✅ - Подтверждено<br>
+      ⚠️ - Ожидает подтверждения
+    </p>
+    <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
+</body>
+<script>
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', '/delivery_bot/validate', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+
+            }
+            else window.location.href = '/delivery_bot/unauthorized'
+        }
+    };
+
+    add_coll_listener();
+    get_rekruts();
+
+    let allCheckbox = document.getElementById("all"); //получаем кнопку активировать/деактивировать
+    allCheckbox.addEventListener('change', function(){ //вешаем событие на нажатие html-кнопки
+        document.getElementById("main").innerHTML = '';
+        get_rekruts(allCheckbox.checked);
+    });
+
+    function pass_rekrut() {
+        var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+        xmlhttp.open('POST', '/delivery_bot/rekruts/pass', true); // Открываем асинхронное соединение
+        xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+        xmlhttp.send(
+            JSON.stringify({user_id: document.getElementById('user-id').name}
+        )); // Отправляем POST-запрос
+        xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+            if (xmlhttp.readyState == 4) { // Ответ пришёл
+                if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                    get_rekruts(document.getElementById('all').checked);
+                    document.getElementById("main").innerHTML = '';
+                    hide_popup('rekrut-report');
+                }
+                else window.location.href = '/delivery_bot/unauthorized'
+            }
+        };
+    }
+
+    function set_popup_form(id) {
+        var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+        xmlhttp.open('GET', '/delivery_bot/rekruts/get_form/'+id, true); // Открываем асинхронное соединение
+        xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+        xmlhttp.send(); // Отправляем POST-запрос
+        xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+            if (xmlhttp.readyState == 4) { // Ответ пришёл
+                if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                    json = JSON.parse(this.responseText)[0];
+
+                    document.getElementById('user-id').innerText = `@${json[0]}`;
+                    document.getElementById('user-id').name = json[2];
+                    const username = json[0];
+                    document.getElementById('user-id').onclick = function () {
+                        window.Telegram.WebApp.openTelegramLink(`https://t.me/${username}`);
+                    }
+                    document.getElementById('full_name').value = json[4];
+                    document.getElementById('birthday').value = json[5];
+                    document.getElementById('region').value = json[6];
+                    document.getElementById('qualities').value = json[7];
+                    document.getElementById('info').value = json[8];
+                    document.getElementById('reward').value = json[9];
+                    document.getElementById('photo').src = `/delivery_bot/get_file?file_id=${json[10]}`;
+                    if (json[11] == '1') document.getElementById('pass-user').style.display = 'none';
+                }
+                else window.location.href = '/delivery_bot/unauthorized'
+            }
+        };
+    }
+
+    function get_rekruts(all) {
+        var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+        xmlhttp.open('GET', '/delivery_bot/rekruts/get' + (all == true ? '?all=1' : ''), true); // Открываем асинхронное соединение
+        xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+        xmlhttp.send(); // Отправляем POST-запрос
+        xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                json = JSON.parse(this.responseText);
+                missions = document.getElementById("main");
+
+                for (var i = 0; i < json.length; i++) {
+                    item = document.createElement('a');
+                    item.innerText = json[i][2] == '1' ? '✅  ' : '⚠️ ';
+                    item.innerText += json[i][1];
+                    item.className = 'button'
+                    const id_form = json[i][0];
+                    item.onclick = function () {
+                        set_popup_form(id_form);
+                        show_popup('rekrut-report');
+                    };
+                    missions.appendChild(item);
+                }
+            }
+            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+        }};
+    }
+</script>
+</html>

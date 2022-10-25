@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
+    <title>Delivery Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
+    <script src="/delivery_bot/user/static/js/popup-actions.js"></script>
+    <script src="/delivery_bot/user/static/js/rekrut.js"></script>
+    <link rel="stylesheet" type= "text/css" href="/delivery_bot/user/static/css/main.css">
+</head>
+<body>
+    <p>Вам нужно заполнить анкету соискателя</p>
+    <button class="button" onclick="show_popup('rekrut-form')">Заполнить</button>
+
+    <div class="popup-blur" id="rekrut-form">
+        <div class="popup-block">
+            <div class="popup-status-bar">
+                    <p id="report-name">Анкета</p>
+                    <button class="button" id="close" onclick="hide_popup('rekrut-form')">x</button>
+            </div>
+            <hr>
+            <div class="text-info-user">
+                <div class="text-info-container">
+                    <div class="name-property">ФИО</div>
+                    <div class="value-property">
+                        <input type="text" id='full_name' placeholder="ФИО">
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Дата рождения</div>
+                    <div class="value-property">
+                        <input type="date" id="birthday" required >
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Район проживания(работы)</div>
+                    <div class="value-property">
+                        <input type="text" style='width: 100px;' id="region" placeholder="Фрунзенский р-н" required >
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Ожидаемая з/п</div>
+                    <div class="value-property">
+                        <input type="number" id='reward' inputmode="numeric" required>
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    Персональные качества<br>
+                    <textarea style='width: 100%; max-width: 100%;' id="qualities" required rows="10"></textarea>
+                </div>
+                <div class="text-info-container">
+                    О себе<br>
+                    <textarea style='width: 85%; max-width: 85%;' id="info" required rows="10"></textarea>
+                </div>
+                <p>Ваше фото</p>
+                <input type="file" id="photo" accept="image/*" required>
+
+            </div>
+            <button class="button" onclick="save_rekrut()">Отправить</button>
+            <p></p>
+        </div>
+    </div>
+</body>
+<script>
+    window.Telegram.WebApp.isClosingConfirmationEnabled = true;
+</script>
+</html>

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <script src="/delivery_bot/static/js/moder/collapsive.js"></script>
+    <script src="/delivery_bot/static/js/collapsive.js"></script>
     <link rel="stylesheet" href="/delivery_bot/static/css/main.css">
 </head>
 
@@ -14,6 +14,10 @@
    <button type="button" class="collapsible"><b>Меню</b></button>
    <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'><b>Задания</b></a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/users'>Пользователи</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/settings'>Настройки</a></div>
+      <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/rekruts'>Анкеты</a></div>
    </div>
    <div>
       <input type="checkbox" id="all" class="checkbox">
@@ -29,26 +33,27 @@
       ✅ - Выполнено<br>
       ⚠️ - Ожидает подтверждения<br>
       ❗️❗️ - Забраковано<br>
-      ❌ Не выполнено<br>
+      ❌ - Не выполнено<br>
    </p>
    <p class="hint">Админ панель бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>
     // TODO: сделат фильтр по заданиям
 
-   var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-   xmlhttp.open('GET', 'validate/moder', true); // Открываем асинхронное соединение
-   xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-   xmlhttp.send(); // Отправляем POST-запрос
-   xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
-   if (xmlhttp.readyState == 4) { // Ответ пришёл
-     if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-       if(this.responseText == '0') window.location.href = '/delivery_bot/unauthorized'
-     }
-   }
-   };
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', '/delivery_bot/validate', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
 
+            }
+            else window.location.href = '/delivery_bot/unauthorized'
+        }
+    };
 
+   
    let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
 
    tg.expand(); //расширяем на все окно

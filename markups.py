@@ -8,10 +8,29 @@ import settings as sett
 def get_clerk_menu():
     markup = types.InlineKeyboardMarkup()
     markup.add(
-        types.InlineKeyboardButton("Задания", callback_data='quests_user'),
-        types.InlineKeyboardButton('Информация', callback_data='information')
+        types.InlineKeyboardButton('Панель пользователя', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/user/auth'))
     )
 
+    return markup
+
+
+def get_moder_menu():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton('Панель администрирования', web_app=types.WebAppInfo(sett.WEBHOOK_URL_BASE + '/moder/auth'))
+    )
+    return markup
+
+
+def get_link_permissions():
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        *[types.InlineKeyboardButton(value, callback_data=f'invite_link_{key}')
+          for key, value in sorted(sett.permissions.items(), reverse=True)]
+    )
+    markup.add(
+        types.InlineKeyboardButton('Назад', callback_data='back_admin')
+    )
     return markup
 
 

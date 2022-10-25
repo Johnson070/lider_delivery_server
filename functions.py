@@ -44,16 +44,16 @@ def parse_geo_json(json):
 
 
 # создание qr кода на добавление пользователя работает 1 день и только для одного пользователя
-def create_invite_link(username):
+def create_invite_link(username, permission):
     uuid_invite_link = str(uuid.uuid4())
     invite_qr = qrcode.make(f'https://t.me/DeliveryLiderBot?start={uuid_invite_link}')
     qr_code_invite_b = BytesIO()
     invite_qr.save(qr_code_invite_b, format='PNG')
     conn, cursor = open_db()
 
-    cursor.execute('''INSERT INTO invites VALUES (?, ?, ?);''',
+    cursor.execute('''INSERT INTO invites VALUES (?, ?, ?, ?);''',
                    (username, uuid_invite_link,
-                    (datetime.datetime.now() + datetime.timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S')))
+                    (datetime.datetime.now() + datetime.timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'), permission,))
     conn.commit()
     close_db(conn, cursor)
 
@@ -66,11 +66,11 @@ def use_invite_link(code, chat_id, username):
         return True
 
     conn, cursor = open_db()
-    data = cursor.execute(f'SELECT expire FROM invites WHERE code = "{code}"').fetchall()
+    data = cursor.execute(f'SELECT expire, permission FROM invites WHERE code = "{code}"').fetchall()
 
     if len(data) > 0 and datetime.datetime.strptime(data[0][0], '%Y-%m-%d %H:%M:%S') > datetime.datetime.now():
         cursor.execute(f'DELETE FROM invites WHERE code = ?', (code,))
-        cursor.execute('''INSERT INTO users VALUES (?, ?, ?, ?)''', (chat_id, username, 0., 'user'))
+        cursor.execute('''INSERT INTO users VALUES (?, ?, ?, ?, ?)''', (chat_id, username, 0., data[0][1], 1 if data[0][1] != 'user' else 0))
         conn.commit()
         close_db(conn, cursor)
         return True
@@ -303,13 +303,13 @@ def get_route_id_by_mission(id):
 
 def get_missions_by_user_id(user_id):
     conn, cursor = open_db()
-    missions = cursor.execute('''SELECT id,comment FROM missions WHERE user = ? AND proof = "0"''',
+    missions = cursor.execute('''SELECT id,comment,status,proof FROM missions WHERE user = ? AND proof = "0"''',
                               (user_id,)).fetchall()
     close_db(conn, cursor)
 
     data_missions = []
     if len(missions) > 0 and missions[0][0] is not None:
-        data_missions = [(i[0], i[1]) for i in missions]
+        data_missions = [(i[0], i[1], i[2], i[3]) for i in missions]
 
     return data_missions
 
@@ -677,6 +677,68 @@ def download_file(file_id):
                 return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
 
     return None
+
+
+def check_user_trusted(user_id):
+    conn, cur = open_db()
+    trusted = cur.execute('''SELECT trusted FROM users WHERE id = ?''', (user_id, )).fetchall()
+    close_db(conn, cur)
+
+    if len(trusted) > 0:
+        return True if str(trusted[0][0]) == '1' else False
+
+    return False
+
+
+def check_rekrut_form(user_id):
+    conn, cur = open_db()
+    form = cur.execute('''SELECT * FROM forms WHERE user_id = ?''', (user_id, )).fetchall()
+    close_db(conn, cur)
+
+    if len(form) > 0:
+        return True
+
+    return False
+
+
+def save_rekrut(user_id, full_name, birthday, local_region, qualities, info, reward, photo_id):
+    conn, cur = open_db()
+    cur.execute('''INSERT INTO forms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (str(uuid.uuid4()), user_id, datetime.datetime.now().timestamp(), full_name, birthday, local_region,
+                 qualities, info, reward, photo_id, ))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def get_rekruts(all=None):
+    form = ''
+    conn, cur = open_db()
+    if all is None:
+        form = cur.execute(
+            '''SELECT forms.id, forms.full_name, users.trusted FROM forms,users WHERE users.id = forms.user_id AND users.trusted = "0"''').fetchall()
+    else:
+        form = cur.execute('''SELECT forms.id, forms.full_name, users.trusted FROM forms,users WHERE users.id = forms.user_id''').fetchall()
+    close_db(conn, cur)
+
+    return list(form)
+
+
+def get_rekrut_info(id):
+    conn, cur = open_db()
+    form = cur.execute(
+        '''SELECT users.username, forms.*, users.trusted FROM forms,users WHERE forms.id = ? AND users.id = forms.user_id''', (id, )).fetchall()
+    close_db(conn, cur)
+
+    return list(form)
+
+
+def pass_rekrut(user_id):
+    conn, cur = open_db()
+    cur.execute(
+        '''UPDATE users SET trusted = "1" WHERE id = ?''',
+        (user_id,))
+    conn.commit()
+    close_db(conn, cur)
 
 
 # Генерация псевдослучайных чисел задание зерна

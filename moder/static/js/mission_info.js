@@ -1,5 +1,5 @@
 var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-xmlhttp.open('GET', '/delivery_bot/validate', true); // Открываем асинхронное соединение
+xmlhttp.open('GET', '/delivery_bot/moder/validate', true); // Открываем асинхронное соединение
 xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
 xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
@@ -89,14 +89,14 @@ function report_block() {
                             for (var j = 0; j < data['photos'].length; j++) {
                                 photo = document.createElement('img');
                                 photo.className = 'report-grid-photo';
-                                photo.src = `/get_file?file_id=${data['photos'][j]}`;
+                                photo.src = `/delivery_bot/moder/get_file?file_id=${data['photos'][j]}`;
                                 photo.loading = 'lazy';
                                 images.appendChild(photo);
                             }
                             media.appendChild(images)
 
                             video = document.createElement('iframe');
-                            video.src = `/get_file?file_id=${data['video']}&`;
+                            video.src = `/delivery_bot/moder/get_file?file_id=${data['video']}&`;
                             video.setAttribute('autoplay', '0');
                             video.setAttribute('mute', '1');
                             media.appendChild(video);
@@ -161,14 +161,14 @@ function show_popup_report(id) {
                     for (var j = 0; j < json[i]['photos'].length; j++) {
                         photo = document.createElement('img');
                         photo.className = 'report-grid-photo';
-                        photo.src = `/delivery_bot/get_file?file_id=${json[i]['photos'][j]}`;
+                        photo.src = `/delivery_bot/moder/get_file?file_id=${json[i]['photos'][j]}`;
                         photo.loading = 'lazy';
                         images.appendChild(photo);
                     }
                     media.appendChild(images)
 
                     video = document.createElement('iframe');
-                    video.src = `/delivery_bot/get_file?file_id=${json[i]['video']}&`;
+                    video.src = `/delivery_bot/moder/get_file?file_id=${json[i]['video']}&`;
                     video.setAttribute('autoplay', '0');
                     video.setAttribute('mute', '1');
                     media.appendChild(video);
@@ -202,7 +202,7 @@ function manage_mission(item) {
 
 function get_users(username) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('GET', '/delivery_bot/users/list', true); // Открываем асинхронное соединение
+    xmlhttp.open('GET', '/delivery_bot/moder/users/list', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
