@@ -1,7 +1,7 @@
 import os
 
-cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c'
-API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU'  # Никому не сообщать, получать в @BotFather
+cookie_secret_key = '4b87e6fb926784872a022fd6fff0c6f97a71677e44ce1102125ea97098b1959c' if os.environ.get('COOKIE_KEY') is None else os.environ.get('API_KEY')
+API_KEY = '5408023773:AAHSVnYvXURWLG5Qj_dJjUIk37_l7oZgfrU' if os.environ.get('API_KEY') is None else os.environ.get('API_KEY')  # Никому не сообщать, получать в @BotFather
 sqlite_file = os.path.join(os.getcwd(), 'data.sqlite')
 file_report_path = os.path.join(os.getcwd(), 'report_{}_{}.zip')
 

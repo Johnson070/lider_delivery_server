@@ -1,4 +1,7 @@
-
+function change_report(name) {
+    var open_report = new Event('click');
+    document.getElementById(name).dispatchEvent(open_report);
+}
 
 function get_costs_types() {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
@@ -19,7 +22,7 @@ function get_costs_types() {
                     sel.appendChild(opt);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -36,20 +39,20 @@ function get_tag_day() {
                 document.getElementById('tag_day').innerText = this.responseText;
 
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
 
 function errorHandler(err) {
         if(err.code == 1) {
-           window.Telegram.WebApp.showAlert("Error: Access is denied!");
+           window.parent.window.Telegram.WebApp.showAlert("Error: Access is denied!");
         }
         else if( err.code == 2) {
-           window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+           window.parent.window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
         }
         else {
-           window.Telegram.WebApp.showAlert(`Произошла ошибка перезагрузите страницу!\n`+
+           window.parent.window.Telegram.WebApp.showAlert(`Произошла ошибка перезагрузите страницу!\n`+
                `${err.message}`);
         }
     }
@@ -59,8 +62,31 @@ function get_location_save_report(){
     if(navigator.geolocation && geolocation.getPosition() !== undefined){
         save_report(ol.proj.toLonLat(geolocation.getPosition()))
     } else{
-        window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+        window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
+            " смените WebView настройках или поменяйте телефон.");
     }
+}
+
+function end_mission() {
+    window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите завершить задание?\n' +
+        'Вы не сможете после этого вы не сможете удалять или добавлять отчеты.', function (state) {
+        if (state) confirm_pass_mission();
+    })
+}
+
+function confirm_pass_mission() {
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('GET', window.location.href+'/pass', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                window.location.reload()
+            }
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
+        }
+    };
 }
 
 async function save_report(location) {
@@ -69,13 +95,19 @@ async function save_report(location) {
     let photos = document.getElementById('photo-report').files;
     let video = document.getElementById('video-report').files;
 
+    let size = 0;
+    for (var i = 0; i < photos.length; i++)
+        size += photos[i].size;
+
     if (photos.length == 0 || video.length == 0) {
-        window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению');
+        window.parent.window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению');
         return;
     }
-
-    //TODO: сделать ограницение на 5 мб
-    //TODO: при скрытии выключать iframe
+    else if (size / 1024.0 / 1024.0 > 10) {
+        window.parent.window.Telegram.WebApp.showAlert('Размер ФОТО должен быть меньше 10 Мб!\n' +
+            'При выборе медиа файлов выберите максимальное сжатие!');
+        return;
+    }
 
     json = {
         photos: [],
@@ -91,32 +123,36 @@ async function save_report(location) {
     json['video'] = Array.from(new Uint8Array(await video[0].arrayBuffer()));
 
     hide_popup('add-report-popup');
-    window.Telegram.WebApp.showAlert('Ожидайте.');
+    window.parent.window.Telegram.WebApp.showAlert('Ожидайте.');
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open('POST', window.location.href + '/add_report', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
     xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
-            if (xmlhttp.status == 401) window.location.href = '/manage_bot/unauthorized';
+            if (xmlhttp.status == 401) location.replace('/manage_bot/unauthorized');
             else if (xmlhttp.status == 200) {
                 if (this.responseText == '0') window.location.reload();
                 else if (this.responseText === '1') {
-                    window.Telegram.WebApp.showAlert('Кажется вы ушли слишком делако от дома.\n' +
+                    window.parent.window.Telegram.WebApp.showAlert('Кажется вы ушли слишком делако от дома.\n' +
                         'Не уходите с места где вы размещали рекламу.\n' +
-                        'Если вы уйдете далеко от точки, то отчет не будет принят.')
+                        'Если вы уйдете далеко от точки, то отчет не будет принят.');
                 }
                 else if (this.responseText === '2') {
-                    window.Telegram.showAlert('Кажется вы перемещяетесь слишком быстро.\n' +
-                        'За повторное нарушение вам будет начислен штраф!')
+                    window.parent.window.Telegram.WebApp.showAlert('Кажется вы перемещяетесь слишком быстро.\n' +
+                        'За повторное нарушение вам будет начислен штраф!');
                 }
                 else if (this.responseText === '3') {
-                    window.Telegram.WebApp.showAlert('Вы отправили фото или видео которое уже отправляли.\n' +
-                        'Удалите дубликаты и отправьте заново.')
+                    window.parent.window.Telegram.WebApp.showAlert('Вы отправили фото или видео которое уже отправляли.\n' +
+                        'Удалите дубликаты и отправьте заново.');
+                }
+                else if (this.responseText === '-1') {
+                    window.parent.window.Telegram.WebApp.showAlert('Отправка отчетов заблокирована!\n' +
+                        'Перезагрузите страницу!');
                 }
             }
             else {
-                window.Telegram.WebApp.showAlert('Произошла ошибка попробуйте снова.')
+                window.parent.window.Telegram.WebApp.showAlert('Произошла ошибка попробуйте снова.')
             }
         }
     };
@@ -223,10 +259,10 @@ function init_map() {
                 function showLocation(position) {}
                 function errorHandler(err) {
                     if(err.code == 1) {
-                       window.Telegram.WebApp.showAlert("Error: доступ к геолокации запрещен!");
+                       window.parent.window.Telegram.WebApp.showAlert("Error: доступ к геолокации запрещен!");
                     }
                     else if( err.code == 2) {
-                       window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
+                       window.parent.window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
                     }
                     show_popup('location-popup');
                 }
@@ -236,7 +272,8 @@ function init_map() {
                        var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
                        navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
                     } else{
-                       window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+                       window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
+            " смените WebView настройках или поменяйте телефон.");
                     }
                 }
 
@@ -310,11 +347,11 @@ function init_map() {
                         var coord = feature.getGeometry().getCoordinates();
                         var props = feature.getProperties();
 
-                        if (props['uuid'] == 'building') return;
+                        if (props['uuid'] == undefined || ['uuid'] == 'building') return;
 
                         var info = `${props['iconCaption']}<br>`;
                         info += new Date((props['unix'] + gmtHours*60*60)*1000).toISOString().slice(0,19).replace('T',' ');
-                        info += `<br>Номер дома: ${props['building']+1}`;
+
                         var btn = document.getElementById('btn-report');
                         btn.onclick = function () {
                             show_popup_report(props['id']);
@@ -328,7 +365,7 @@ function init_map() {
 
                 });
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -349,7 +386,8 @@ function report_block() {
                 for (var i = 0; i < json.length; i++) {
                     var btn_report = document.createElement('button');
                     btn_report.className = 'button';
-                    btn_report.innerText = `Отчет №${json[i]['id']}\nДом ${json[i]['building_id']+1}`;
+                    btn_report.innerText = `Отчет №${json[i]['id']}
+                    ${json[i]['building_id']}`;
 
                     const data = json[i];
                     const idx = i;
@@ -360,9 +398,11 @@ function report_block() {
                             document.getElementById('prev-report-button').name = `report_${idx == 0 ? (count_reports) : idx }`;
 
                             document.getElementById('delete_report').name = `${data['date']}`;
-
+                            document.getElementById('tag_report').innerText = `${data['tag']}`;
+                            
                             document.getElementById('report-name').innerText =
-                                `Отчет №${data['id']} Дом ${data['building_id']+1}`;
+                                `Отчет №${data['id']}
+                                ${data['building_id']}`;
 
                             media = document.getElementById('media');
                             media.innerHTML = '';
@@ -407,7 +447,7 @@ function delete_report(id) {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -436,9 +476,11 @@ function show_popup_report(id) {
                     document.getElementById('prev-report-button').name = `report_${id == 1 ? (json.length) : id-1 }`;
 
                     document.getElementById('report-name').innerText =
-                                `Отчет №${json[i]['id']} Дом ${json[i]['building_id']+1}`;
+                                `Отчет №${json[i]['id']}
+                                ${json[i]['building_id']}`;
 
                     document.getElementById('delete_report').name = `${json[i]['date']}`;
+                    document.getElementById('tag_report').innerText = `${json[i]['tag']}`;
                     images = document.createElement('div');
                     images.className = 'report-grid-photos'
                     for (var j = 0; j < json[i]['photos'].length; j++) {
@@ -458,7 +500,7 @@ function show_popup_report(id) {
                 }
                 add_coll_listener()
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }

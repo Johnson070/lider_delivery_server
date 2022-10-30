@@ -78,6 +78,8 @@
                     <img style="width: 100%" id="photo">
                 </div>
                 <button type="button" class="button" id="pass-user" onclick="pass_rekrut()">Принять</button>
+                <button type="button" class="button delete-button" id="pass-user" onclick="kick_rekrut()"
+                style="margin-top: 5px; margin-bottom: 5px;">Отклонить</button>
                 <p></p>
             </div>
         </div>
@@ -99,7 +101,7 @@
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
 
             }
-            else window.location.href = '/delivery_bot/unauthorized'
+            else location.replace('/delivery_bot/unauthorized');
         }
     };
 
@@ -122,11 +124,30 @@
         xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
             if (xmlhttp.readyState == 4) { // Ответ пришёл
                 if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                    get_rekruts(document.getElementById('all').checked);
                     document.getElementById("main").innerHTML = '';
+                    get_rekruts(document.getElementById('all').checked);
                     hide_popup('rekrut-report');
                 }
-                else window.location.href = '/delivery_bot/unauthorized'
+                else location.replace('/delivery_bot/unauthorized');
+            }
+        };
+    }
+
+    function kick_rekrut() {
+        var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+        xmlhttp.open('POST', '/delivery_bot/rekruts/kick', true); // Открываем асинхронное соединение
+        xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+        xmlhttp.send(
+            JSON.stringify({user_id: document.getElementById('user-id').name}
+        )); // Отправляем POST-запрос
+        xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+            if (xmlhttp.readyState == 4) { // Ответ пришёл
+                if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                    document.getElementById("main").innerHTML = '';
+                    get_rekruts(document.getElementById('all').checked);
+                    hide_popup('rekrut-report');
+                }
+                else location.replace('/delivery_bot/unauthorized');
             }
         };
     }
@@ -145,7 +166,7 @@
                     document.getElementById('user-id').name = json[2];
                     const username = json[0];
                     document.getElementById('user-id').onclick = function () {
-                        window.Telegram.WebApp.openTelegramLink(`https://t.me/${username}`);
+                        window.parent.window.Telegram.WebApp.openTelegramLink(`https://t.me/${username}`);
                     }
                     document.getElementById('full_name').value = json[4];
                     document.getElementById('birthday').value = json[5];
@@ -156,7 +177,7 @@
                     document.getElementById('photo').src = `/delivery_bot/get_file?file_id=${json[10]}`;
                     if (json[11] == '1') document.getElementById('pass-user').style.display = 'none';
                 }
-                else window.location.href = '/delivery_bot/unauthorized'
+                else location.replace('/delivery_bot/unauthorized');
             }
         };
     }
@@ -185,7 +206,7 @@
                     missions.appendChild(item);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }};
     }
 </script>

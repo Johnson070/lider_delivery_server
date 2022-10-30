@@ -5,9 +5,9 @@ xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
     if (xmlhttp.readyState == 4) { // Ответ пришёл
         if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-
+            window.parent.window.Telegram.WebApp.isClosingConfirmationEnabled = true;
         }
-        else window.location.href = '/delivery_bot/unauthorized'
+        else location.replace('/delivery_bot/unauthorized');
     }
 };
 
@@ -31,7 +31,7 @@ function get_missions() {
                     buttons.appendChild(item);
                 }
             }
-            else window.location.href = '/delivery_bot/unauthorized'
+            else location.replace('/delivery_bot/unauthorized');
         }
     };
 }

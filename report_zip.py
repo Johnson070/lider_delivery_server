@@ -55,7 +55,7 @@ def get_raw_by_id(id):
 
     return _
 
-
+#TODO: дописать тэг
 def get_report(id):
     mission = func.get_full_info_mission(id)
     count_reports = func.get_count_reports_mission(id)

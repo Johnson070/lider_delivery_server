@@ -135,15 +135,24 @@ def count_invite_links():
 
 
 # проверить зарагистрироване ли узверь в системе
-def check_user_in_database(chat_id, username):
+def check_user_in_database(chat_id, username=None):
     conn, cursor = open_db()
 
-    user = cursor.execute('''SELECT username FROM users WHERE id = ? AND username = ?''',
+    user = None
+    if username is None:
+        user = cursor.execute('''SELECT username FROM users WHERE id = ?''',
+                          (chat_id,)).fetchall()
+
+        if len(user) > 0 and user[0][0] is not None:
+            close_db(conn, cursor)
+            return True
+    else:
+        user = cursor.execute('''SELECT username FROM users WHERE id = ? AND username = ?''',
                           (chat_id, username,)).fetchall()
 
-    if len(user) > 0 and user[0][0] == username:
-        close_db(conn, cursor)
-        return True
+        if len(user) > 0 and user[0][0] is not None:
+            close_db(conn, cursor)
+            return True
 
     close_db(conn, cursor)
     return False
@@ -221,7 +230,7 @@ def get_addr_buildings(id, user_id=None):
         addresses = cursor.execute('''SELECT addrs FROM routes WHERE id = ?''', (id,)).fetchall()
     else:
         addresses = cursor.execute('''SELECT routes.addrs FROM routes, missions WHERE missions.user = ? AND routes.id = missions.id_route AND missions.id = ?;''',
-                                   (user_id, id, ))
+                                   (user_id, id, )).fetchall()
     close_db(conn, cursor)
 
     if len(addresses) > 0 and addresses[0][0] is not None:
@@ -298,9 +307,20 @@ def get_mission_by_id(id, not_completed=False):
     return mission
 
 
-def get_full_info_mission(id):
+def check_mission_exists(id, user_id):
     conn, cursor = open_db()
-    mission = cursor.execute('''SELECT * FROM missions WHERE id = ?''', (id,)).fetchall()
+    check = cursor.execute(f'''SELECT Count() FROM missions WHERE id = ? AND user = ?''', (id, user_id, )).fetchall()
+    close_db(conn, cursor)
+
+    return True if int(check[0][0]) > 0 else False
+
+def get_full_info_mission(id, user_id=None):
+    conn, cursor = open_db()
+    mission = None
+    if user_id is None:
+        mission = cursor.execute('''SELECT * FROM missions WHERE id = ?''', (id,)).fetchall()
+    else:
+        mission = cursor.execute('''SELECT * FROM missions WHERE id = ? AND user = ?''', (id, user_id, )).fetchall()
     close_db(conn, cursor)
 
     if len(mission) > 0 and mission[0][0] is not None:
@@ -449,9 +469,12 @@ def save_report_user(id, user_id, location, photo_id, video_id, building_id, typ
     conn.commit()
 
 
-def complete_mission(id):
+def complete_mission(id, user_id=None):
     conn, cur = open_db()
-    cur.execute('''UPDATE missions SET status = "1" WHERE id = ?''', (id,))
+    if user_id is None:
+        cur.execute('''UPDATE missions SET status = "1" WHERE id = ?''', (id,))
+    else:
+        cur.execute('''UPDATE missions SET status = "1" WHERE id = ? AND user = ?''', (id, user_id, ))
     conn.commit()
     close_db(conn, cur)
 
@@ -679,12 +702,14 @@ def download_file(file_id):
     for _ in range(0, 5):
         if r.status_code == 200:
             file_path = r.json()['result']['file_path']
-            download_file_raw = f'https://api.telegram.org/file/bot{sett.API_KEY}/{file_path}'
+            for _ in range(0, 5):
+                if r.status_code == 200:
+                    download_file_raw = f'https://api.telegram.org/file/bot{sett.API_KEY}/{file_path}'
 
-            r_data = requests.get(download_file_raw)
+                    r_data = requests.get(download_file_raw)
 
-            if r_data.status_code == 200:
-                return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
+                    if r_data.status_code == 200:
+                        return r_data.content  # base64.b64encode(r_data.text.encode('utf-8'))
 
     return None
 
@@ -746,6 +771,15 @@ def pass_rekrut(user_id):
     conn, cur = open_db()
     cur.execute(
         '''UPDATE users SET trusted = "1" WHERE id = ?''',
+        (user_id,))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def kick_rekrut(user_id):
+    conn, cur = open_db()
+    cur.execute(
+        '''DELETE FROM users WHERE id = ?''',
         (user_id,))
     conn.commit()
     close_db(conn, cur)

@@ -109,21 +109,21 @@
         {% if not proof and not rejected %}
             <div class="buttons-grid-wait">
              <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-             <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
+             <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/moder/download/report/{{ uuid }}");'>Скачать отчет</button>
              <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
              <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
             </div>
         {% else %}
         {% if proof and not rejected %}
             <div class="buttons-grid-done">
-            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/moder/download/report/{{ uuid }}");'>Скачать отчет</button>
             <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
             </div>
         {% else %}
         {% if rejected %}
             <div class="buttons-grid-rejected">
             <button class='button grid-item-btn-proof' id='to_proof' onclick='manage_mission(this)'>Перевести в выполненные</button>
-            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
+            <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/moder/download/report/{{ uuid }}");'>Скачать отчет</button>
             <button class='button grid-item-btn-retry' id='retry_rep' onclick='manage_mission(this)'>На доработку(+1 день)</button>
             </div>
         {% endif %}
@@ -132,7 +132,7 @@
 
     </div>
     <p>
-        <a href='/delivery_bot/'>
+        <a href='/delivery_bot/moder'>
         <button class='button'>Назад</button>
         </a>
     </p>
@@ -159,6 +159,7 @@
 
             <hr>
             <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <p>Тэг<br><b><span id="tag_report" style="font-size: 22px;margin: 10px;"></span></b><br></p>
             <div id="media">
 
             </div>
@@ -246,10 +247,10 @@
 
     function handleGesture() {
         var swiped = 'swiped: ';
-        if (touchendX < touchstartX) {
+        if (touchendX + 100 < touchstartX) {
             document.getElementById('next-report-button').dispatchEvent(new Event('click'))
         }
-        if (touchendX > touchstartX) {
+        if (touchendX - 100 > touchstartX) {
              document.getElementById('prev-report-button').dispatchEvent(new Event('click'))
         }
     }

@@ -43,16 +43,16 @@
    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
    if (xmlhttp.readyState == 4) { // Ответ пришёл
      if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-       if(this.responseText == '0') window.location.href = '/delivery_bot/unauthorized'
+       if(this.responseText == '0') location.replace('/delivery_bot/unauthorized');
      }
    }
    };
 
 
-   let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
+   let tg = window.parent.window.Telegram.WebApp; //получаем объект webapp телеграма
 
    tg.expand(); //расширяем на все окно
-    window.Telegram.WebApp.enableClosingConfirmation()
+    window.parent.window.Telegram.WebApp.enableClosingConfirmation()
 
     function get_missions(all) {
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
@@ -73,7 +73,7 @@
                     missions.appendChild(item);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }};
     }
 

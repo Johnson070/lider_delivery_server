@@ -30,7 +30,7 @@
             <div class="close-popup" onclick="hide_popup('route-add-popup')">x</div>
             <p>Добавить маршрут</p>
             <hr>
-            <p>Выберите GEOJSON файл сгенерированный на сайте <a class="link_user" onclick="window.Telegram.WebApp.openLink('https://yandex.ru/map-constructor')">конструктора яндекс карт</a></p>
+            <p>Выберите GEOJSON файл сгенерированный на сайте <a class="link_user" onclick="window.parent.window.Telegram.WebApp.openLink('https://yandex.ru/map-constructor')">конструктора яндекс карт</a></p>
             <p><input type="file" type='file' accept=".geojson" id="file-route" required></p>
 
             <div class="text-info-container">
@@ -42,7 +42,7 @@
                 <div class="value-property"><input placeholder="название" type="text" id="name-route" required></div>
             </div>
             <p>Фото маршрута(скачать с конструктора(распечатать -> скачать))</p>
-            <input type="file" id="photo" multiple accept="image/*" required>
+            <input type="file" id="photo" accept="image/*" required>
 
             <p>
             <button class='button' onclick="save_route()">Сохранить</button>

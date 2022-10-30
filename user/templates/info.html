@@ -16,6 +16,24 @@
       <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/user/'>Задания</a></div>
       <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/user/info'><b>Информация</b></a></div>
     </div>
+
+    <div class="text-info-user">
+        <div class="text-info-container">
+            <div class="name-property">Пользователь</div>
+            <div class="value-property">
+                <b><span class="link_user">@{{ name }}</span></b>
+            </div>
+        </div>
+        <div class="text-info-container">
+            <div class="name-property">Баланс</div>
+            <div class="value-property">
+                <b><span>{{ balance }} руб.</span></b>
+            </div>
+        </div>
+    </div>
+    <a href='/delivery_bot/user/' style="width: 90%;">
+    <button class="button" style="width: 100%; height: 100%;">Назад</button>
+    </a>
 </body>
 <script>
     add_coll_listener()

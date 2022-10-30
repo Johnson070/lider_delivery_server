@@ -1,88 +1,102 @@
+import datetime
 import io
-import time
-
-from flask import Flask, session, Response, request, render_template, abort, Blueprint
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-import hmac
-import hashlib, re, datetime
-from urllib.parse import unquote, parse_qs, urlparse
 import os
+import re
+import time
+from urllib.parse import parse_qs, urlparse
 
-import functions
-import report_zip
-import functions as func
-import settings
 import jsonpickle
+from flask import Flask, session, Response, request, render_template, abort, Blueprint
 from telebot import types
+
 import bot_tg
+import functions as func
+import report_zip
+import settings
+from validate import validate_from_request
+
+os.environ['TZ'] = 'Europe/Moscow' if os.environ.get('TZ') is None else os.environ.get('TZ')
+#time.tzset()
 
 project_root = os.path.dirname(os.path.realpath('__file__'))
-app = Flask(__name__)
+app = Flask(__name__, static_folder=os.path.join(project_root, 'admin/static'),
+            template_folder=os.path.join(project_root, 'admin/templates'))
 app.secret_key = settings.cookie_secret_key
 
 moder_bp = Blueprint('moder', __name__,
-                     template_folder='moder/templates',
-                     static_folder='moder/static')
+                     template_folder=os.path.join(project_root, 'moder/templates'),
+                     static_folder=os.path.join(project_root, 'moder/static'))
 user_bp = Blueprint('user', __name__,
-                    template_folder='user/templates',
-                    static_folder='user/static')
+                    template_folder=os.path.join(project_root, 'user/templates'),
+                    static_folder=os.path.join(project_root, 'user/static'))
 admin_bp = Blueprint('admin', __name__,
-                     template_folder='admin/templates',
-                     static_folder='admin/static')
+                     template_folder=os.path.join(project_root, 'admin/templates'),
+                     static_folder=os.path.join(project_root, 'admin/static'))
+
+
+@app.after_request
+def apply_caching(response):
+    response.headers["Strict-Transport-Security"] = 'max-age=31536000; includeSubDomains; preload'
+    response.headers["Cache-control"] = 'public, max-age:0, must-revalidate'
+    return response
 
 
 def not_auth():
-    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or \
-            not func.get_user_permission(session['user_id']) == settings.permissions[0]:
+    if not (func.get_user_permission(session.get('user_id')) == settings.permissions[0]) or \
+            not func.check_user_in_database(session.get('user_id')) or \
+            not validate_from_request(session.get('initdata')):
         return True
     return False
 
 
 def not_auth_moder():
-    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']) or \
-            not func.get_user_permission(session['user_id']) == settings.permissions[1]:
+    if not (func.get_user_permission(session.get('user_id')) == settings.permissions[1]) or \
+            not func.check_user_in_database(session.get('user_id')) or \
+            not validate_from_request(session.get('initdata')):
         return True
     return False
 
 
 def not_auth_user():
-    if not 'initdata' in session.keys() or not validate_from_request(session['initdata']):
+    if not func.check_user_in_database(session.get('user_id')) or \
+            not validate_from_request(session.get('initdata')):
         return True
     return False
 
 
-def validate_from_request(data):
-    data = data.decode('utf-8')
-
-    time_auth = datetime.datetime.fromtimestamp(0)
-    if data.find('&auth_date=') != -1:
-        timestamp = re.search(r'&auth_date=([0-9]+)&', data).group(0)
-        timestamp = re.search(r'([0-9]+)', timestamp).group(0)
-        time_auth = datetime.datetime.fromtimestamp(int(timestamp))
-
-    # TODO: изменить время валидности токена
-    hash = re.search(r'&hash=([a-f0-9]+)$', data)
-    if hash is not None:
-        hash = hash.group(0).replace('&hash=', '')
-    else:
-        hash = '0'
-    return data != '' and (datetime.datetime.now() - time_auth) < datetime.timedelta(seconds=90000000) and validate(
-        hash, data, settings.API_KEY)
+@admin_bp.before_request
+def check_admin():
+    if request.method == 'POST' and request.endpoint == 'admin.validate_query_save':
+        return
+    elif request.method == 'GET' and request.endpoint == 'admin.auth':
+        return
+    elif request.method == 'POST' and request.endpoint == 'admin.webhook':
+        return
+    elif not (func.get_user_permission(session.get('user_id')) in ['admin']) or \
+            not func.check_user_in_database(session.get('user_id')):
+        return unauthorized()
 
 
-def validate(hash_str, init_data, token, c_str="WebAppData"):
-    init_data = sorted([chunk.split("=")
-                        for chunk in unquote(init_data).split("&")
-                        if chunk[:len("hash=")] != "hash="],
-                       key=lambda x: x[0])
-    init_data = "\n".join([f"{rec[0]}={rec[1]}" for rec in init_data])
+@moder_bp.before_request
+def check_moder():
+    if request.method == 'POST' and request.endpoint == 'moder.validate_query_save':
+        return
+    elif request.method == 'GET' and request.endpoint == 'moder.auth_moder':
+        return
+    elif not (func.get_user_permission(session.get('user_id')) in ['admin', 'moder']) or \
+            not func.check_user_in_database(session.get('user_id')):
+        return unauthorized()
 
-    secret_key = hmac.new(c_str.encode(), token.encode(),
-                          hashlib.sha256).digest()
-    data_check = hmac.new(secret_key, init_data.encode(),
-                          hashlib.sha256)
 
-    return data_check.hexdigest() == hash_str
+@user_bp.before_request
+def check_user():
+    if request.method == 'POST' and request.endpoint == 'user.validate_query_save':
+        return
+    elif request.method == 'GET' and request.endpoint == 'user.auth_user':
+        return
+    elif not (func.get_user_permission(session.get('user_id')) in ['admin', 'moder', 'user']) or \
+            not func.check_user_in_database(session.get('user_id')):
+        return unauthorized()
 
 
 @admin_bp.route(settings.WEBHOOK_URL_PATH, methods=['POST', 'GET'])
@@ -107,9 +121,9 @@ def favicon():
 @user_bp.route('/validate', methods=['GET'])
 @admin_bp.route('/validate', methods=['GET'])
 def validate_query():
-    if request.path == '/delivery_bot/user/validate':
+    if request.blueprint == 'user':
         return unauthorized() if not_auth_user() else Response(None, 200)
-    elif request.path == '/delivery_bot/moder/validate':
+    elif request.blueprint == 'moder':
         return unauthorized() if not_auth_moder() else Response(None, 200)
     else:
         return unauthorized() if not_auth() else Response(None, 200)
@@ -128,9 +142,9 @@ def validate_query_save():
     )['id']
     session['initdata'] = request.data
 
-    if request.path == '/delivery_bot/user/validate':
+    if request.blueprint == 'user':
         return unauthorized() if not_auth_user() else Response(None, 200)
-    elif request.path == '/delivery_bot/moder/validate':
+    elif request.blueprint == 'moder':
         return unauthorized() if not_auth_moder() else Response(None, 200)
     else:
         return unauthorized() if not_auth() else Response(None, 200)
@@ -143,34 +157,34 @@ def unauthorized():  #
 
 @admin_bp.route('/auth')
 def auth():
-    return render_template('auth.html')
+    return render_template('template.html',
+                           path='',
+                           root=settings.WEBHOOK_URL_BASE)
 
 
 @user_bp.route('/auth')
-def auth_moder():
-    return render_template('auth_user.html')
+def auth_user():
+    return render_template('template.html',
+                           path='/user',
+                           root=settings.WEBHOOK_URL_BASE)
 
 
 @moder_bp.route('/auth')
 def auth_moder():
-    return render_template('auth_moder.html')
+    return render_template('template.html',
+                           path='/moder',
+                           root=settings.WEBHOOK_URL_BASE)
 
 
 @moder_bp.route('/')
 @admin_bp.route('/')
 def index():
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     return render_template('index_moder.html' if request.blueprint == 'moder' else 'index.html')
 
 
 @admin_bp.route('/mission/<uuid>', methods=['GET'])
 @moder_bp.route('/mission/<uuid>', methods=['GET'])
 def info_mission(uuid):
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     try:
         mission = func.get_full_info_mission(uuid)
         count_reports = func.get_count_reports_mission(uuid)
@@ -191,15 +205,12 @@ def info_mission(uuid):
                                uuid=mission[0],
                                user_id=mission[1])
     except:
-        return unauthorized()
+        return abort(500)
 
 
 @admin_bp.route('/get_missions', methods=['GET'])
 @moder_bp.route('/get_missions', methods=['GET'])
 def get_missions():
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     all = request.args.get('all')
     missions = func.get_missions(all, True)
 
@@ -212,9 +223,6 @@ def get_missions():
 
 @admin_bp.route('/mission/<uuid>/change', methods=['POST'])
 def change_mission(uuid):
-    if not_auth():
-        return unauthorized()
-
     json = request.json
 
     bot_tg.bot.send_message(json['user'], 'Вам было назначено задание')
@@ -226,9 +234,6 @@ def change_mission(uuid):
 @admin_bp.route('/mission/<uuid>/<method>', methods=['GET', 'OPTIONS'])
 @moder_bp.route('/mission/<uuid>/<method>', methods=['GET', 'OPTIONS'])
 def manage_mission(uuid, method):
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     if method == 'to_proof':
         func.proof_mission(uuid)
         return Response(None, 200)
@@ -268,9 +273,6 @@ def manage_mission(uuid, method):
 @moder_bp.route('/get_file', methods=['GET'])
 @user_bp.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
-    if not_auth() and not_auth_moder() and not_auth_user():
-        return unauthorized()
-
     if not 'file_id' in request.args.keys():
         return 'File not found!', 404
 
@@ -289,9 +291,6 @@ def get_file_by_file_id():
 @admin_bp.route('/download/report/<UUID>', methods=['GET'])
 @moder_bp.route('/download/report/<UUID>', methods=['GET'])
 def download_report(UUID):
-    if not_auth() and not_auth_moder():
-        return 0
-
     file = report_zip.get_report(UUID)
     resp = Response('1', 200)
     bot_tg.bot.send_document(session['user_id'], io.StringIO(file),
@@ -303,9 +302,6 @@ def download_report(UUID):
 @admin_bp.route('/mission/<uuid>/delete_report', methods=['POST'])
 @moder_bp.route('/mission/<uuid>/delete_report', methods=['POST'])
 def delete_report(uuid):
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     data = request.json
     func.delete_report(data[0], data[1])
 
@@ -315,16 +311,23 @@ def delete_report(uuid):
 @admin_bp.route('/mission/<uuid>/report', methods=['GET'])
 @moder_bp.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     reports = func.get_reports_by_id(uuid)
+    addrs = None
+    if len(reports) > 0:
+        route_id = func.get_route_id_by_mission(uuid)
+        addrs = func.get_addr_buildings(route_id)
+
     json_report = []
     for _ in range(0, len(reports)):
         json_report.append({})
         json_report[-1]['id'] = _ + 1
         json_report[-1]['date'] = reports[_][3]
-        json_report[-1]['building_id'] = reports[_][4]
+        json_report[-1]['building_id'] = addrs[str(reports[_][4])]
+        json_report[-1]['tag'] = \
+            func.get_hash(str(datetime.datetime.fromtimestamp(reports[_][3]).replace(hour=0, minute=0, second=0,
+                                                                                     microsecond=0)) +
+                          str(reports[_][1]))
+        #TODO: исправить тэг
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])
@@ -336,17 +339,11 @@ def get_base64_reports(uuid):
 
 @admin_bp.route('/routes', methods=['GET'])
 def routes():
-    if not_auth():
-        return unauthorized()
-
     return render_template('routes.html')
 
 
 @admin_bp.route('/routes/<UUID>', methods=['GET'])
 def route_view(UUID):
-    if not_auth():
-        return unauthorized()
-
     route = func.get_route(UUID)
 
     if not len(route):
@@ -363,9 +360,6 @@ def route_view(UUID):
 
 @admin_bp.route('/routes/<UUID>/delete', methods=['GET'])
 def route_delete(UUID):
-    if not_auth():
-        return unauthorized()
-
     func.delete_route(UUID)
 
     return Response(None, 200)
@@ -373,17 +367,11 @@ def route_delete(UUID):
 
 @admin_bp.route('/routes/list', methods=['GET'])
 def routes_list():
-    if not_auth():
-        return unauthorized()
-
     return Response(jsonpickle.encode(func.get_routes(), unpicklable=False))
 
 
-# TODO: проверка ссылки
 @admin_bp.route('/routes/add', methods=['POST'])
 def add_route():
-    if not_auth():
-        return unauthorized()
     photo = bytes(request.json['photo_bytes'])
     msg_photo = bot_tg.bot.send_photo(session['user_id'], photo)
     photo_file_id = msg_photo.photo[-1].file_id
@@ -424,18 +412,17 @@ def add_route():
 
     coords = coords + coords1 + coords2
 
-    import operator
-
-    coords = sorted(coords, key=operator.itemgetter(0, 1))
-
     addr = {}
     coords_dict = {}
-    for i, k in zip(coords, range(0, len(coords))):
-        coords_dict[k] = (i[0], i[1])
-        addr[k] = i[2]
+    iter = 0
+    for lat, lon, addr_i in coords:
+        coords_dict[iter] = (lat, lon)
+        addr[iter] = addr_i
+        iter += 1
 
     min_route = func.get_min_route(coords_dict)
     coords_dict = {k: coords_dict[min_route[k]] for k in range(0, len(min_route))}
+    addr = {i: addr[min_route[i]] for i in range(0, len(min_route))}
 
     jsonpickle.set_preferred_backend('json')
     jsonpickle.set_encoder_options('json', ensure_ascii=False)
@@ -447,26 +434,17 @@ def add_route():
 
 @admin_bp.route('/users', methods=['GET'])
 def users_list():
-    if not_auth():
-        return unauthorized()
-
     return render_template('users.html')
 
 
 @admin_bp.route('/users/list', methods=['GET'])
 @moder_bp.route('/users/list', methods=['GET'])
 def get_users_list():
-    if not_auth() and not_auth_moder():
-        return unauthorized()
-
     return jsonpickle.encode(func.get_clerks(), unpicklable=False)
 
 
 @admin_bp.route('/user/<uid>', methods=['GET'])
 def user_profile(uid):
-    if not_auth():
-        return unauthorized()
-
     user = func.get_clerk_by_id(uid)
     return render_template('user_profile.html',
                            user=user[1],
@@ -476,18 +454,12 @@ def user_profile(uid):
 
 @admin_bp.route('/user/<uid>/missions', methods=['GET'])
 def get_user_missions(uid):
-    if not_auth():
-        return unauthorized()
-
     missions = func.get_missions_by_user_id(uid)
     return jsonpickle.encode(missions, unpicklable=False)
 
 
 @admin_bp.route('/user/<uid>/<method>', methods=['POST'])
 def manage_user(uid, method):
-    if not_auth():
-        return unauthorized()
-
     if method == 'add_mission':
         json = request.json
         mission_id = func.create_new_mission(uid, json['uuid'], json['name'], int(json['days']), json['reward'],
@@ -505,12 +477,14 @@ def manage_user(uid, method):
         func.change_balance_clerk(uid, float(request.data.decode('utf-8')))
         return Response(None, 200)
     elif method == 'kick':
+        kick_with_message = request.data.decode('utf-8')
         func.kick_user(uid)
-        bot_tg.bot.send_message(uid, 'Вы были исключены администратором.\n'
+        if kick_with_message == '1':
+            bot_tg.bot.send_message(uid, 'Вы были исключены администратором.\n'
                                      'Спасибо за использование!')
         return Response(None, 200)
     else:
-        Response(None, 401)
+        abort(405)
 
 
 @admin_bp.route('/location', methods=['GET'])
@@ -520,26 +494,17 @@ def get_location():
 
 @admin_bp.route('/settings', methods=['GET'])
 def settings_page():
-    if not_auth():
-        return unauthorized()
-
     return render_template('settings.html')
 
 
 @admin_bp.route('/settings/permissions', methods=['GET'])
 def get_user_permissions():
-    if not_auth():
-        return unauthorized()
-
     return Response(jsonpickle.encode({i[0]: (i[1], i[2]) for i in func.get_clerks()}, unpicklable=False),
                     mimetype='application/json')
 
 
 @admin_bp.route('/settings/permissions', methods=['POST'])
 def set_user_permissions():
-    if not_auth():
-        return unauthorized()
-
     func.set_user_permission(*request.json)
 
     return Response('1', 200)
@@ -547,17 +512,11 @@ def set_user_permissions():
 
 @admin_bp.route('/settings/costs', methods=['GET'])
 def get_costs_request():
-    if not_auth():
-        return unauthorized()
-
     return Response(jsonpickle.encode(func.get_costs(), unpicklable=False), mimetype='application/json')
 
 
 @admin_bp.route('/settings/costs', methods=['POST'])
 def set_costs_request():
-    if not_auth():
-        return unauthorized()
-
     func.change_costs(request.json)
 
     return Response('1', 200)
@@ -565,9 +524,6 @@ def set_costs_request():
 
 @admin_bp.route('/settings/download_db/<id>', methods=['GET'])
 def download_db(id):
-    if not_auth():
-        return unauthorized()
-
     bot_tg.bot.send_document(id, open(settings.sqlite_file, 'rb'))
 
     return Response('1', 200)
@@ -575,9 +531,6 @@ def download_db(id):
 
 @admin_bp.route('/settings/create_link/<id>', methods=['GET'])
 def create_link(id):
-    if not_auth():
-        return unauthorized()
-
     link, image = func.create_invite_link(id)
     bot_tg.bot.send_photo(id, image,
                           parse_mode='HTML',
@@ -589,32 +542,21 @@ def create_link(id):
 
 @admin_bp.route('/rekruts', methods=['GET'])
 def rekruts():
-    if not_auth():
-        return unauthorized()
-
     return render_template('rekruts.html')
+
 
 @admin_bp.route('/rekruts/get', methods=['GET'])
 def rekruts_get():
-    if not_auth():
-        return unauthorized()
-
     return jsonpickle.encode(func.get_rekruts(request.args.get('all')), unpicklable=False)
 
 
 @admin_bp.route('/rekruts/get_form/<id>', methods=['GET'])
 def rekrut_get(id):
-    if not_auth():
-        return unauthorized()
-
     return jsonpickle.encode(func.get_rekrut_info(id), unpicklable=False)
 
 
 @admin_bp.route('/rekruts/pass', methods=['POST'])
 def rekrut_pass():
-    if not_auth():
-        return unauthorized()
-
     func.pass_rekrut(request.json['user_id'])
     try:
         bot_tg.bot.send_message(request.json['user_id'],
@@ -625,15 +567,23 @@ def rekrut_pass():
     return Response('1', 200)
 
 
+@admin_bp.route('/rekruts/kick', methods=['POST'])
+def rekrut_kick():
+    func.kick_rekrut(request.json['user_id'])
+    try:
+        bot_tg.bot.send_message(request.json['user_id'],
+                                'Выша анкета соискателя было отклонена!')
+    except:
+        pass
+
+    return Response('1', 200)
+
 
 import user_server
 
-app.register_blueprint(admin_bp, url_prefix='/delivery_bot')
-app.register_blueprint(moder_bp, url_prefix='/delivery_bot/moder')
-app.register_blueprint(user_bp, url_prefix='/delivery_bot/user')
-
 if not __name__ == '__main__':
     bot_tg.start_bot()
+    user_bp = user_server.init(user_bp, session)
 
     webhook_info = bot_tg.bot.get_webhook_info()
 
@@ -642,5 +592,9 @@ if not __name__ == '__main__':
         time.sleep(0.1)
 
         bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
+
+app.register_blueprint(admin_bp, url_prefix='/')
+app.register_blueprint(moder_bp, url_prefix='/moder')
+app.register_blueprint(user_bp, url_prefix='/user')
 
 application = app

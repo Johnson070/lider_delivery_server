@@ -160,9 +160,9 @@
 
                 <button class="button" id="close" onclick="hide_popup('report-popup')">x</button>
             </div>
-
             <hr>
             <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <p>Тэг<br><b><span id="tag_report" style="font-size: 22px;margin: 10px;"></span></b><br></p>
             <div id="media">
 
             </div>
@@ -251,10 +251,10 @@
 
     function handleGesture() {
         var swiped = 'swiped: ';
-        if (touchendX < touchstartX) {
+        if (touchendX + 100 < touchstartX) {
             document.getElementById('next-report-button').dispatchEvent(new Event('click'))
         }
-        if (touchendX > touchstartX) {
+        if (touchendX - 100 > touchstartX) {
              document.getElementById('prev-report-button').dispatchEvent(new Event('click'))
         }
     }

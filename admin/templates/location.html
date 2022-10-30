@@ -13,15 +13,15 @@
         var latitude = position.coords.latitude;
         var longitude = position.coords.longitude;
 
-        window.Telegram.WebApp.sendData(JSON.stringify({latitude: latitude, longitude: longitude}));
-        window.Telegram.WebApp.close();
+        window.parent.window.Telegram.WebApp.sendData(JSON.stringify({latitude: latitude, longitude: longitude}));
+        window.parent.window.Telegram.WebApp.close();
     }
     function errorHandler(err) {
         if(err.code == 1) {
-           window.Telegram.WebApp.showAlert("Error: Access is denied!");
+           window.parent.window.Telegram.WebApp.showAlert("Error: Access is denied!");
         }
         else if( err.code == 2) {
-           window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
+           window.parent.window.Telegram.WebApp.showAlert("Error: Position is unavailable!");
         }
     }
     function getLocation(){
@@ -30,7 +30,7 @@
            var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
            navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
         } else{
-           window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
+           window.parent.window.Telegram.WebApp.showAlert("Sorry, browser does not support geolocation!");
         }
     }
 </script>

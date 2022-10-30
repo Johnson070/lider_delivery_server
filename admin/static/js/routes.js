@@ -18,7 +18,7 @@ function get_routes() {
                     routes.appendChild(route)
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -31,9 +31,9 @@ function delete_route() {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.location.href = '/delivery_bot/routes'
+                location.replace( '/delivery_bot/routes');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -45,7 +45,7 @@ async function save_route() {
     let name_route = document.getElementById("name-route").value;
 
     if (file === undefined || file1 === undefined || link_map.match(/https:\/\/yandex\.ru\/maps\/\?um=constructor(.+)/) == null || name_route === '') {
-        window.Telegram.WebApp.showAlert('Заполните все поля и выберите файлы!');
+        window.parent.window.Telegram.WebApp.showAlert('Заполните все поля и выберите файлы!');
         return;
     }
 
@@ -61,7 +61,7 @@ async function save_route() {
         name_route: name_route
     }
 
-    window.Telegram.WebApp.showAlert('Ожидайте');
+    window.parent.window.Telegram.WebApp.showAlert('Ожидайте');
     document.getElementById('route-add-popup').style.display = 'none';
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', window.location.href + '/add', true); // Открываем асинхронное соединение
@@ -71,13 +71,13 @@ async function save_route() {
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 if (this.responseText == '-1') {
-                    window.Telegram.WebApp.showAlert('Произошла ошибка при добавлении. Проверьте файлы!');
+                    window.parent.window.Telegram.WebApp.showAlert('Произошла ошибка при добавлении. Проверьте файлы!');
                     return;
                 }
 
                 window.location.reload(true);
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }

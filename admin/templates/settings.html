@@ -57,7 +57,7 @@
     get_report_costs();
     get_user_permissions();
 
-    let tg = window.Telegram.WebApp;
+    let tg = window.parent.window.Telegram.WebApp;
 
     let usercard = document.getElementById("usercard"); //получаем блок usercard
     let profName = document.createElement('p'); //создаем параграф

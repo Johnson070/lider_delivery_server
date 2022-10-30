@@ -18,7 +18,7 @@ function users() {
                     users.appendChild(user)
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }

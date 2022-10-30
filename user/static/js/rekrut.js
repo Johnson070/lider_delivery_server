@@ -4,7 +4,7 @@ xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправл�
 xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
     if (xmlhttp.readyState == 4) { // Ответ пришёл
-        if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+        if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
     }
 };
 
@@ -19,7 +19,7 @@ async function save_rekrut() {
 
     if (full_name.match(/(.+) (.+) (.+)/) == null || birthday === undefined || region === '' || qualities === '' ||
         info === '' || photo === undefined) {
-        window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению!');
+        window.parent.window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению!');
         return;
     }
 
@@ -44,12 +44,12 @@ async function save_rekrut() {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if (xmlhttp.status == 200) {
-              window.Telegram.WebApp.showAlert('Ожидайте, когда ваша анкета будет одобрена');
+              window.parent.window.Telegram.WebApp.showAlert('Ожидайте, когда ваша анкета будет одобрена');
               window.location.reload();
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
             else {
-                window.Telegram.WebApp.showAlert('Произошла ошибка.\nПопробуйте позже.');
+                window.parent.window.Telegram.WebApp.showAlert('Произошла ошибка.\nПопробуйте позже.');
             }
         }
     };

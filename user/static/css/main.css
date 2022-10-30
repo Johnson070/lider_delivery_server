@@ -463,11 +463,15 @@ hr {
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+  width: 92%;
 }
 
 .manage-mission > * {
-  margin: 0 5px;
+  margin: 5px 5px;
   height: 40px;
+  width: calc(50% - 10px);
+  flex-grow: 1;
 }
 
 

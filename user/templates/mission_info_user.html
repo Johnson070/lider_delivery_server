@@ -72,38 +72,47 @@
         <div class="text-info-container">
             <div class="name-property">Задание</div>
             <div class="value-property">
-                <b><span id="name-mission">qdqqdqwd</span></b>
+                <b><span id="name-mission">{{ name }}</span></b>
             </div>
         </div>
         <div class="text-info-container">
-            <div class="name-property">Вознаграждение</div>
+            <div class="name-property">Заработано</div>
             <div class="value-property">
-                <b><span id="reward">qdqqdqwd</span></b>
+                <b><span id="reward">{{ reward }} руб.</span></b>
             </div>
         </div>
         <div class="text-info-container">
             <div class="name-property">Кол-во домов</div>
             <div class="value-property">
-                <b><span id="buildings">qdqqdqwd</span></b>
+                <b><span id="buildings">{{ buildings }}</span></b>
             </div>
         </div>
         <div class="text-info-container">
-            <div class="name-property">Осталось времени</div>
+            <div class="name-property">Время окончания</div>
             <div class="value-property">
-                <b><span id="time-remaining">qdqqdцуацуайцвцйвцйqwd</span></b>
+                <b><span id="time-remaining">{{ time }}</span></b>
             </div>
         </div>
         <div class="text-info-container">
             <div class="name-property">Статус</div>
             <div class="value-property">
-                <b><span id="status-mission">qdqqdqwd</span></b>
+                <b><span id="status-mission">{{ status }}</span></b>
             </div>
         </div>
     </div>
 
     <div class="manage-mission">
-        <button class="button delete-button">Завершить задание</button>
+        {% if not expired and not end %}
+        <button class="button delete-button" onclick="end_mission();">Завершить задание</button>
         <button class="button" onclick="show_popup('add-report-popup')">Добавить отчет</button>
+        {% else %}
+        {% if expired and not end %}
+        <button class="button delete-button" style="width: 100%;">Завершить задание</button>
+        {% endif %}
+        {% endif %}
+        <a href='/delivery_bot/user/'>
+        <button class="button" style="width: 100%; height: 100%;">Назад</button>
+        </a>
     </div>
 
     <div id="map" class="map" style="width: 98%; height: 400px;"></div>
@@ -177,7 +186,13 @@
             </div>
 
             <hr>
-            <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            {% if not expired and not end %}
+                <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            {% else %}
+                <div id="delete_report" style="display: none;"></div>
+            {% endif %}
+
+            <p>Тэг<br><b><span id="tag_report" style="font-size: 22px;margin: 10px;"></span></b><br></p>
             <div id="media">
 
             </div>
@@ -225,10 +240,10 @@
 
     function handleGesture() {
         var swiped = 'swiped: ';
-        if (touchendX < touchstartX) {
+        if (touchendX + 100 < touchstartX) {
             document.getElementById('next-report-button').dispatchEvent(new Event('click'))
         }
-        if (touchendX > touchstartX) {
+        if (touchendX - 100 > touchstartX) {
              document.getElementById('prev-report-button').dispatchEvent(new Event('click'))
         }
     }

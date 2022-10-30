@@ -322,7 +322,7 @@
   function onThemeChanged(eventType, eventData) {
     if (eventData.theme_params) {
       setThemeParams(eventData.theme_params);
-      window.Telegram.WebApp.MainButton.setParams({});
+      window.parent.window.Telegram.WebApp.MainButton.setParams({});
       updateBackgroundColor();
       receiveWebViewEvent('themeChanged');
     }
@@ -1258,7 +1258,7 @@
     WebView.postEvent('web_app_close');
   };
 
-  window.Telegram.WebApp = WebApp;
+  window.parent.window.Telegram.WebApp = WebApp;
 
   updateBackgroundColor();
   setViewportHeight();

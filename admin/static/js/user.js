@@ -26,7 +26,7 @@ function get_missions() {
 
                     const id = json[i][0];
                     btn.onclick = function () {
-                        window.Telegram.WebApp.showConfirm('Вы уверены что хотите удалить миссию у пользователя?',
+                        window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите удалить миссию у пользователя?',
                             function (state) {
                                 if (state) delete_mission(id);
                             });
@@ -34,34 +34,36 @@ function get_missions() {
                     remove_buttons.appendChild(btn);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
 
 function kick_user_confirm() {
-    window.Telegram.WebApp.showConfirm('Вы уверены что хотите исключить пользователя?', function (state) {
+    window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите исключить пользователя?', function (state) {
         if (state) kick_user();
     })
 }
 
 function kick_user() {
-    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('POST', window.location.href+'/kick', true); // Открываем асинхронное соединение
-    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-    xmlhttp.send(); // Отправляем POST-запрос
-    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
-        if (xmlhttp.readyState == 4) { // Ответ пришёл
-            if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.location.href = '/delivery_bot/users'
+    window.parent.window.Telegram.WebApp.showConfirm('JNghfdbnm с уведомлением?', function (state) {
+        var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+        xmlhttp.open('POST', window.location.href+'/kick', true); // Открываем асинхронное соединение
+        xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+        xmlhttp.send(state); // Отправляем POST-запрос
+        xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+            if (xmlhttp.readyState == 4) { // Ответ пришёл
+                if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                    location.replace('/delivery_bot/users');
+                }
+                else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
-        }
-    };
+        };
+    })
 }
 
 function confirm_pass_balance() {
-    window.Telegram.WebApp.showConfirm('Вы уверены что хотите списать баланс пользователя?',
+    window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите списать баланс пользователя?',
         function (state) {
             if (state) change_balance();
         })
@@ -77,7 +79,7 @@ function change_balance(elem = null) {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -104,7 +106,7 @@ function get_routes() {
                     if (i == 0) document.getElementById('count-reports').value = json[0][2];
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -127,7 +129,7 @@ function add_mission(){
     let count_reports = document.getElementById("count-reports").value;
 
     if (uuid_mission === '' || name_mission === '' || days_expired === '' || count_reports === '') {
-        window.Telegram.WebApp.showAlert("Проверьте заполнены ли все поля");
+        window.parent.window.Telegram.WebApp.showAlert("Проверьте заполнены ли все поля");
         return;
     }
 
@@ -148,7 +150,7 @@ function add_mission(){
             if(xmlhttp.status != 401) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload();
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -163,7 +165,7 @@ function delete_mission(id) {
             if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload();
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }

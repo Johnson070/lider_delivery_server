@@ -4,7 +4,7 @@ xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправл�
 xmlhttp.send(); // Отправляем POST-запрос
 xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
     if (xmlhttp.readyState == 4) { // Ответ пришёл
-        if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+        if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
     }
 };
 
@@ -47,7 +47,7 @@ xmlhttp.onreadystatechange = function() { // Ждём ответа от серв
 //             }
 //             add_coll_listener()
 //         }
-//         else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+//         else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
 //     }
 // };
 function report_block() {
@@ -65,7 +65,7 @@ function report_block() {
                 for (var i = 0; i < json.length; i++) {
                     var btn_report = document.createElement('button');
                     btn_report.className = 'button';
-                    btn_report.innerText = `Отчет №${json[i]['id']}\nДом ${json[i]['building_id']+1}`;
+                    btn_report.innerText = `Отчет №${json[i]['id']}\nДом ${json[i]['building_id']}`;
 
                     const data = json[i];
                     const idx = i;
@@ -76,9 +76,11 @@ function report_block() {
                             document.getElementById('prev-report-button').name = `report_${idx == 0 ? (count_reports) : idx }`;
 
                             document.getElementById('delete_report').name = `${data['date']}`;
-
+                            document.getElementById('tag_report').innerText = `${data['tag']}`;
+                            
                             document.getElementById('report-name').innerText =
-                                `Отчет №${data['id']} Дом ${data['building_id']+1}`;
+                                `Отчет №${data['id']}
+                                ${data['building_id']}`;
 
                             media = document.getElementById('media');
                             media.innerHTML = '';
@@ -124,7 +126,7 @@ function delete_report(id) {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -153,9 +155,11 @@ function show_popup_report(id) {
                     document.getElementById('prev-report-button').name = `report_${id == 1 ? (json.length) : id-1 }`;
 
                     document.getElementById('report-name').innerText =
-                                `Отчет №${json[i]['id']} Дом ${json[i]['building_id']+1}`;
+                                `Отчет №${json[i]['id']}
+                                ${json[i]['building_id']}`;
 
                     document.getElementById('delete_report').name = `${json[i]['date']}`;
+                    document.getElementById('tag_report').innerText = `${json[i]['tag']}`;
                     images = document.createElement('div');
                     images.className = 'report-grid-photos'
                     for (var j = 0; j < json[i]['photos'].length; j++) {
@@ -175,12 +179,12 @@ function show_popup_report(id) {
                 }
                 add_coll_listener()
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
 
-let tg = window.Telegram.WebApp
+let tg = window.parent.window.Telegram.WebApp
 
 tg.expand(); //расширяем на все окно
 
@@ -195,7 +199,7 @@ function manage_mission(item) {
                 if (item.id == 'delete') window.location.href = '/delivery_bot/'
                 else document.location.reload(true)
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -209,7 +213,7 @@ function confirm_delete_mission() {
 
     const id = new item('delete')
 
-    window.Telegram.WebApp.showConfirm('Вы уверены что хотите безвозратно удалить миссию? ',
+    window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите безвозратно удалить миссию? ',
     function (state) {
             if (state) manage_mission(id);
         });
@@ -234,7 +238,7 @@ function get_users(username) {
                     users_select.appendChild(user);
                 }
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -247,7 +251,7 @@ function change_mission() {
     date = document.getElementById('time').value.replace('T',' ');
 
     if (user === '' || name === '' || reward === '' || reports === '' || date === '')
-        window.Telegram.WebApp.showAlert('Заполните все поля!');
+        window.parent.window.Telegram.WebApp.showAlert('Заполните все поля!');
 
     json = {
         user: user,
@@ -266,7 +270,7 @@ function change_mission() {
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
                 window.location.reload()
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
@@ -369,7 +373,7 @@ function init_map() {
                         var props = feature.getProperties();
                         var info = `${props['iconCaption']}<br>`;
                         info += new Date((props['unix'] + gmtHours*60*60)*1000).toISOString().slice(0,19).replace('T',' ');
-                        info += `<br>Номер дома: ${props['building']+1}`;
+                        info += `<br>Номер дома: ${props['building']}`;
                         var btn = document.getElementById('btn-report');
                         btn.onclick = function () {
                             show_popup_report(props['id']);
@@ -383,13 +387,13 @@ function init_map() {
 
                 });
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
 
 function download_report(url) {
-    window.Telegram.WebApp.showAlert('Отчет формируется.\nОжидайте когда он вам придет в сообщения');
+    window.parent.window.Telegram.WebApp.showAlert('Отчет формируется.\nОжидайте когда он вам придет в сообщения');
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('GET', url, true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
@@ -397,25 +401,16 @@ function download_report(url) {
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.Telegram.WebApp.showAlert('Отчет отправлен!');
+                window.parent.window.Telegram.WebApp.showAlert('Отчет отправлен!');
             }
-            else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }
     };
 }
 
 function change_report(name) {
     var open_report = new Event('click');
-    var slide = new Event('slide');
-
-    var block = document.getElementById('animation-popup');
-    block.dispatchEvent(slide);
-    // block.classList.add('change-slide');
     document.getElementById(name).dispatchEvent(open_report);
-
-    // block.addEventListener('animationend', function () {
-    //     this.classList.remove('change-slide');
-    // })
 }
 
 // if (!/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification)))

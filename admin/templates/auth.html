@@ -6,7 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1">
     <title>Delivery Bot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script> <!--Подключаем скрипт от телеграм-->
-    <link rel="stylesheet" href="/delivery_bot/static/css/main.css">
+    <style>
+        body {
+          font-family: var(--default-font);
+          font-size: 16px;
+          line-height: 16px;
+          font-weight: 400;
+          background-color: var(--block-bg-color);
+          color: var(--tg-theme-button-text-color);
+          /*color-scheme: var(--tg-color-scheme);*/
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          min-width: 100%;
+
+          --default-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+          --block-bg-color: var(--tg-theme-bg-color);
+          --bg-color: var(--tg-theme-secondary-bg-color, #ebedf0);
+          --animation: .15s ease;
+          --page-animation-duration: .3s;
+          --page-animation: var(--page-animation-duration) ease;
+          --status-height: 48px;
+          --accent-color: #31b545;
+          --main-color: #f8a917;
+          --text-color: #222;
+          --page-hint-color: #83878a;
+          --hint-color: #74787a;
+          --placeholder-color: #999da1;
+          --ripple-duration: .45s;
+          --ripple-end-duration: .3s;
+          -webkit-user-select: none;
+          user-select: none;
+          cursor: default;
+
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .hint{
+           color: var(--tg-theme-hint-color);
+        }
+    </style>
 </head>
 
 <body>
@@ -22,19 +63,19 @@
    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
    xmlhttp.open('POST', '/delivery_bot/validate', true); // Открываем асинхронное соединение
    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-   xmlhttp.send(window.Telegram.WebApp.initData); // Отправляем POST-запрос
+   xmlhttp.send(window.parent.window.Telegram.WebApp.initData); // Отправляем POST-запрос
    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
        if (xmlhttp.readyState == 4) { // Ответ пришёл
           sleep(3);
           if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-             window.location.href = `/delivery_bot`;
+             location.replace(`/delivery_bot`);
           }
-          else if (xmlhttp.status == 401) window.location.href = '/delivery_bot/unauthorized';
+          else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
        }
    };
 
 
-   let tg = window.Telegram.WebApp; //получаем объект webapp телеграма
+   let tg = window.parent.window.Telegram.WebApp; //получаем объект webapp телеграма
 
    tg.expand(); //расширяем на все окно
 </script>
