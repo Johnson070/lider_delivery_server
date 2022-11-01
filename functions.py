@@ -44,17 +44,23 @@ def parse_geo_json(json):
         return False
 
 
-def get_hash(s, char_length=8):
+def get_hash(s, char_length=3):
     """Geneate hexadecimal string with given length from a string
     >>> short_str("hello world", 8)
     '309ecc48'
     """
+    conn, cursor = open_db()
 
     if char_length > 128:
         raise ValueError("char_length {} exceeds 128".format(char_length))
     hash_object = hashlib.sha512(s.encode())
-    hash_hex = hash_object.hexdigest()
-    return hash_hex[0:char_length].upper()
+    hash_hex = hash_object.digest()
+    pos = int.from_bytes(hash_hex[0:char_length], byteorder='big')
+    while pos >= 123499:
+        pos -= 123499
+    word = cursor.execute('''SELECT word FROM words WHERE id = ?''', (pos, )).fetchall()[0][0]
+    close_db(conn, cursor)
+    return '#'+word
 
 
 # создание qr кода на добавление пользователя работает 1 день и только для одного пользователя
@@ -567,16 +573,16 @@ def get_reports_by_id(id, user_id=None):
     reports = ''
     if user_id is None:
         reports = cur.execute(
-        '''SELECT location,photo_id,video_id,[date],building_id FROM reports WHERE mission_id = ? ORDER BY [date] ASC;''',
+        '''SELECT location,photo_id,video_id,[date],building_id,user_id,[type] FROM reports WHERE mission_id = ? ORDER BY [date] ASC;''',
         (id,)).fetchall()
     else:
         reports = cur.execute(
-        '''SELECT location,photo_id,video_id,[date],building_id FROM reports WHERE mission_id = ? AND user_id = ? ORDER BY [date] ASC;''',
+        '''SELECT location,photo_id,video_id,[date],building_id,user_id,[type]  FROM reports WHERE mission_id = ? AND user_id = ? ORDER BY [date] ASC;''',
         (id, user_id, )).fetchall()
     close_db(conn, cur)
 
     if len(reports) > 0 and reports[0][0] is not None:
-        ids = [[i[0], i[1], i[2], i[3], i[4]] for i in reports]
+        ids = [[i[0], i[1], i[2], i[3], i[4], i[5], i[6]] for i in reports]
     else:
         return []
 
@@ -593,6 +599,36 @@ def delete_report(date, id_user):
     cur.execute('''DELETE FROM reports WHERE mission_id = ? AND user_id = ? AND [date] = ?''',
                 (report_info[0], id_user, date))
     conn.commit()
+    close_db(conn, cur)
+
+
+def delete_building(date, user_id):
+    conn, cur = open_db()
+    route_id, building_id = list(cur.execute('''SELECT missions.id_route, reports.building_id FROM missions, reports WHERE reports.user_id = ? AND reports.date = ? AND reports.mission_id = missions.id''',
+                           (user_id, date, )).fetchall())[0]
+
+    coords, addrs = list(cur.execute('''SELECT coords, addrs FROM routes WHERE id = ?''',
+                                (route_id, )).fetchall())[0]
+    coords: dict = jsonpickle.decode(coords)
+    addrs: dict = jsonpickle.decode(addrs)
+
+    coords.pop(str(building_id))
+    addrs.pop(str(building_id))
+    jsonpickle.set_preferred_backend('json')
+    jsonpickle.set_encoder_options('json', ensure_ascii=False)
+
+    cur.execute('''UPDATE routes SET coords = ?, addrs = ?, buildings = buildings-1 WHERE id = ?''',
+                (jsonpickle.encode(coords),
+                 jsonpickle.encode(addrs),
+                 route_id, ))
+
+    report_info = cur.execute(
+        '''SELECT mission_id,type FROM reports WHERE [date] = ?''',
+        (date,)).fetchall()[0]
+    cur.execute('''DELETE FROM reports WHERE mission_id = ? AND user_id = ? AND [date] = ?''',
+                (report_info[0], user_id, date))
+    conn.commit()
+
     close_db(conn, cur)
 
 
@@ -633,7 +669,7 @@ def get_costs():
     costs = cur.execute('''SELECT * FROM types_cost ORDER BY [id] ASC''').fetchall()
     close_db(conn, cur)
 
-    costs = {i[0]: (i[1], i[2]) for i in costs}
+    costs = {i[0]: (i[1], i[2], i[3]) for i in costs}
 
     return costs
 
@@ -736,11 +772,11 @@ def check_rekrut_form(user_id):
     return False
 
 
-def save_rekrut(user_id, full_name, birthday, local_region, qualities, info, reward, photo_id):
+def save_rekrut(user_id, full_name, birthday, local_region, qualities, info, reward, photo_id, time_work, national):
     conn, cur = open_db()
-    cur.execute('''INSERT INTO forms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+    cur.execute('''INSERT INTO forms VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (str(uuid.uuid4()), user_id, datetime.datetime.now().timestamp(), full_name, birthday, local_region,
-                 qualities, info, reward, photo_id, ))
+                 qualities, info, reward, photo_id, time_work, national))
     conn.commit()
     close_db(conn, cur)
 

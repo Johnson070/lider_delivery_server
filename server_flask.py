@@ -199,7 +199,7 @@ def info_mission(uuid):
                                time=mission[4],
                                status='✅ Выполнено' if (mission[7] and mission[8]) else
                                ('⚠️ Ожидает подтверждения' if (mission[7] and not mission[8]) else
-                                ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')),
+                                ('❌️Забраковано' if (not mission[7] and mission[8]) else '🟢 Не выполнено')),
                                proof=mission[7] and mission[8],
                                rejected=not mission[7] and mission[8],
                                uuid=mission[0],
@@ -216,7 +216,7 @@ def get_missions():
 
     missions = [[i[0], ('✅ ' if (i[2] and i[3]) else
                         ('⚠️ ' if (i[2] and not i[3]) else
-                         ('❗️❗️ ' if (not i[2] and i[3]) else '❌ '))) + i[1]] for i in missions]
+                         ('❌️ ' if (not i[2] and i[3]) else '🟢 '))) + i[1]] for i in missions]
 
     return jsonpickle.encode(missions, unpicklable=False)
 
@@ -241,19 +241,19 @@ def manage_mission(uuid, method):
         func.reject_mission_by_id(uuid)
         mission = func.get_full_info_mission(uuid)
 
-        bot_tg.bot.send_message(mission[1],
-                                f'Задание: {mission[2]}!\n'
-                                'Ваше задание было отбраковано.\n'
-                                'Свяжитесь с менеджером для уточнения информации.')
+        # bot_tg.bot.send_message(mission[1],
+        #                         f'Задание: {mission[2]}!\n'
+        #                         'Ваше задание было отбраковано.\n'
+        #                         'Свяжитесь с менеджером для уточнения информации.')
         return Response(None, 200)
     elif method == 'retry_rep':
         func.retry_mission_by_id(uuid)
         mission = func.get_full_info_mission(uuid)
 
-        bot_tg.bot.send_message(mission[1],
-                                f'Задание: {mission[2]}!\n'
-                                'Ваше задание было продлено на 1 день.\n'
-                                'Завершите его в срок.')
+        # bot_tg.bot.send_message(mission[1],
+        #                         f'Задание: {mission[2]}!\n'
+        #                         'Ваше задание было продлено на 1 день.\n'
+        #                         'Завершите его в срок.')
         return Response(None, 200)
     elif method == 'delete' and not not_auth():
         func.delete_mission(uuid)
@@ -308,6 +308,14 @@ def delete_report(uuid):
     return Response('1', 200)
 
 
+@admin_bp.route('/mission/<uuid>/delete_building', methods=['POST'])
+def delete_building(uuid):
+    data = request.json
+    func.delete_building(data[0], data[1])
+
+    return Response('1', 200)
+
+
 @admin_bp.route('/mission/<uuid>/report', methods=['GET'])
 @moder_bp.route('/mission/<uuid>/report', methods=['GET'])
 def get_base64_reports(uuid):
@@ -322,12 +330,12 @@ def get_base64_reports(uuid):
         json_report.append({})
         json_report[-1]['id'] = _ + 1
         json_report[-1]['date'] = reports[_][3]
+        json_report[-1]['type'] = reports[_][6]
         json_report[-1]['building_id'] = addrs[str(reports[_][4])]
         json_report[-1]['tag'] = \
             func.get_hash(str(datetime.datetime.fromtimestamp(reports[_][3]).replace(hour=0, minute=0, second=0,
                                                                                      microsecond=0)) +
-                          str(reports[_][1]))
-        #TODO: исправить тэг
+                          str(reports[_][5]))
         json_report[-1]['coords'] = jsonpickle.decode(reports[_][0])
         if reports[_][1].isdigit() or not re.search(r'(([a-f0-9]+-){4}([a-f0-9]+))$', reports[_][1]) is None:
             reports[_][1] = func.get_photos_by_media_id(reports[_][1])

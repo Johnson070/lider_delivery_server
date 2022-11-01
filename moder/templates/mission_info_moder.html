@@ -117,7 +117,7 @@
         {% if proof and not rejected %}
             <div class="buttons-grid-done">
             <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/moder/download/report/{{ uuid }}");'>Скачать отчет</button>
-            <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
+            <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
             </div>
         {% else %}
         {% if rejected %}
@@ -158,7 +158,7 @@
             </div>
 
             <hr>
-            <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <button style="margin-bottom: 0px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
             <p>Тэг<br><b><span id="tag_report" style="font-size: 22px;margin: 10px;"></span></b><br></p>
             <div id="media">
 
@@ -172,40 +172,6 @@
 
     </div>
 
-    <div class="popup-blur" id="edit-mission-popup">
-        <div class="popup-block">
-            <div class="close-popup" onclick="hide_popup('edit-mission-popup')">x</div>
-            <p>Изменить задание</p>
-            <hr>
-            <div class="text-info-container">
-                <div class="name-property">Исполнитель</div>
-                <div class="value-property"><select id="select-user"></select></div>
-            </div>
-            <div class="text-info-container">
-                <div class="name-property">Название задания</div>
-                <div class="value-property">
-                    <input id="name-mission" type="text" value="{{ name_mission }}" placeholder="{{ name_mission }}" required></div>
-            </div>
-            <div class="text-info-container">
-                <div class="name-property">Вознаграждение</div>
-                <div class="value-property">
-                    <input id="reward" type="number" value="{{ reward }}" inputmode="decimal" required></div>
-            </div>
-            <div class="text-info-container">
-                <div class="name-property">Кол-во домов</div>
-                <div class="value-property">
-                    <input id="count-reports" type="number" value="{{ all_count }}" inputmode="decimal" readonly></div>
-            </div>
-            <div class="text-info-container">
-                <div class="name-property">Время окончания</div>
-                <div class="value-property">
-                    <input id="time" type="datetime-local" value="{{ time }}" required></div>
-            </div>
-            <p><button class='button' onclick="change_mission()">Сохранить</button></p>
-        </div>
-    </div>
-
-    <button class='button ext-button' onclick='show_popup("edit-mission-popup")'>Изменить</button>
     <p class="hint">Панель администрирования бота</p> <!--Просто текст-подсказка для проверки-->
 </body>
 <script>

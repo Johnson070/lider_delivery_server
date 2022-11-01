@@ -121,7 +121,7 @@
         {% if proof and not rejected %}
             <div class="buttons-grid-done">
             <button class='button grid-item-btn-download' onclick='download_report("/delivery_bot/download/report/{{ uuid }}");'>Скачать отчет</button>
-            <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать(⚠️)</button>
+            <button class='button grid-item-btn-reject' id='reject' onclick='manage_mission(this)'>Забраковать</button>
             </div>
         {% else %}
         {% if rejected %}
@@ -161,7 +161,8 @@
                 <button class="button" id="close" onclick="hide_popup('report-popup')">x</button>
             </div>
             <hr>
-            <button style="margin-bottom: 15px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <button style="margin-bottom: 0px; margin-top: -5px;" class="button delete-button" name="0" id='delete_report' onclick="delete_report(this.name)">Удалить</button>
+            <button style="margin-bottom: 15px; margin-top: 5px; display: none;" class="button delete-button" name="0" id='delete_building' onclick="delete_building(this.name)">Удалить дом</button>
             <p>Тэг<br><b><span id="tag_report" style="font-size: 22px;margin: 10px;"></span></b><br></p>
             <div id="media">
 

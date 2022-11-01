@@ -131,6 +131,22 @@ function delete_report(id) {
     };
 }
 
+function delete_building(id) {
+    var user_id = document.getElementById('user-id').name;
+    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+    xmlhttp.open('POST', window.location.href+'/delete_building', true); // Открываем асинхронное соединение
+    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.send(JSON.stringify([id, user_id])); // Отправляем POST-запрос
+    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+        if (xmlhttp.readyState == 4) { // Ответ пришёл
+            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                document.location.reload(true)
+            }
+            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
+        }
+    };
+}
+
 
 function show_popup_report(id) {
     popup = document.getElementById('report-popup');
@@ -157,7 +173,6 @@ function show_popup_report(id) {
                     document.getElementById('report-name').innerText =
                                 `Отчет №${json[i]['id']}
                                 ${json[i]['building_id']}`;
-
                     document.getElementById('delete_report').name = `${json[i]['date']}`;
                     document.getElementById('tag_report').innerText = `${json[i]['tag']}`;
                     images = document.createElement('div');
@@ -222,38 +237,6 @@ function get_users(username) {
                     user.selected = users_list[i][1] == username ? true : false;
                     users_select.appendChild(user);
                 }
-            }
-            else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
-        }
-    };
-}
-
-function change_mission() {
-    user = document.getElementById('select-user').value;
-    name = document.getElementById('name-mission').value;
-    reward = document.getElementById('reward').value;
-    reports = document.getElementById('count-reports').value;
-    date = document.getElementById('time').value.replace('T',' ');
-
-    if (user === '' || name === '' || reward === '' || reports === '' || date === '')
-        window.parent.window.Telegram.WebApp.showAlert('Заполните все поля!');
-
-    json = {
-        user: user,
-        name: name,
-        reward: reward,
-        reports: reports,
-        date: date
-    }
-
-    var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
-    xmlhttp.open('POST', window.location.href + '/change', true); // Открываем асинхронное соединение
-    xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-    xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
-    xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
-        if (xmlhttp.readyState == 4) { // Ответ пришёл
-            if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
-                window.location.reload()
             }
             else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
         }

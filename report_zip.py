@@ -112,7 +112,7 @@ def get_report(id):
                            buildings=buildings,
                            status='✅ Выполнено' if (mission[7] and mission[8]) else
                            ('⚠️ Ожидает подтверждения' if (mission[7] and not mission[8]) else
-                            ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')))
+                            ('❌️Забраковано' if (not mission[7] and mission[8]) else '🟢 Не выполнено')))
 
 
 def get_geojson(id, user_id=None):

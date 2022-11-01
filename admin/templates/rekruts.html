@@ -44,7 +44,7 @@
                 <div class="text-info-container">
                     <div class="name-property">ФИО</div>
                     <div class="value-property">
-                        <input type="text" id='full_name' placeholder="ФИО" readonly>
+                        <input type="text" id='full_name' placeholder="ФИО" readonly >
                     </div>
                 </div>
                 <div class="text-info-container">
@@ -54,7 +54,19 @@
                     </div>
                 </div>
                 <div class="text-info-container">
-                    <div class="name-property">Район проживания(работы)</div>
+                    <div class="name-property">Гражданство</div>
+                    <div class="value-property">
+                        <input id="national" readonly style="width: 130px;">
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Сколько времени<br> Вы готовы тратить<br> на работу</div>
+                    <div class="value-property">
+                        <input id="time_work" readonly style="width: 130px;">
+                    </div>
+                </div>
+                <div class="text-info-container">
+                    <div class="name-property">Район проживания<br>(работы)</div>
                     <div class="value-property">
                         <input type="text" style='width: 100px;' id="region" placeholder="Фрунзенский р-н" readonly>
                     </div>
@@ -62,7 +74,7 @@
                 <div class="text-info-container">
                     <div class="name-property">Ожидаемая з/п</div>
                     <div class="value-property">
-                        <input type="number" id='reward' inputmode="numeric" readonly>
+                        <input type="number" id='reward' style="width: 150px;" inputmode="numeric" readonly>
                     </div>
                 </div>
                 <div class="text-info-container">
@@ -175,7 +187,9 @@
                     document.getElementById('info').value = json[8];
                     document.getElementById('reward').value = json[9];
                     document.getElementById('photo').src = `/delivery_bot/get_file?file_id=${json[10]}`;
-                    if (json[11] == '1') document.getElementById('pass-user').style.display = 'none';
+                    document.getElementById('time_work').value = json[11];
+                    document.getElementById('national').value = json[12];
+                    if (json[13] == '1') document.getElementById('pass-user').style.display = 'none';
                 }
                 else location.replace('/delivery_bot/unauthorized');
             }

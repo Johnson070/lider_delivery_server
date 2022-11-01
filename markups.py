@@ -361,7 +361,7 @@ def check_report_menu(id, proof=False, rejected=False, back_to_all=False):
     elif proof and not rejected:
         markup.add(
             types.InlineKeyboardButton('Скачать отчет', callback_data=f'download_rep_{id}'),
-            types.InlineKeyboardButton('Забраковать(⚠️)', callback_data=f'reject_{id}')
+            types.InlineKeyboardButton('Забраковать', callback_data=f'reject_{id}')
         )
     elif rejected:
         markup.add(

@@ -23,7 +23,7 @@ def application(a=None,b=None):
             if serve_on_server:
                 pass
             else:
-                threading.Thread(target=bot_tg.bot.polling).start()
+                # threading.Thread(target=bot_tg.bot.polling).start()
                 pass
 
             server_flask.application.run(debug=True, host='localhost', port=443, ssl_context=('localhost.crt', 'localhost.key'))

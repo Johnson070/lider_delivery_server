@@ -45,7 +45,7 @@ def init(user_bp: flask.Blueprint, session: flask.session):
             pass
 
         func.save_rekrut(session.get('user_id'), data['full_name'], data['birthday'], data['region'], data['qualities'],
-                         data['info'], data['reward'], msg.photo[-1].file_id)
+                         data['info'], data['reward'], msg.photo[-1].file_id, data['time_work'], data['national'])
 
         return Response(None, 200)
 
@@ -60,7 +60,7 @@ def init(user_bp: flask.Blueprint, session: flask.session):
         return jsonpickle.encode(
             [[i[0], ('✅ ' if (i[2] and i[3]) else
                      ('⚠️ ' if (i[2] and not i[3]) else
-                      ('❗️❗️ ' if (not i[2] and i[3]) else '❌ '))) + i[1]] for i in
+                      ('❌️ ' if (not i[2] and i[3]) else '🟢 '))) + i[1]] for i in
              func.get_missions_by_user_id(session.get('user_id'))]
         )
 
@@ -92,7 +92,7 @@ def init(user_bp: flask.Blueprint, session: flask.session):
                                expired=expired,
                                status='✅ Выполнено' if (mission[7] and mission[8]) else
                                ('⚠️ Ожидает подтверждения' if (mission[7] and not mission[8]) else
-                                ('❗️❗️Забраковано' if (not mission[7] and mission[8]) else '❌ Не выполнено')))
+                                ('❌️Забраковано' if (not mission[7] and mission[8]) else '🟢 Не выполнено')))
 
     @user_bp.route('/mission/<uuid>/<method>', methods=['GET'])
     def mission_methods(uuid, method):
@@ -113,8 +113,7 @@ def init(user_bp: flask.Blueprint, session: flask.session):
         elif method == 'get_reports_types':
             return Response(jsonpickle.encode(func.get_costs(), unpicklable=False), 200)
         elif method == 'hash':
-            return Response('#' +
-                            func.get_hash(str(datetime.datetime.now().replace(hour=0, minute=0, second=0,
+            return Response(func.get_hash(str(datetime.datetime.now().replace(hour=0, minute=0, second=0,
                                                                               microsecond=0)) +
                                           str(session.get('user_id'))), 200)
         elif method == 'pass':

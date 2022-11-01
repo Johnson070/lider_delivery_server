@@ -15,9 +15,11 @@ async function save_rekrut() {
     let qualities = document.getElementById('qualities').value;
     let info = document.getElementById('info').value;
     let reward = document.getElementById('reward').value;
+    let time_work = document.getElementById('time_work').value;
+    let national = document.getElementById('national').value;
     let photo = document.getElementById('photo').files[0];
 
-    if (full_name.match(/(.+) (.+) (.+)/) == null || birthday === undefined || region === '' || qualities === '' ||
+    if (full_name.match(/(.+)/) == null || birthday === undefined || region === '' || qualities === '' ||
         info === '' || photo === undefined) {
         window.parent.window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению!');
         return;
@@ -34,9 +36,13 @@ async function save_rekrut() {
         qualities: qualities,
         info: info,
         reward: reward,
-        photo: photo
+        photo: photo,
+        time_work: time_work,
+        national: national
     }
 
+    window.parent.window.Telegram.WebApp.showAlert('Ожидайте!');
+    document.getElementById('rekrut-form').style.display = 'none';
     var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
     xmlhttp.open('POST', '/delivery_bot/user/rekrut', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку

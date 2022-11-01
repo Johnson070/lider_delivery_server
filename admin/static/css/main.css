@@ -85,6 +85,10 @@ a:visited {
   text-decoration: none;
 }
 
+p {
+  color: var(--tg-theme-text-color);
+}
+
 .button{
   display: inline-block;
   border: 5px solid var(--tg-theme-button-color);

@@ -59,6 +59,21 @@
           color: var(--tg-theme-text-color);
       }
 
+      .loader {
+        border: 16px solid var(--tg-theme-text-color); /* Light grey */
+        border-top: 16px solid var(--tg-theme-link-color);; /* Blue */
+        border-radius: 50%;
+          width: 100px;
+          height: 100px;
+        animation: spin 2s linear infinite;
+          margin: 30px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
     </style>
 </head>
 <body onload='init_map();'>
@@ -125,6 +140,13 @@
     <div id="reports">
     </div>
 
+    <div class="popup-blur" id="loader_block" style="z-index: 999999999999999999999;">
+        <div class="popup-block" style="z-index: 9999999999999999999999;">
+            <p>Загрузка</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
     <div class="popup-blur" id="add-report-popup">
         <div class="popup-block">
             <div class="popup-status-bar">
@@ -135,29 +157,27 @@
                 <hr>
                 <p>Ваш тэг<br><b><span id="tag_day" style="font-size: 22px;margin: 10px;"></span></b><br>
                     Его нужно написать на листочке и на всех отчетах должно быть отчетливо видно тэг.</p>
-                <p>На фотографиях и видео должна быть отчетливо видны все листовки.</p>
                 <div class="text-info-user" >
-                    <div class="text-info-container">
-                        <div class="name-property">Тип отчета</div>
-                        <div class="value-property">
-                            <select id="type-report"></select>
+                    <p>Тип отчета</p>
+                    <div id="type-report"></div>
+                    <div id="report-show-confirm" style="display: none;">
+                        <p id="text-report"></p>
+                        <div class="text-info-container">
+                            <div class="name-property">Фото</div>
+                            <div class="value-property">
+                                <input type="file" id="photo-report" multiple accept="image/*" maxsize="" required style="width: 200px">
+                            </div>
                         </div>
-                    </div>
-                    <div class="text-info-container">
-                        <div class="name-property">Фото</div>
-                        <div class="value-property">
-                            <input type="file" id="photo-report" multiple accept="image/*" maxsize="" required style="width: 200px">
-                        </div>
-                    </div>
-                    <div class="text-info-container">
-                        <div class="name-property">Видео</div>
-                        <div class="value-property">
-                            <input type="file" id="video-report" accept="video/*" required style="width: 200px">
+                        <div class="text-info-container">
+                            <div class="name-property">Видео</div>
+                            <div class="value-property">
+                                <input type="file" id="video-report" accept="video/*" required style="width: 200px">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <button type="button" class="button" onclick="get_location_save_report();" style="margin-bottom: 10px;">Отправить</button>
+                <button type="button" class="button" id="send_report_btn" onclick="get_location_save_report();" style="margin-bottom: 10px; display: none;">Отправить</button>
             </div>
         </div>
     </div>

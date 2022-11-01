@@ -46,11 +46,11 @@ function kick_user_confirm() {
 }
 
 function kick_user() {
-    window.parent.window.Telegram.WebApp.showConfirm('JNghfdbnm с уведомлением?', function (state) {
+    window.parent.window.Telegram.WebApp.showConfirm('Исключить с уведомлением?', function (state) {
         var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
         xmlhttp.open('POST', window.location.href+'/kick', true); // Открываем асинхронное соединение
         xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
-        xmlhttp.send(state); // Отправляем POST-запрос
+        xmlhttp.send(state === true ? '1' : '0'); // Отправляем POST-запрос
         xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
             if (xmlhttp.readyState == 4) { // Ответ пришёл
                 if(xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)

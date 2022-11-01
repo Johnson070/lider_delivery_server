@@ -80,6 +80,10 @@ input[type="checkbox"] + label {
   color: var(--tg-theme-text-color);
 }
 
+p {
+  color: var(--tg-theme-text-color);
+}
+
 a:not(:visited),
 a:visited {
   text-decoration: none;

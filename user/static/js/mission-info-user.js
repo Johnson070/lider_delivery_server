@@ -14,11 +14,32 @@ function get_costs_types() {
                 let sel = document.getElementById('type-report');
 
                 let json = JSON.parse(this.responseText);
-
-                for (var i = 0; i < Object.keys(json).length; i++){
-                    var opt = document.createElement('option');
+                const count = Object.keys(json).length
+                for (var i = 0; i < count; i++){
+                    var opt = document.createElement('button');
+                    opt.id = `report_type_btn_${i}`
                     opt.innerText = json[i][0];
-                    opt.value = i;
+                    opt.className = 'button btn-type-report-class';
+                    const text = json[i][2];
+                    const id_btn = `report_type_btn_${i}`;
+                    const name_btn = json[i][0]
+
+                    opt.onclick = function () {
+                        document.getElementById('send_report_btn').style.display = 'block';
+                        for (var j = 0; j < count; j++) {
+                            if (`report_type_btn_${j}` == id_btn) {
+                                document.getElementById(id_btn).innerText = '✅ ' + name_btn;
+                                document.getElementById(id_btn).className += ' selected_type';
+                            }
+                            else {
+                                document.getElementById(`report_type_btn_${j}`).innerText = document.getElementById(`report_type_btn_${j}`).innerText.replace('✅ ','');
+                                document.getElementById(`report_type_btn_${j}`).className = document.getElementById(id_btn).className.replace(' :selected', '');
+                            }
+                        }
+
+                        document.getElementById('text-report').innerText = text;
+                        document.getElementById('report-show-confirm').style.display = 'block';
+                    }
                     sel.appendChild(opt);
                 }
             }
@@ -90,8 +111,10 @@ function confirm_pass_mission() {
 }
 
 async function save_report(location) {
+    show_popup('loader_block');
+
     let selection = document.getElementById('type-report');
-    let type_report = selection[selection.selectedIndex].value;
+    let type_report = document.querySelector('.btn-type-report-class.selected_type').id.replace('report_type_btn_','')
     let photos = document.getElementById('photo-report').files;
     let video = document.getElementById('video-report').files;
 
@@ -123,10 +146,10 @@ async function save_report(location) {
     json['video'] = Array.from(new Uint8Array(await video[0].arrayBuffer()));
 
     hide_popup('add-report-popup');
-    window.parent.window.Telegram.WebApp.showAlert('Ожидайте.');
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open('POST', window.location.href + '/add_report', true); // Открываем асинхронное соединение
     xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+    xmlhttp.timeout = 120000;
     xmlhttp.send(JSON.stringify(json)); // Отправляем POST-запрос
     xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
         if (xmlhttp.readyState == 4) { // Ответ пришёл
@@ -150,9 +173,11 @@ async function save_report(location) {
                     window.parent.window.Telegram.WebApp.showAlert('Отправка отчетов заблокирована!\n' +
                         'Перезагрузите страницу!');
                 }
+                hide_popup('loader_block');
             }
             else {
                 window.parent.window.Telegram.WebApp.showAlert('Произошла ошибка попробуйте снова.')
+                window.location.reload();
             }
         }
     };
@@ -270,7 +295,7 @@ function init_map() {
                     if(navigator.geolocation){
                        // timeout at 60000 milliseconds (60 seconds)
                        var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
-                       navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
+                       navigator.geolocation.watchPosition(showLocation, errorHandler, options);
                     } else{
                        window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
             " смените WebView настройках или поменяйте телефон.");
@@ -302,7 +327,7 @@ function init_map() {
 
                 geolocation.on('change:position', function () {
                   const coordinates = geolocation.getPosition();
-                  map.getView().setCenter(coordinates);
+
                   positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
                 });
 
@@ -347,7 +372,7 @@ function init_map() {
                         var coord = feature.getGeometry().getCoordinates();
                         var props = feature.getProperties();
 
-                        if (props['uuid'] == undefined || ['uuid'] == 'building') return;
+                        if (props['uuid'] === undefined || props['uuid'] === 'building') return;
 
                         var info = `${props['iconCaption']}<br>`;
                         info += new Date((props['unix'] + gmtHours*60*60)*1000).toISOString().slice(0,19).replace('T',' ');

@@ -75,7 +75,9 @@ function report_block() {
                             document.getElementById('next-report-button').name = `report_${count_reports == idx+1 ? 1 : idx+2 }`;
                             document.getElementById('prev-report-button').name = `report_${idx == 0 ? (count_reports) : idx }`;
 
+                            document.getElementById('delete_building').style.display = data['type'] == 3 ? 'block' : 'none';
                             document.getElementById('delete_report').name = `${data['date']}`;
+                            document.getElementById('delete_building').name = `${data['date']}`;
                             document.getElementById('tag_report').innerText = `${data['tag']}`;
                             
                             document.getElementById('report-name').innerText =
@@ -131,6 +133,28 @@ function delete_report(id) {
     };
 }
 
+function delete_building(id) {
+    window.parent.window.Telegram.WebApp.showConfirm('Вы уверены что хотите удалить дом из маршрута?',
+        function (state) {
+            if (state) {
+                var user_id = document.getElementById('user-id').name;
+                var xmlhttp = new XMLHttpRequest(); // Создаём объект XMLHTTP
+                xmlhttp.open('POST', window.location.href+'/delete_building', true); // Открываем асинхронное соединение
+                xmlhttp.setRequestHeader('Content-Type', 'application/json'); // Отправляем кодировку
+                xmlhttp.send(JSON.stringify([id, user_id])); // Отправляем POST-запрос
+                xmlhttp.onreadystatechange = function() { // Ждём ответа от сервера
+                    if (xmlhttp.readyState == 4) { // Ответ пришёл
+                        if (xmlhttp.status == 200) { // Сервер вернул код 200 (что хорошо)
+                            document.location.reload(true)
+                        }
+                        else if (xmlhttp.status == 401) location.replace('/delivery_bot/unauthorized');
+                    }
+                };
+            }
+        });
+
+}
+
 
 function show_popup_report(id) {
     popup = document.getElementById('report-popup');
@@ -151,6 +175,7 @@ function show_popup_report(id) {
                 for (var i = 0; i < json.length; i++) {
                     if (json[i]['id'] != id) continue;
 
+                    document.getElementById('delete_building').style.display = json[i]['type'] == 3 ? 'block' : 'none';
                     document.getElementById('next-report-button').name = `report_${(json.length) == id ? 1 : id+1 }`;
                     document.getElementById('prev-report-button').name = `report_${id == 1 ? (json.length) : id-1 }`;
 
@@ -159,6 +184,7 @@ function show_popup_report(id) {
                                 ${json[i]['building_id']}`;
 
                     document.getElementById('delete_report').name = `${json[i]['date']}`;
+                    document.getElementById('delete_building').name = `${json[i]['date']}`;
                     document.getElementById('tag_report').innerText = `${json[i]['tag']}`;
                     images = document.createElement('div');
                     images.className = 'report-grid-photos'
@@ -377,6 +403,7 @@ function init_map() {
                         var btn = document.getElementById('btn-report');
                         btn.onclick = function () {
                             show_popup_report(props['id']);
+                            document.getElementById('delete_building').style.display = props['type'] == 3 ? 'block' : 'none';
                         };
 
                         content.innerHTML = info;
