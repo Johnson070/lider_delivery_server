@@ -494,9 +494,9 @@ def change_mission(id, user, name, reward, reports, date):
     close_db(conn, cur)
 
 
-def add_photo_to_media(msg_id, file_id, hash):
+def add_photo_to_media(msg_id, file_id, hash, type=0):
     conn, cur = open_db()
-    cur.execute('''INSERT INTO media VALUES (?, ?, ?)''', (msg_id, file_id, hash, ))
+    cur.execute('''INSERT INTO media VALUES (?, ?, ?, ?)''', (msg_id, file_id, hash, type,))
     conn.commit()
     close_db(conn, cur)
 

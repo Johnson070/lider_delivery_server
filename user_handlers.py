@@ -44,6 +44,7 @@ def handler_start(msg):
         #     except:
         #         pass
 
+
 @bot.callback_query_handler(lambda call: call.data == 'start' or call.data == 'start_del')
 def start_handler(call: types.CallbackQuery):
     bot.clear_step_handler_by_chat_id(call.message.chat.id)
@@ -65,6 +66,63 @@ def start_handler(call: types.CallbackQuery):
         # #         bot.delete_message(call.message.chat.id, i, timeout=500)
         # #     except:
         # #         pass
+
+
+def parse_photos_report(msg: types.Message, coords, id, building_id, type_rep, group_id=None):
+    if msg.content_type == 'photo':
+        bot.delete_message(msg.chat.id, msg.message_id)
+
+        if not func.check_file_hash(msg.photo[-1].file_unique_id):
+            try:
+                bot.edit_message_text('Для каждого отчета нужно отправлять новые фотографии!\n'
+                                      'Отправьте фотоотчёт отправка БЕЗ СЖАТИЯ!',
+                                      msg.chat.id,
+                                      msg.message_id,
+                                      reply_markup=markups.end_send_media('end_photo_send'))
+            except:
+                pass
+            bot.register_next_step_handler(msg, parse_photos_report, coords, id, building_id, type_rep, group_id)
+            return
+
+        if group_id is None:
+            group_id = str(uuid.uuid4())
+
+        func.add_photo_to_media(group_id, msg.photo[-1].file_id, msg.photo[-1].file_unique_id)
+
+        bot.register_next_step_handler(msg, parse_photos_report, coords, id, building_id, type_rep, group_id)
+    else:
+        try:
+            bot.delete_message(msg.chat.id, msg.message_id)
+        except:
+            pass
+        bot.register_next_step_handler(msg, parse_photos_report, coords, id, building_id, type_rep, group_id)
+
+
+def parse_video(msg: types.Message, start_msg_id, coords, id, building_id, type_rep, photos):
+    if msg.content_type == 'text' and msg.text == '/start':
+        func.delete_media_by_group_id(photos)
+        handler_start(msg)
+    elif msg.content_type == 'video_note':
+        video_file_id = str(msg.video_note.file_id)
+
+        func.save_report_user(id, msg.chat.id, coords, photos, video_file_id, building_id, type_rep)
+        try:
+            bot.delete_message(msg.chat.id, msg.message_id)
+            bot.delete_message(msg.chat.id, start_msg_id)
+        except:
+            pass
+        bot.send_message(msg.chat.id,
+                         'Отчет сохранён.',
+                         reply_markup=types.InlineKeyboardMarkup().add(
+                             types.InlineKeyboardButton('Вернуться', callback_data=f'building_{building_id}_{id}')))
+    else:
+        try:
+            bot.delete_message(msg.chat.id, msg.message_id)
+        except:
+            pass
+        bot.register_next_step_handler(msg, parse_video, start_msg_id, coords, id, photos, type_rep)
+        return
+
 
 # # =========================
 # # Информация о трудящимся(не админ)

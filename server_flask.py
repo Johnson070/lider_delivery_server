@@ -601,8 +601,8 @@ if not __name__ == '__main__':
 
         bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
 
-app.register_blueprint(admin_bp, url_prefix='/')
-app.register_blueprint(moder_bp, url_prefix='/moder')
-app.register_blueprint(user_bp, url_prefix='/user')
+app.register_blueprint(admin_bp, url_prefix='/delivery_bot/')
+app.register_blueprint(moder_bp, url_prefix='/delivery_bot/moder')
+app.register_blueprint(user_bp, url_prefix='/delivery_bot/user')
 
 application = app

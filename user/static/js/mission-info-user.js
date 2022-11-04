@@ -111,39 +111,15 @@ function confirm_pass_mission() {
 }
 
 async function save_report(location) {
+    let type_report = document.querySelector('.btn-type-report-class.selected_type').id.replace('report_type_btn_','')
+
     show_popup('loader_block');
 
-    let selection = document.getElementById('type-report');
-    let type_report = document.querySelector('.btn-type-report-class.selected_type').id.replace('report_type_btn_','')
-    let photos = document.getElementById('photo-report').files;
-    let video = document.getElementById('video-report').files;
-
-    let size = 0;
-    for (var i = 0; i < photos.length; i++)
-        size += photos[i].size;
-
-    if (photos.length == 0 || video.length == 0) {
-        window.parent.window.Telegram.WebApp.showAlert('Все поля обязательны к заполнению');
-        return;
-    }
-    else if (size / 1024.0 / 1024.0 > 10) {
-        window.parent.window.Telegram.WebApp.showAlert('Размер ФОТО должен быть меньше 10 Мб!\n' +
-            'При выборе медиа файлов выберите максимальное сжатие!');
-        return;
-    }
-
     json = {
-        photos: [],
-        video: null,
         type_report: type_report,
         lat: location[1],
         lon: location[0]
     }
-
-    for (var i = 0; i < photos.length; i++) {
-        json['photos'].push(Array.from(new Uint8Array(await photos[i].arrayBuffer())));
-    }
-    json['video'] = Array.from(new Uint8Array(await video[0].arrayBuffer()));
 
     hide_popup('add-report-popup');
     var xmlhttp = new XMLHttpRequest();
@@ -155,7 +131,10 @@ async function save_report(location) {
         if (xmlhttp.readyState == 4) { // Ответ пришёл
             if (xmlhttp.status == 401) location.replace('/manage_bot/unauthorized');
             else if (xmlhttp.status == 200) {
-                if (this.responseText == '0') window.location.reload();
+                if (this.responseText == '0') {
+                    window.parent.window.Telegram.WebApp.disableClosingConfirmation()
+                    window.parent.window.Telegram.WebApp.close()
+                }
                 else if (this.responseText === '1') {
                     window.parent.window.Telegram.WebApp.showAlert('Кажется вы ушли слишком делако от дома.\n' +
                         'Не уходите с места где вы размещали рекламу.\n' +
@@ -181,7 +160,10 @@ async function save_report(location) {
             }
         }
     };
+
+
     geolocation.setTracking(true);
+
 }
 
 

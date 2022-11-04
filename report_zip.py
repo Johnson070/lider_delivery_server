@@ -158,7 +158,7 @@ def get_center_map(id, user_id=None):
         points[1] += point[1]
 
     if points == [0,0]:
-        return jsonpickle.encode([30.19, 59.57], unpicklable=False)
+        return jsonpickle.encode([30.315868, 59.939098], unpicklable=False)
     else:
         points[0] = points[0] / count_reports
         points[1] = points[1] / count_reports

@@ -65,6 +65,13 @@ def get_admin_menu(full_menu=False, role=None):
     return markup
 
 
+def end_send_media(callback_data):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(
+        types.InlineKeyboardButton('Завершить', callback_data=callback_data)
+    )
+
+
 def get_routes_menu(page, id_user = None):
     markup = types.InlineKeyboardMarkup()
     routes = func.get_routes()

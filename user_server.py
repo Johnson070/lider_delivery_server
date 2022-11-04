@@ -8,18 +8,26 @@ from flask import Response, request, render_template, abort
 
 import bot_tg
 import functions as func
+import markups
 import report_zip
 import uuid
+import threading
 
 import settings
+import user_handlers
 from validate import validate_from_request
-
 
 
 def init(user_bp: flask.Blueprint, session: flask.session):
     def unauthorized():
         return Response(render_template('unauthorized.html'), 401)
 
+    def delete_message(message_id):
+        time.sleep(10*60)
+        try:
+            bot_tg.bot.delete_message(session.get('user_id'), message_id)
+        except:
+            pass
 
     @user_bp.route('/', methods=['GET'])
     def main_user():
@@ -146,47 +154,65 @@ def init(user_bp: flask.Blueprint, session: flask.session):
             photos = []
             videos = []
 
-            for photo in json['photos']:
-                msg = bot_tg.bot.send_photo(session.get('user_id'), bytes(photo))
-
-                if not func.check_file_hash(msg.photo[-1].file_unique_id):
-                    try:
-                        bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
-                    except:
-                        pass
-                    return Response('3')
-
-                func.add_photo_to_media(media_photos_uuid, msg.photo[-1].file_id, msg.photo[-1].file_unique_id)
-                try:
-                    bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
-                except:
-                    pass
-                time.sleep(0.5)
-
-            msg = bot_tg.bot.send_video(session.get('user_id'), bytes(json['video']))
-
-            if not func.check_file_hash(msg.video.file_unique_id):
-                try:
-                    bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
-                except:
-                    pass
-                return Response('3')
-
-            try:
-                bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
-            except:
-                pass
-            time.sleep(0.5)
-
             min_distance_to_building = [0, 9999999999999999]
             for key, coords in func.get_coords_buildings(uid, session.get('user_id')).items():
                 distance = func.get_length_locations(coords[0], coords[1], json['lat'], json['lon'])
-                min_distance_to_building = [key, distance] if distance <= min_distance_to_building[1]\
+                min_distance_to_building = [key, distance] if distance <= min_distance_to_building[1] \
                     else min_distance_to_building
-            func.save_report_user(uid, session.get('user_id'),
-                                  (json['lat'], json['lon']),
-                                  media_photos_uuid, msg.video.file_id,
-                                  min_distance_to_building[0], json['type_report'])
+
+            msg = bot_tg.bot.send_message(session.get('user_id'), 'Отправьте фото отчета',
+                                          reply_markup=markups.end_send_media('end_photo_send'))
+
+            # threading.Thread(target=delete_message, args=(msg.message_id, session.get('user_id'))).start()
+
+            bot_tg.bot.clear_step_handler_by_chat_id(session.get('user_id'))
+            bot_tg.bot.register_next_step_handler_by_chat_id(session.get('user_id'), msg,
+                                                             user_handlers.parse_photos_report,
+                                                             (json['lat'], json['lon']), uuid_report,
+                                                             min_distance_to_building[0],
+                                                             json['type_report'], None)
+
+            # for photo in json['photos']:
+            #     msg = bot_tg.bot.send_photo(session.get('user_id'), bytes(photo))
+            #
+            #     if not func.check_file_hash(msg.photo[-1].file_unique_id):
+            #         try:
+            #             bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            #         except:
+            #             pass
+            #         return Response('3')
+            #
+            #     func.add_photo_to_media(media_photos_uuid, msg.photo[-1].file_id, msg.photo[-1].file_unique_id)
+            #     try:
+            #         bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            #     except:
+            #         pass
+            #     time.sleep(0.5)
+            #
+            # msg = bot_tg.bot.send_video(session.get('user_id'), bytes(json['video']))
+            #
+            # if not func.check_file_hash(msg.video.file_unique_id):
+            #     try:
+            #         bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            #     except:
+            #         pass
+            #     return Response('3')
+            #
+            # try:
+            #     bot_tg.bot.delete_message(session.get('user_id'), msg.message_id)
+            # except:
+            #     pass
+            # time.sleep(0.5)
+
+            # min_distance_to_building = [0, 9999999999999999]
+            # for key, coords in func.get_coords_buildings(uid, session.get('user_id')).items():
+            #     distance = func.get_length_locations(coords[0], coords[1], json['lat'], json['lon'])
+            #     min_distance_to_building = [key, distance] if distance <= min_distance_to_building[1]\
+            #         else min_distance_to_building
+            # func.save_report_user(uid, session.get('user_id'),
+            #                       (json['lat'], json['lon']),
+            #                       media_photos_uuid, msg.video.file_id,
+            #                       min_distance_to_building[0], json['type_report'])
 
             return Response('0')
         elif pass_location == 1:
