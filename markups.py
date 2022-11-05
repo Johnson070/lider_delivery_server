@@ -68,8 +68,10 @@ def get_admin_menu(full_menu=False, role=None):
 def end_send_media(callback_data):
     markup = types.InlineKeyboardMarkup()
     markup.add(
-        types.InlineKeyboardButton('Завершить', callback_data=callback_data)
+        types.InlineKeyboardButton('Отменить отправку отчета', callback_data=callback_data)
     )
+
+    return markup
 
 
 def get_routes_menu(page, id_user = None):
@@ -197,20 +199,6 @@ def back_to_clerk_menu(id):
         types.InlineKeyboardButton('Назад', callback_data=f'user_info_{id}')
     )
     return markup
-
-
-# def select_route_to_clerk(id, route_preffix='select_route_'):
-#     routes = func.get_routes()
-#     markup = types.InlineKeyboardMarkup(row_width=1)
-#     markup.add(
-#         *[types.InlineKeyboardButton(i[1], callback_data=f'{route_preffix}{i[0]}_{id}') for i in routes],
-#         row_width=2
-#     )
-#     markup.add(
-#         types.InlineKeyboardButton('Назад', callback_data=f'user_info_{id}'),
-#         row_width=1
-#     )
-#     return markup
 
 
 def get_missons_clerk_by_id(id, route_preffix='select_route_'):

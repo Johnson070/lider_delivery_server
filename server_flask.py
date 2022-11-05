@@ -64,6 +64,7 @@ def not_auth_user():
     return False
 
 
+#TODO: сделать проверку получения ссылки от отчета и ключа
 @admin_bp.before_request
 def check_admin():
     if request.method == 'POST' and request.endpoint == 'admin.validate_query_save':
@@ -274,7 +275,7 @@ def manage_mission(uuid, method):
 @user_bp.route('/get_file', methods=['GET'])
 def get_file_by_file_id():
     if not 'file_id' in request.args.keys():
-        return 'File not found!', 404
+        return abort(404)
 
     file_id = request.args.get('file_id')
 
@@ -285,7 +286,7 @@ def get_file_by_file_id():
         else:
             return Response(file, mimetype='image/jpeg')
 
-    return Response('File not found!', 404)
+    return abort(404)
 
 
 @admin_bp.route('/download/report/<UUID>', methods=['GET'])

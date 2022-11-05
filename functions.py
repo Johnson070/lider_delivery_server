@@ -821,6 +821,57 @@ def kick_rekrut(user_id):
     close_db(conn, cur)
 
 
+def add_request_report(user_id, mission_id, location, building_id, type_rep, msg_id):
+    conn, cur = open_db()
+    cur.execute('''INSERT INTO requests VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                (user_id, mission_id, str(uuid.uuid4()),
+                 location, building_id, type_rep, msg_id,))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def get_photo_id_request_report(user_id):
+    conn, cur = open_db()
+    request = cur.execute('''SELECT photo_id FROM requests WHERE user_id = ?''',
+                          (user_id,)).fetchall()
+    conn.commit()
+    close_db(conn, cur)
+
+    if len(request) > 0:
+        return request[0][0]
+    else:
+        return ''
+
+
+def set_video_id_request_report(user_id, video_id):
+    conn, cur = open_db()
+    cur.execute('''UPDATE requests SET video_id = ? WHERE user_id = ?''',
+                          (user_id, video_id,))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def delete_request_report(user_id):
+    conn, cur = open_db()
+    cur.execute('''DELETE FROM requests WHERE user_id = ?''',
+                (user_id,))
+    conn.commit()
+    close_db(conn, cur)
+
+
+def get_request_report(user_id):
+    conn, cur = open_db()
+    request = cur.execute('''SELECT * FROM requests WHERE user_id = ?''',
+                (user_id,)).fetchall()
+    conn.commit()
+    close_db(conn, cur)
+
+    if len(request) > 0:
+        return list(request[0])
+    else:
+        return []
+
+
 # Генерация псевдослучайных чисел задание зерна
 rd = random.Random()
 rd.seed(datetime.datetime.now().microsecond)

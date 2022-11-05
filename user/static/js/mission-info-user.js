@@ -152,6 +152,11 @@ async function save_report(location) {
                     window.parent.window.Telegram.WebApp.showAlert('Отправка отчетов заблокирована!\n' +
                         'Перезагрузите страницу!');
                 }
+                else if (this.responseText === '-2') {
+                    window.parent.window.Telegram.WebApp.showAlert('Отправка отчетов заблокирована!\n' +
+                        'Вы не завершили отправку предыдущего отчета.\n' +
+                        'Завершите его или отмените отправку.');
+                }
                 hide_popup('loader_block');
             }
             else {
