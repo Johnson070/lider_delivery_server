@@ -36,13 +36,13 @@ def handler_start(msg):
         bot.send_message(msg.chat.id, 'Начало работы!', reply_markup=types.ReplyKeyboardRemove())
         bot.send_message(msg.chat.id, 'Просто бот',
                          reply_markup=markups.get_clerk_menu())
-    else:
-        msg_last = bot.send_message(msg.chat.id, 'Получите ссылку-приглашение у администратора.')
-        # for i in range(0, msg_last.message_id):  # удаление прошлых сообщений в чате()
-        #     try:
-        #         bot.delete_message(msg.chat.id, i, timeout=1)
-        #     except:
-        #         pass
+
+    # msg_last = bot.send_message(msg.chat.id, 'Получите ссылку-приглашение у администратора.')
+    # for i in range(msg_last.message_id-2, msg_last.message_id-500, -1):  # удаление прошлых сообщений в чате()
+    #     try:
+    #         bot.delete_message(msg.chat.id, i, timeout=1)
+    #     except:
+    #         pass
 
 
 @bot.callback_query_handler(lambda call: call.data == 'start' or call.data == 'start_del')

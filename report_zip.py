@@ -2,6 +2,7 @@ import datetime
 import re
 import jsonpickle, uuid
 import functions as func
+import settings
 import settings as sett
 
 from bot_tg import bot
@@ -65,27 +66,25 @@ def get_report(id):
     data = func.get_reports_by_id(id)
 
     reports = ''
-    report = '''
-        <div class="report">
-            <p>
-                Отчет №{0}<br>
-                Дом {1}<br>
-                {2}<br>
-                {3}
-            </p>
-            <div class="media">
-                {4}
-            </div>
-        </div>
-    '''
-    img = '''<div class='report-img'><img src="data:image/png;base64, {0}" /></div>'''
-    video = '''<div class='report-img'><iframe src="data:video/mp4;base64, {0}"  autoplay=0/></div>'''
+    report = '''<div class="report">
+                    <p>
+                        Отчет №{0}<br>
+                        Дом {1}<br>
+                        {2}<br>
+                        {4}<br>
+                        <span style="font-size: 22px;"><b>{3}</b></span>
+                    </p>
+                    <div class="media">
+                        {5}
+                    </div>
+                </div>'''
+    img = '''<div class='report-img'><img src="{0}/photo?file_id={1}" /></div>'''
+    video = '''<iframe src="{0}/video_note?file_id={1}"  autoplay=0></iframe>'''
 
     def bytes_to_base64_string(value: bytes) -> str:
         import base64
         return base64.b64encode(value).decode('ASCII')
 
-    count_reports = len(data)
     for _ in range(0, count_reports):
         addrs = func.get_addr_buildings(mission[3])
         photos_ids = None
@@ -96,10 +95,15 @@ def get_report(id):
 
         medias = ''
         for num in range(0, len(photos_ids)):
-            medias += img.format(bytes_to_base64_string(func.download_file(photos_ids[num])))
-        # medias += video.format(bytes_to_base64_string(func.download_file(data[_][2])))
+            medias += img.format(settings.WEBHOOK_URL_BASE, photos_ids[num])
+        medias += video.format(settings.WEBHOOK_URL_BASE, data[_][2])
 
-        reports += report.format(_+1, data[_][4]+1, datetime.datetime.fromtimestamp(data[_][3]), addrs[str(data[_][4])], medias)
+        reports += report.format(_+1, data[_][4]+1, datetime.datetime.fromtimestamp(data[_][3]),
+                                 func.get_hash(str(datetime.datetime.fromtimestamp(data[_][3]).replace(hour=0, minute=0,
+                                                                                                       second=0,
+                                                                                                       microsecond=0)) +
+                                               str(mission[1])), addrs[str(data[_][4])],
+                                 medias)
 
     from server_flask import render_template
     return render_template('report_template.html',

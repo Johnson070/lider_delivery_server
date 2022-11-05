@@ -71,6 +71,10 @@ def check_admin():
         return
     elif request.method == 'GET' and request.endpoint == 'admin.auth':
         return
+    elif request.method == 'GET' and request.endpoint == 'admin.report_get_video_note':
+        return
+    elif request.method == 'GET' and request.endpoint == 'admin.report_get_photo':
+        return
     elif request.method == 'POST' and request.endpoint == 'admin.webhook':
         return
     elif not (func.get_user_permission(session.get('user_id')) in ['admin']) or \
@@ -268,6 +272,36 @@ def manage_mission(uuid, method):
         return Response(report_zip.get_center_map(uuid), 200)
     else:
         return Response(status=404)
+
+
+@admin_bp.route('/video_note', methods=['GET'])
+def report_get_video_note():
+    if not 'file_id' in request.args.keys():
+        return abort(404)
+
+    file_id = request.args.get('file_id')
+
+    file = func.download_file(file_id)
+    if file is not None:
+        return Response(file, mimetype='video/mp4')
+
+
+    return abort(404)
+
+
+@admin_bp.route('/photo', methods=['GET'])
+def report_get_photo():
+    if not 'file_id' in request.args.keys():
+        return abort(404)
+
+    file_id = request.args.get('file_id')
+
+    file = func.download_file(file_id)
+    if file is not None:
+        return Response(file, mimetype='image/jpeg')
+
+
+    return abort(404)
 
 
 @admin_bp.route('/get_file', methods=['GET'])
@@ -602,8 +636,8 @@ if not __name__ == '__main__':
 
         bot_tg.bot.set_webhook(url=settings.WEBHOOK_URL_BASE + settings.WEBHOOK_URL_PATH)
 
-app.register_blueprint(admin_bp, url_prefix='/delivery_bot/')
-app.register_blueprint(moder_bp, url_prefix='/delivery_bot/moder')
-app.register_blueprint(user_bp, url_prefix='/delivery_bot/user')
+app.register_blueprint(admin_bp, url_prefix='/')
+app.register_blueprint(moder_bp, url_prefix='/moder')
+app.register_blueprint(user_bp, url_prefix='/user')
 
 application = app
