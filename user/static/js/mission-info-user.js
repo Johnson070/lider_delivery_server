@@ -75,16 +75,36 @@ function errorHandler(err) {
         else {
            window.parent.window.Telegram.WebApp.showAlert(`Произошла ошибка перезагрузите страницу!\n`+
                `${err.message}`);
+           show_popup('location-popup');
         }
+
     }
 
 function get_location_save_report(){
-    geolocation.setTracking(false);
-    if(navigator.geolocation && geolocation.getPosition() !== undefined){
-        save_report(ol.proj.toLonLat(geolocation.getPosition()))
+    if(navigator.geolocation){
+        function showLocation(position) {
+            save_report([position.coords.longitude, position.coords.latitude]);
+        }
+        function errorHandler(err) {
+            if(err.code == 1) {
+               window.parent.window.Telegram.WebApp.showAlert("Error: доступ к геолокации запрещен!");
+            }
+            else if( err.code == 2) {
+               window.parent.window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
+            }
+            show_popup('location-popup');
+        }
+
+       // timeout at 60000 milliseconds (60 seconds)
+       var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
+       navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
+
+
+
     } else{
-        window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
-            " смените WebView настройках или поменяйте телефон.");
+        window.parent.window.Telegram.WebApp.showAlert("Браузер не может получить доступ к геолокации!\n" +
+            "Перезагрузите страницу и проверьте включена геолокация на телефоне в настройках.");
+        show_popup('location-popup');
     }
 }
 
@@ -167,7 +187,7 @@ async function save_report(location) {
     };
 
 
-    geolocation.setTracking(true);
+    // geolocation.setTracking(true);
 
 }
 
@@ -261,70 +281,70 @@ function init_map() {
                     view: view
                 });
 
-                geolocation = new ol.Geolocation({
-                    trackingOptions: {
-                        enableHighAccuracy: true,
-                    },
-                    projection: view.getProjection(),
-                });
+                // geolocation = new ol.Geolocation({
+                //     trackingOptions: {
+                //         enableHighAccuracy: true,
+                //     },
+                //     projection: view.getProjection(),
+                // });
 
-                function showLocation(position) {}
-                function errorHandler(err) {
-                    if(err.code == 1) {
-                       window.parent.window.Telegram.WebApp.showAlert("Error: доступ к геолокации запрещен!");
-                    }
-                    else if( err.code == 2) {
-                       window.parent.window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
-                    }
-                    show_popup('location-popup');
-                }
-                function getLocation(){
-                    if(navigator.geolocation){
-                       // timeout at 60000 milliseconds (60 seconds)
-                       var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
-                       navigator.geolocation.watchPosition(showLocation, errorHandler, options);
-                    } else{
-                       window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
-            " смените WebView настройках или поменяйте телефон.");
-                    }
-                }
+            //     function showLocation(position) {}
+            //     function errorHandler(err) {
+            //         if(err.code == 1) {
+            //            window.parent.window.Telegram.WebApp.showAlert("Error: доступ к геолокации запрещен!");
+            //         }
+            //         else if( err.code == 2) {
+            //            window.parent.window.Telegram.WebApp.showAlert("Error: геопозиционирование не доступно!");
+            //         }
+            //         show_popup('location-popup');
+            //     }
+            //     function getLocation(){
+            //         if(navigator.geolocation){
+            //            // timeout at 60000 milliseconds (60 seconds)
+            //            var options = {maximumAge: 10000, timeout:10000, enableHighAccuracy: true};
+            //            navigator.geolocation.getCurrentPosition(showLocation, errorHandler, options);
+            //         } else{
+            //            window.parent.window.Telegram.WebApp.showAlert("Ваш браузер не поддерживает отслеживание геолокации," +
+            // " смените WebView настройках или поменяйте телефон.");
+            //         }
+            //     }
 
-                geolocation.setTracking(true);
+                // geolocation.setTracking(true);
+                //
+                // const accuracyFeature = new ol.Feature();
+                // geolocation.on('change:accuracyGeometry', function () {
+                //   accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+                // });
+                //
+                // const positionFeature = new ol.Feature();
+                // positionFeature.setStyle(
+                //   new ol.style.Style({
+                //     image: new ol.style.Circle({
+                //       radius: 6,
+                //       fill: new ol.style.Fill({
+                //         color: '#3399CC',
+                //       }),
+                //       stroke: new ol.style.Stroke({
+                //         color: '#fff',
+                //         width: 2,
+                //       }),
+                //     }),
+                //   })
+                // );
 
-                const accuracyFeature = new ol.Feature();
-                geolocation.on('change:accuracyGeometry', function () {
-                  accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
-                });
-
-                const positionFeature = new ol.Feature();
-                positionFeature.setStyle(
-                  new ol.style.Style({
-                    image: new ol.style.Circle({
-                      radius: 6,
-                      fill: new ol.style.Fill({
-                        color: '#3399CC',
-                      }),
-                      stroke: new ol.style.Stroke({
-                        color: '#fff',
-                        width: 2,
-                      }),
-                    }),
-                  })
-                );
-
-                geolocation.on('change:position', function () {
-                  const coordinates = geolocation.getPosition();
-
-                  positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
-                });
-
-                new ol.layer.Vector({
-                  map: map,
-                  source: new ol.source.Vector({
-                    features: [accuracyFeature, positionFeature],
-                  })
-                });
-
+                // geolocation.on('change:position', function () {
+                //   const coordinates = geolocation.getPosition();
+                //
+                //   positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
+                // });
+                //
+                // new ol.layer.Vector({
+                //   map: map,
+                //   source: new ol.source.Vector({
+                //     features: [accuracyFeature, positionFeature],
+                //   })
+                // });
+                //
                 new ol.layer.Vector({
                     map: map,
                     source: new ol.source.Vector({

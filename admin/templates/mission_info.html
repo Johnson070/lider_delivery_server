@@ -62,7 +62,7 @@
 </head>
 
 <body onload="init_map()">
-    <button type="button" class="collapsible_menu"><b>Меню</b></button>
+    {# <button type="button" class="collapsible_menu"><b>Меню</b></button> #}
     <div class="content_menu">
       <div class="div-menu-button"><a class="menu_button" type="button" href='/delivery_bot/'><b>Задания</b></a></div>
       <div class="div-menu-button"><a class="menu_button" href='/delivery_bot/routes'>Маршруты</a></div>
@@ -215,19 +215,19 @@
 </body>
 <script>
     var coll = document.getElementsByClassName("collapsible_menu");
-    for (var i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-
-            if (content.style.display === "block" || content.style.display === "grid") {
-                content.style.display = "none";
-            } else {
-                if (content.className.search('report') != -1) content.style.display = 'grid';
-                else content.style.display = "block";
-            }
-        });
-    }
+    {#for (var i = 0; i < coll.length; i++) {#}
+    {#    coll[i].addEventListener("click", function() {#}
+    {#        this.classList.toggle("active");#}
+    {#        var content = this.nextElementSibling;#}
+    {##}
+    {#        if (content.style.display === "block" || content.style.display === "grid") {#}
+    {#            content.style.display = "none";#}
+    {#        } else {#}
+    {#            if (content.className.search('report') != -1) content.style.display = 'grid';#}
+    {#            else content.style.display = "block";#}
+    {#        }#}
+    {#    });#}
+    {#}#}
     get_users('{{ user }}');
     report_block();
 

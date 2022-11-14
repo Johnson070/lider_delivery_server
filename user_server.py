@@ -63,9 +63,10 @@ def init(user_bp: flask.Blueprint, session: flask.session):
 
     @user_bp.route('/info', methods=['GET'])
     def info_user():
+        user = func.get_clerk_by_id(session.get('user_id'))
         return render_template('info.html',
-                               name=func.get_clerk_by_id(session.get('user_id'))[1],
-                               balance='100')
+                               name=user[1],
+                               balance=user[2])
 
     @user_bp.route('/get_missions', methods=['GET'])
     def get_missions():
